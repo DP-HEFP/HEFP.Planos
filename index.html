@@ -748,7 +748,8 @@ async function syncFromCloud() {
   cacheLocal(cloud);
   applyPersistedData(cloud);
   if (state.user) {
-    // Re-ensure week without overwriting existing data, then render
+    // Don't re-render if coordinator has unsaved changes — would reset inputs
+    if (state.user.role === 'coordinator' && state.unsaved > 0) return;
     const wkey = state.currentWeek;
     if (wkey && !((state.schedule[state.activeSvc][state.activeCat]||{})[wkey])) {
       ensureWeek(state.activeSvc, wkey);
@@ -758,9 +759,14 @@ async function syncFromCloud() {
 }
 syncFromCloud();
 
-// Auto-refresh every 30s — always fetch latest from cloud
-setInterval(syncFromCloud, 30000);
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') syncFromCloud(); });
+// Auto-refresh every 30s — pause if coordinator is actively editing
+setInterval(()=>{
+  if(state.user?.role==='coordinator' && state.unsaved>0) return; // don't reset while editing
+  syncFromCloud();
+}, 30000);
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible' && !(state.user?.role==='coordinator' && state.unsaved>0)) syncFromCloud();
+});
 
 // ══════════════════════════════════════
 // UTILS
