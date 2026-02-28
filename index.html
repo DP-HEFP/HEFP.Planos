@@ -67,6 +67,8 @@
   .svc-card[data-svc="UC"]{--sc:var(--uc);}
   .svc-URG{background:rgba(239,68,68,.2);color:var(--red);border:1px solid rgba(239,68,68,.35);}
   .svc-card[data-svc="URG"]{--sc:var(--red);}
+  .svc-IMC{background:rgba(249,115,22,.2);color:var(--orange);border:1px solid rgba(249,115,22,.35);}
+  .svc-card[data-svc="IMC"]{--sc:var(--orange);}
 
   .svc-card.active{border-color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent);}
   .svc-card.active .svc-name{color:var(--sc);}
@@ -100,7 +102,7 @@
   #app{display:none;min-height:100vh;padding-top:var(--safe-t);}
 
   /* TOPBAR */
-  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;height:54px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
+  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;height:54px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;position:relative;}
   .tb-brand{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;flex-shrink:0;}
   .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
   .tb-svc-pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;flex-shrink:0;}
@@ -300,9 +302,9 @@
       <button class="btn btn-primary btn-sm" onclick="installApp()">Instalar</button>
     </div>
 
-    <div class="login-brand">
-      <div class="logo">🏥</div>
-      <div><h1>Hospital Fernando Pessoa</h1><p>Planos de Trabalho</p></div>
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:28px;font-weight:800;letter-spacing:-0.5px;color:var(--text)">Hospital Fernando Pessoa</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">Planos de Trabalho</div>
     </div>
     <h2>Bem-vindo(a)</h2>
     <p>Selecione o serviço e o seu perfil</p>
@@ -310,9 +312,11 @@
     <div class="fg">
       <label>Serviço</label>
       <div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
-        <div class="svc-card" data-svc="ULDM" onclick="selectSvc('ULDM')"><div class="svc-icon">🛏️</div><div class="svc-name">ULDM</div><div class="svc-desc">Longa Duração</div></div>
-        <div class="svc-card" data-svc="UC"   onclick="selectSvc('UC')"><div class="svc-icon">💊</div><div class="svc-name">UC</div><div class="svc-desc">Convalescença</div></div>
-        <div class="svc-card" data-svc="UMDR" onclick="selectSvc('UMDR')"><div class="svc-icon">🩺</div><div class="svc-name">UMDR</div><div class="svc-desc">Média Duração</div></div>
+        <div class="svc-card" data-svc="ULDM" onclick="selectSvc('ULDM')"><div class="svc-icon">🛏️</div><div class="svc-name">ULDM</div><div class="svc-desc">Longa Duração · Piso 4</div></div>
+        <div class="svc-card" data-svc="UC"   onclick="selectSvc('UC')"><div class="svc-icon">💊</div><div class="svc-name">UC</div><div class="svc-desc">Convalescença · Piso 4</div></div>
+        <div class="svc-card" data-svc="IMC"  onclick="selectSvc('IMC')"><div class="svc-icon">🏥</div><div class="svc-name">IMC</div><div class="svc-desc">IMC · Piso 5</div></div>
+        <div class="svc-card" data-svc="IMP3" onclick="selectSvc('IMP3')"><div class="svc-icon">🏨</div><div class="svc-name">IMP3</div><div class="svc-desc">Int. Médico · Piso 3</div></div>
+        <div class="svc-card" data-svc="UMDR" onclick="selectSvc('UMDR')"><div class="svc-icon">🩺</div><div class="svc-name">UMDR</div><div class="svc-desc">Média Duração · Piso 3</div></div>
         <div class="svc-card" data-svc="URG"  onclick="selectSvc('URG')"><div class="svc-icon">🚨</div><div class="svc-name">URG</div><div class="svc-desc">Urgência</div></div>
       </div>
     </div>
@@ -346,6 +350,14 @@
             <div class="coord-av" style="background:var(--red)">AC</div>
             <div class="coord-info"><strong>Adriano Coutinho</strong><span>Enf.º Coordenador</span></div>
           </div>
+          <div class="coord-card" data-coord="Coordenador IMC" onclick="selectCoord('Coordenador IMC')">
+            <div class="coord-av" style="background:var(--orange)">CI</div>
+            <div class="coord-info"><strong>Coordenador IMC</strong><span>Enf.º Coordenador</span></div>
+          </div>
+          <div class="coord-card" data-coord="Coordenador IMP3" onclick="selectCoord('Coordenador IMP3')">
+            <div class="coord-av" style="background:var(--purple)">IP</div>
+            <div class="coord-info"><strong>Coordenador IMP3</strong><span>Enf.º Coordenador</span></div>
+          </div>
         </div>
       </div>
       <div class="fg">
@@ -365,15 +377,22 @@
 <!-- APP -->
 <div id="app">
   <div class="topbar">
-    <div class="tb-brand">🏥 <span>HFP</span></div>
+    <div class="tb-brand">
+      <div style="width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🏥</div>
+      <span>HFP</span>
+    </div>
+    <div style="position:absolute;left:50%;transform:translateX(-50%);font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;pointer-events:none" id="tb-svc-name"></div>
     <div class="tb-right">
       <div class="tb-svc-pills" id="tb-svc-pills" style="display:none;gap:4px;align-items:center">
         <div class="tb-svc-icon" data-svc="ULDM" onclick="switchSvc('ULDM')" title="ULDM">🛏</div>
         <div class="tb-svc-icon" data-svc="UC"   onclick="switchSvc('UC')"   title="UC">💊</div>
+        <div class="tb-svc-icon" data-svc="IMC"  onclick="switchSvc('IMC')"  title="IMC">🏥</div>
+        <div class="tb-svc-icon" data-svc="IMP3" onclick="switchSvc('IMP3')" title="IMP3">🏨</div>
         <div class="tb-svc-icon" data-svc="UMDR" onclick="switchSvc('UMDR')" title="UMDR">🩺</div>
         <div class="tb-svc-icon" data-svc="URG"  onclick="switchSvc('URG')"  title="URG">🚨</div>
       </div>
       <div class="tb-svc-pill" id="tb-svc-pill">—</div>
+      <div id="tb-pass-btn" style="display:none;cursor:pointer;font-size:18px;padding:4px" onclick="showChangePass()" title="Alterar password">🔑</div>
       <div class="notif-wrap" onclick="toggleNotif()">🔔<div class="ndot" id="ndot" style="display:none"></div></div>
       <div class="avatar" id="tb-avatar" onclick="doLogout()" title="Sair">?</div>
     </div>
@@ -398,12 +417,7 @@
       <div class="my-shifts" id="my-shifts"></div>
     </div>
 
-    <div class="stats" id="stats" style="display:none">
-      <div class="stat"><div class="stat-ico">👩‍⚕️</div><div class="stat-lbl">Enfermeiros</div><div class="stat-val" id="s-nurses">—</div></div>
-      <div class="stat"><div class="stat-ico">🌅</div><div class="stat-lbl">Manhã</div><div class="stat-val">5</div></div>
-      <div class="stat"><div class="stat-ico">🌆</div><div class="stat-lbl">Tarde</div><div class="stat-val">5</div></div>
-      <div class="stat"><div class="stat-ico">🌙</div><div class="stat-lbl">Noite</div><div class="stat-val">3</div></div>
-    </div>
+
 
     <!-- Category toggle (dynamic) -->
     <div class="cat-toggle" id="cat-toggle" style="display:none"></div>
@@ -442,6 +456,25 @@
         </div>
         <div class="ed-card" id="ed-body"></div>
       </div>
+
+      <!-- Change password modal -->
+      <div id="pass-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:340px">
+          <h3 style="margin-bottom:16px">🔑 Alterar Password</h3>
+          <div class="fg" style="margin-bottom:12px">
+            <label>Nova password</label>
+            <input type="password" id="new-pass-input" placeholder="Nova password" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 13px;font-size:15px;font-family:inherit;outline:none">
+          </div>
+          <div class="fg" style="margin-bottom:20px">
+            <label>Confirmar password</label>
+            <input type="password" id="new-pass-confirm" placeholder="Repetir password" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 13px;font-size:15px;font-family:inherit;outline:none">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="hideChangePass()">Cancelar</button>
+            <button class="btn btn-success btn-sm" style="flex:1" onclick="saveNewPass()">Guardar</button>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div><!-- /main -->
@@ -449,7 +482,10 @@
   <div class="bottom-nav" id="bottom-nav" style="display:none">
     <div class="bn-tab" data-tab="ULDM" onclick="switchSvc('ULDM')"><span class="bn-icon">🛏</span>ULDM</div>
     <div class="bn-tab" data-tab="UC"   onclick="switchSvc('UC')"><span class="bn-icon">💊</span>UC</div>
+    <div class="bn-tab" data-tab="IMC"  onclick="switchSvc('IMC')"><span class="bn-icon">🏥</span>IMC</div>
+    <div class="bn-tab" data-tab="IMP3" onclick="switchSvc('IMP3')"><span class="bn-icon">🏨</span>IMP3</div>
     <div class="bn-tab" data-tab="UMDR" onclick="switchSvc('UMDR')"><span class="bn-icon">🩺</span>UMDR</div>
+    <div class="bn-tab" data-tab="URG"  onclick="switchSvc('URG')"><span class="bn-icon">🚨</span>URG</div>
   </div>
 
   <div class="save-bar" id="save-bar" style="display:none">
@@ -519,6 +555,7 @@ async function saveToStorage() {
   const data = {
     schedule: state.schedule,
     notifications: state.notifications,
+    customPasswords: state.customPasswords,
     savedAt: new Date().toISOString()
   };
   cacheLocal(data);
@@ -592,82 +629,126 @@ const COORDINATORS = {
   'Marta Cardoso':    { pass:'marta',  svc:'UMDR', color:'var(--purple)', initials:'MC' },
   'Nuno Abreu':       { pass:'nuno',   svc:'ULDM', color:'var(--green)',  initials:'NA' },
   'Adriano Coutinho': { pass:'adriano',svc:'URG',  color:'var(--red)',    initials:'AC' },
+  'Coordenador IMC':  { pass:'IMC',    svc:'IMC',  color:'var(--orange)', initials:'CI' },
+  'Coordenador IMP3': { pass:'IMP3',   svc:'IMP3', color:'var(--purple)', initials:'IP' },
 };
 
 const SERVICES = {
   ULDM:{
     name:'ULDM', label:'Unidade de Longa Duração e Manutenção',
     roomsHint:{
-      manha:['401–403','404–405','406–408','409–410','411–415'],
-      tarde: ['401–403','404–405','406–408','409–410','411–415'],
-      noite: ['401–414','415–426','427–437']
+      manha:['401–403','404–405','406–408','409–410'],
+      tarde: ['401–403','404–405','406–408','409–410'],
+      noite: ['401–410','411–420','421–430','431–437']
     },
     nurses:['Catarina','Rita','Sérgio','Sara','Patrícia P.','Tatiana R.','Beatriz B.','Diana C.','NeoKen','Helena','Filipe','Suna','Vasco','Andressa','Inês Moreira','Beatriz D.','Tmês R.','Tatiana P.','Neuza'],
     sample:{
-      manha:[{name:'Catarina',rooms:'401–403'},{name:'NeoKen',rooms:'404–405'},{name:'Sara',rooms:'406–408'},{name:'Sérgio',rooms:'409–410'},{name:'Tatiana R.',rooms:'411–415'}],
-      tarde: [{name:'Patrícia P.',rooms:'401–403'},{name:'Rita',rooms:'404–405'},{name:'Helena',rooms:'406–408'},{name:'Vasco',rooms:'409–410'},{name:'Andressa',rooms:'411–415'}],
-      noite: [{name:'Beatriz B.',rooms:'401–414'},{name:'Beatriz D.',rooms:'415–426'},{name:'Filipe',rooms:'427–437'}],
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
     },
     auxiliares:['Ana Lopes','Carlos Matos','Fátima Silva','João Ferreira','Maria Costa','Pedro Santos','Rosa Oliveira','Tiago Pinto'],
     auxRoomsHint:{
-      manha:['401–408','409–415','—','—','—'],
-      tarde: ['401–408','409–415','—','—','—'],
-      noite: ['401–415','416–437','—']
+      manha:['401–408','409–415','416–426','427–437'],
+      tarde: ['401–408','409–415','416–426','427–437'],
+      noite: ['401–415','416–426','427–437','—']
     },
     auxSample:{
-      manha:[{name:'Ana Lopes',rooms:'401–408'},{name:'Carlos Matos',rooms:'409–415'},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      tarde: [{name:'Fátima Silva',rooms:'401–408'},{name:'João Ferreira',rooms:'409–415'},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      noite: [{name:'Maria Costa',rooms:'401–415'},{name:'',rooms:''},{name:'',rooms:''}],
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
     }
   },
   UC:{
     name:'UC', label:'Unidade de Convalescença',
     roomsHint:{
-      manha:['306B–308','309–310','311–312','301–303','304–306A'],
-      tarde: ['306B–308','309–310','311–312','301–303','304–306A'],
+      manha:['306B–308','309–310','311–312'],
+      tarde: ['306B–308','309–310','311–312'],
       noite: ['301–306A','306B–312','—']
     },
     nurses:['Ana S.','Helema','Daniela R.','Sílvia','Adriana','Diana Coelho','Beatriz C.','Rafaela','Margarida','Neuza','Beatriz R.','Afonso','Pamelo','Fátima','Daniela P.'],
     sample:{
-      manha:[{name:'Ana S.',rooms:'306B–308'},{name:'Neuza',rooms:'309–310'},{name:'Helema',rooms:'311–312'},{name:'Rafaela',rooms:'301–303'},{name:'Margarida',rooms:'304–306A'}],
-      tarde: [{name:'Ana S.',rooms:'306B–308'},{name:'Beatriz C.',rooms:'309–310'},{name:'Sílvia',rooms:'311–312'},{name:'Afonso',rooms:'301–303'},{name:'Fátima',rooms:'304–306A'}],
-      noite: [{name:'Pamelo',rooms:'301–306A'},{name:'Daniela R.',rooms:'306B–312'},{name:'',rooms:''}],
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
     },
     auxiliares:['Bruno Alves','Carla Neves','Dora Ramos','Eduardo Lima','Filipa Sousa','Graça Mendes','Hugo Correia'],
     auxRoomsHint:{
-      manha:['301–306A','306B–312','—','—','—'],
-      tarde: ['301–306A','306B–312','—','—','—'],
+      manha:['301–306A','306B–312','—'],
+      tarde: ['301–306A','306B–312','—'],
       noite: ['301–312','—','—']
     },
     auxSample:{
-      manha:[{name:'Bruno Alves',rooms:'301–306A'},{name:'Carla Neves',rooms:'306B–312'},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      tarde: [{name:'Dora Ramos',rooms:'301–306A'},{name:'Eduardo Lima',rooms:'306B–312'},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      noite: [{name:'Filipa Sousa',rooms:'301–312'},{name:'',rooms:''},{name:'',rooms:''}],
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+    }
+  },
+  IMC:{
+    name:'IMC', label:'IMC',
+    roomsHint:{
+      manha:['—','—','—'],
+      tarde: ['—','—','—'],
+      noite: ['—','—','—']
+    },
+    nurses:[],
+    sample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+    },
+    auxiliares:[],
+    auxRoomsHint:{
+      manha:['—','—','—'],
+      tarde: ['—','—','—'],
+      noite: ['—','—','—']
+    },
+    auxSample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+    }
+  },
+  IMP3:{
+    name:'IMP3', label:'Internamento Médico Piso 3',
+    roomsHint:{ manha:['—','—','—'], tarde:['—','—','—'], noite:['—','—','—'] },
+    nurses:[],
+    sample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+    },
+    auxiliares:[],
+    auxRoomsHint:{ manha:['—','—','—'], tarde:['—','—','—'], noite:['—','—','—'] },
+    auxSample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
     }
   },
   UMDR:{
     name:'UMDR', label:'Unidade de Média Duração e Reabilitação',
     roomsHint:{
-      manha:['333–335','336–337','338–339','318–321','328–332'],
-      tarde: ['333–335','336–337','338–339','318–321','328–332'],
-      noite: ['318–325','326–332','333–339']
+      manha:['333–335','336–337','338–339','318–321'],
+      tarde: ['333–335','336–337','338–339','318–321'],
+      noite: ['318–325','326–332','333–339','—']
     },
     nurses:['Ana Costa','Rafaela','Beatriz R.','Margarida','Diana Cân','Andreia G.','Afonso','Helena','Luciana','Rui','Amas G.','Diana Coelho','Tânia (CCE)','Vasco','Sérgio','Ana Sofia','Adriana'],
     sample:{
-      manha:[{name:'Ana Costa',rooms:'333–335'},{name:'Mily Ob.',rooms:'336–337'},{name:'Joana L.',rooms:'338–339'},{name:'Andreia G.',rooms:'318–321'},{name:'Rafaela',rooms:'328–332'}],
-      tarde: [{name:'Ana Costa',rooms:'333–335'},{name:'Mily Ob.',rooms:'336–337'},{name:'Helena',rooms:'338–339'},{name:'Luciana',rooms:'318–321'},{name:'Rui',rooms:'328–332'}],
-      noite: [{name:'Mariana',rooms:'318–325'},{name:'Diana C.',rooms:'326–332'},{name:'',rooms:''}],
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
     },
     auxiliares:['Alice Rodrigues','Bernardo Cruz','Célia Martins','Daniel Gomes','Elsa Pereira','Francisco Brito','Guida Monteiro'],
     auxRoomsHint:{
-      manha:['318–326','327–332','333–339','—','—'],
-      tarde: ['318–326','327–332','333–339','—','—'],
-      noite: ['318–329','330–339','—']
+      manha:['318–326','327–332','333–339','—'],
+      tarde: ['318–326','327–332','333–339','—'],
+      noite: ['318–329','330–339','—','—']
     },
     auxSample:{
-      manha:[{name:'Alice Rodrigues',rooms:'318–326'},{name:'Bernardo Cruz',rooms:'327–332'},{name:'Célia Martins',rooms:'333–339'},{name:'',rooms:''},{name:'',rooms:''}],
-      tarde: [{name:'Daniel Gomes',rooms:'318–326'},{name:'Elsa Pereira',rooms:'327–332'},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      noite: [{name:'Francisco Brito',rooms:'318–329'},{name:'',rooms:''},{name:'',rooms:''}],
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
     }
   },
   URG:{
@@ -709,11 +790,14 @@ const state = {
   schedule: {
     ULDM:{ enfermeiros:{}, auxiliares:{} },
     UC:  { enfermeiros:{}, auxiliares:{} },
+    IMC: { enfermeiros:{}, auxiliares:{} },
+    IMP3:{ enfermeiros:{}, auxiliares:{} },
     UMDR:{ enfermeiros:{}, auxiliares:{} },
     URG: { enfermeiros:{}, auxiliares:{} }
   },
   unsaved: 0,
   parsedData: null,
+  customPasswords: {},
   notifications: [
     {id:1,ico:'📋',title:'Plano ULDM publicado',msg:'Plano da semana atual publicado.',time:'Há 2h',read:false},
     {id:2,ico:'⚠️',title:'Alteração UC',msg:'Turno de Quinta-feira Manhã atualizado.',time:'Há 1 dia',read:false},
@@ -737,6 +821,7 @@ function applyPersistedData(persisted) {
     });
   }
   if (persisted.notifications) state.notifications = persisted.notifications;
+  if (persisted.customPasswords) state.customPasswords = persisted.customPasswords;
 }
 
 // Apply cache immediately so app feels instant, then sync cloud in background
@@ -789,9 +874,13 @@ function ensureWeek(svc,wkey){
   if(state.schedule[svc][cat][wkey])return;
   const wdays=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
   const cfg=SERVICES[svc];
-  // Determine slot counts per shift
-  let mCount=5, tCount=5, nCount=3;
-  if(svc==='URG'){
+  // Slot counts per service and category
+  let mCount=3, tCount=3, nCount=3;
+  if(svc==='UC'||svc==='IMC'||svc==='IMP3'){
+    mCount=3; tCount=3; nCount=3;
+  } else if(svc==='ULDM'||svc==='UMDR'){
+    mCount=4; tCount=4; nCount=4;
+  } else if(svc==='URG'){
     if(cat==='enfermeiros') { mCount=4; tCount=4; nCount=4; }
     if(cat==='auxiliares')  { mCount=2; tCount=2; nCount=0; }
   }
@@ -837,14 +926,22 @@ function togglePass(){
   inp.type=inp.type==='password'?'text':'password';
 }
 
+const ADMIN_PASS = 'Diogo2026';
+
+// Custom coordinator passwords (overrides defaults, persisted to cloud)
+// Loaded from cloud on sync
+
 function doLogin(){
   if(!selectedSvc){alert('Selecione um serviço.');return;}
   const role=document.getElementById('login-role').value;
   if(role==='coordinator'){
     if(!selectedCoord){alert('Selecione o coordenador.');return;}
     const coordCfg=COORDINATORS[selectedCoord];
-    if(document.getElementById('login-pass').value!==coordCfg.pass){alert('Código incorreto.');return;}
-    state.user={name:selectedCoord,role:'coordinator',ownSvc:coordCfg.svc};
+    const enteredPass=document.getElementById('login-pass').value;
+    const currentPass=state.customPasswords?.[selectedCoord] || coordCfg.pass;
+    const isAdmin=enteredPass===ADMIN_PASS;
+    if(!isAdmin && enteredPass!==currentPass){alert('Código incorreto.');return;}
+    state.user={name:selectedCoord,role:'coordinator',ownSvc:coordCfg.svc,isAdmin};
     state.activeSvc=coordCfg.svc;
     state.activeCat='enfermeiros';
   } else if(role==='auxiliar'){
@@ -878,6 +975,7 @@ function doLogout(){
   if(state.unsaved>0&&!confirm('Alterações não guardadas. Sair mesmo assim?'))return;
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app').style.display='none';
+  document.getElementById('tb-pass-btn').style.display='none';
   state.user=null; state.unsaved=0; selectedCoord=null;
   document.getElementById('save-bar').style.display='none';
   document.querySelectorAll('.coord-card').forEach(c=>c.classList.remove('active'));
@@ -889,6 +987,10 @@ function doLogout(){
 function setupUI(){
   const{name,role}=state.user;
   const av=document.getElementById('tb-avatar');
+
+  // Set service name in topbar for all roles
+  const svcNameEl=document.getElementById('tb-svc-name');
+  if(svcNameEl) svcNameEl.textContent=SERVICES[state.activeSvc]?.label||'';
   if(role==='coordinator'){
     av.textContent=initials(name);
     if(name==='Marta Cardoso') av.style.background='var(--purple)';
@@ -903,22 +1005,27 @@ function setupUI(){
   }
 
   if(role==='coordinator'){
-    document.getElementById('stats').style.display='grid';
     document.getElementById('coord-panel').style.display='block';
     document.getElementById('editor-section').style.display='block';
     document.getElementById('bottom-nav').style.display='none';
     document.getElementById('storage-bar').style.display='flex';
     document.getElementById('cat-toggle').style.display='flex';
     document.getElementById('tb-svc-pills').style.display='flex';
+    // Show password button only for real coordinators (not admin)
+    document.getElementById('tb-pass-btn').style.display=state.user.isAdmin?'none':'block';
     updateStorageBar(!!loadCache());
   }
   renderNotifs();
 }
 
 function switchSvc(s){
-  if(state.user?.role!=='coordinator')return;
   state.activeSvc=s;
   ensureWeek(s,state.currentWeek);
+  const svcNameEl=document.getElementById('tb-svc-name');
+  if(svcNameEl) svcNameEl.textContent=SERVICES[s]?.label||'';
+  if(state.user?.role!=='coordinator') {
+    document.querySelectorAll('.bn-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===s));
+  }
   renderAll();
 }
 
@@ -949,6 +1056,8 @@ function renderAll(){
   document.getElementById('week-title').textContent=`Semana de ${lbl}`;
   const pill=document.getElementById('tb-svc-pill');
   pill.textContent=svc; pill.className=`tb-svc-pill svc-${svc}`;
+  const svcNameEl=document.getElementById('tb-svc-name');
+  if(svcNameEl) svcNameEl.textContent=SERVICES[svc]?.label||'';
   document.querySelectorAll('.bn-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===svc));
   document.getElementById('pub-badge').innerHTML=week.published
     ?'<span class="badge badge-pub">✅ Pub.</span>'
@@ -1290,6 +1399,27 @@ document.addEventListener('click',e=>{
   const p=document.getElementById('notif-panel');
   if(p&&!p.contains(e.target)&&!e.target.closest('.notif-wrap'))p.classList.remove('open');
 });
+
+function showChangePass(){
+  document.getElementById('new-pass-input').value='';
+  document.getElementById('new-pass-confirm').value='';
+  document.getElementById('pass-modal').style.display='flex';
+}
+function hideChangePass(){
+  document.getElementById('pass-modal').style.display='none';
+}
+function saveNewPass(){
+  const np=document.getElementById('new-pass-input').value.trim();
+  const nc=document.getElementById('new-pass-confirm').value.trim();
+  if(!np){alert('Introduz uma nova password.');return;}
+  if(np!==nc){alert('As passwords não coincidem.');return;}
+  if(np===ADMIN_PASS){alert('Não podes usar a password de administrador.');return;}
+  if(!state.customPasswords) state.customPasswords={};
+  state.customPasswords[state.user.name]=np;
+  hideChangePass();
+  saveToStorage();
+  showToast('🔑 Password alterada com sucesso!');
+}
 
 function showToast(msg){
   document.querySelectorAll('.toast').forEach(t=>t.remove());
