@@ -449,12 +449,41 @@
         <div class="ed-hdr">
           <h3>✏️ Editar Plano</h3>
           <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="triggerImportPhoto()">📷 Importar</button>
             <button class="btn btn-ghost btn-sm" onclick="downloadPDF()">📄 PDF</button>
             <button class="btn btn-ghost btn-sm" onclick="publishPlan()">📢 Publicar</button>
             <button class="btn btn-success btn-sm" onclick="savePlan()">💾 Guardar</button>
           </div>
         </div>
         <div class="ed-card" id="ed-body"></div>
+      </div>
+
+      <!-- Import photo modal -->
+      <div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:400px">
+          <h3 style="margin-bottom:8px">📷 Importar Horário</h3>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Tira uma foto ou carrega uma imagem do horário. O Claude lê os turnos e preenche o plano automaticamente.</p>
+          
+          <div id="import-preview" style="display:none;margin-bottom:12px;text-align:center">
+            <img id="import-img" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--border)">
+          </div>
+
+          <input type="file" id="import-file-input" accept="image/*" capture="environment" style="display:none" onchange="onImportFileSelected(event)">
+          
+          <div id="import-actions-pre" style="display:flex;gap:8px;margin-bottom:12px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="document.getElementById('import-file-input').click()">🖼️ Galeria / Câmara</button>
+          </div>
+
+          <div id="import-status" style="display:none;text-align:center;padding:16px;color:var(--text2);font-size:13px">
+            <div style="font-size:24px;margin-bottom:8px">⏳</div>
+            <div id="import-status-msg">A analisar imagem...</div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="hideImportModal()">Cancelar</button>
+            <button class="btn btn-success btn-sm" style="flex:1" id="import-send-btn" style="display:none" onclick="sendImageToClaude()">🔍 Analisar</button>
+          </div>
+        </div>
       </div>
 
       <!-- Change password modal -->
@@ -792,7 +821,7 @@ const state = {
     UC:  { enfermeiros:{}, auxiliares:{} },
     IMC: { enfermeiros:{}, auxiliares:{} },
     IMP3:{ enfermeiros:{}, auxiliares:{} },
-    UMDR:{ enfermeiros:{}, auxiliares:{} },
+    UMDR:{ enfermeiros:{"2026-02-02":{"published":true,"days":[{"date":"2026-02-02","weekday":"Segunda","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Sandra Arques","rooms":""},{"name":"Adriana Costa","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Maria do Céu","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-03","weekday":"Terça","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Maria do Céu","rooms":""}],"tarde":[{"name":"Sandra Arques","rooms":""},{"name":"Bruno Silva","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"Ana Moreira","rooms":""}],"noite":[{"name":"Beatriz Freitas","rooms":""},{"name":"Jéssica Cordeiro","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-04","weekday":"Quarta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Bruno Silva","rooms":""},{"name":"Jéssica Cordeiro","rooms":""},{"name":"Maria do Céu","rooms":""},{"name":"Tânia Dias","rooms":""}],"noite":[{"name":"Adriana Costa","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-05","weekday":"Quinta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Adriana Costa","rooms":""},{"name":"Francisca Eusébio","rooms":""}],"tarde":[{"name":"Beatriz Freitas","rooms":""},{"name":"Ana Moreira","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Sandra Arques","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-06","weekday":"Sexta","manha":[{"name":"Sandra Arques","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"Maria do Céu","rooms":""}],"tarde":[{"name":"Adriana Costa","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"Juliana Monteiro","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Bruno Silva","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-07","weekday":"Sábado","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Bruno Silva","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"Ana Moreira","rooms":""}],"tarde":[{"name":"Sandra Arques","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Maria do Céu","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Beatriz Freitas","rooms":""},{"name":"Jéssica Cordeiro","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-08","weekday":"Domingo","manha":[{"name":"Bruno Silva","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"Ana Moreira","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Márcia Machado","rooms":""},{"name":"Beatriz Freitas","rooms":""},{"name":"Maria do Céu","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Adriana Costa","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""}]},"2026-02-09":{"published":true,"days":[{"date":"2026-02-09","weekday":"Segunda","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Sandra Arques","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Jéssica Cordeiro","rooms":""}],"tarde":[{"name":"Ana Andrade","rooms":""},{"name":"Adriana Costa","rooms":""},{"name":"Beatriz Freitas","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Cátia Correia","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-10","weekday":"Terça","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Sandra Arques","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Maria do Céu","rooms":""}],"tarde":[{"name":"Ana Andrade","rooms":""},{"name":"Adriana Costa","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Cátia Correia","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-11","weekday":"Quarta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Jéssica Cordeiro","rooms":""},{"name":"Maria do Céu","rooms":""},{"name":"Ana Moreira","rooms":""}],"tarde":[{"name":"Ana Andrade","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Beatriz Freitas","rooms":""},{"name":"Juliana Monteiro","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-12","weekday":"Quinta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Beatriz Freitas","rooms":""},{"name":"Juliana Monteiro","rooms":""},{"name":"Ana Moreira","rooms":""}],"tarde":[{"name":"Maria do Céu","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Adriana Costa","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-13","weekday":"Sexta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Adriana Costa","rooms":""}],"tarde":[{"name":"Beatriz Freitas","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"Maria do Céu","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Sandra Arques","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-14","weekday":"Sábado","manha":[{"name":"Sandra Arques","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"Juliana Monteiro","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Márcia Machado","rooms":""},{"name":"Adriana Costa","rooms":""},{"name":"Ana Moreira","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Jéssica Cordeiro","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-15","weekday":"Domingo","manha":[{"name":"Ana Andrade","rooms":""},{"name":"Juliana Monteiro","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"Ana Moreira","rooms":""}],"tarde":[{"name":"Sandra Arques","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Beatriz Freitas","rooms":""},{"name":"Jéssica Cordeiro","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""}]},"2026-02-16":{"published":true,"days":[{"date":"2026-02-16","weekday":"Segunda","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Beatriz Freitas","rooms":""},{"name":"Jéssica Cordeiro","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Maria do Céu","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"Ana Moreira","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Adriana Costa","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-17","weekday":"Terça","manha":[{"name":"Márcia Machado","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Bruno Silva","rooms":""},{"name":"Francisca Eusébio","rooms":""}],"tarde":[{"name":"Jéssica Cordeiro","rooms":""},{"name":"Juliana Monteiro","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Sandra Arques","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-18","weekday":"Quarta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Sandra Arques","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Ana Andrade","rooms":""}],"tarde":[{"name":"Bruno Silva","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Maria do Céu","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-19","weekday":"Quinta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Juliana Monteiro","rooms":""},{"name":"Maria do Céu","rooms":""},{"name":"Tânia Dias","rooms":""}],"tarde":[{"name":"Sandra Arques","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Adriana Costa","rooms":""},{"name":"Jéssica Cordeiro","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-20","weekday":"Sexta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Jenyffer Almeida","rooms":""},{"name":"Juliana Monteiro","rooms":""}],"tarde":[{"name":"Jéssica Cordeiro","rooms":""},{"name":"Maria do Céu","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Adriana Costa","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-21","weekday":"Sábado","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Márcia Machado","rooms":""},{"name":"Jenyffer Almeida","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Sandra Arques","rooms":""},{"name":"Bruno Silva","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-22","weekday":"Domingo","manha":[{"name":"Sandra Arques","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Bruno Silva","rooms":""},{"name":"Cátia Correia","rooms":""}],"tarde":[{"name":"Márcia Machado","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Maria do Céu","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""}]},"2026-02-23":{"published":true,"days":[{"date":"2026-02-23","weekday":"Segunda","manha":[{"name":"Márcia Machado","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Beatriz Freitas","rooms":""},{"name":"Juliana Monteiro","rooms":""}],"tarde":[{"name":"Sandra Arques","rooms":""},{"name":"Adriana Costa","rooms":""},{"name":"Bruno Silva","rooms":""},{"name":"Cátia Correia","rooms":""}],"noite":[{"name":"Jéssica Cordeiro","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-24","weekday":"Terça","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Beatriz Freitas","rooms":""},{"name":"Jéssica Cordeiro","rooms":""},{"name":"Juliana Monteiro","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-25","weekday":"Quarta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"Ana Moreira","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Ana Andrade","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Adriana Costa","rooms":""},{"name":"Bruno Silva","rooms":""},{"name":"Cátia Correia","rooms":""},{"name":"Maria do Céu","rooms":""}],"obs":""},{"date":"2026-02-26","weekday":"Quinta","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Adriana Costa","rooms":""},{"name":"Bruno Silva","rooms":""},{"name":"Jenyffer Almeida","rooms":""}],"tarde":[{"name":"Sandra Arques","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""}],"noite":[{"name":"Jéssica Cordeiro","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-27","weekday":"Sexta","manha":[{"name":"Jéssica Cordeiro","rooms":""},{"name":"Juliana Monteiro","rooms":""},{"name":"Tânia Dias","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Sandra Arques","rooms":""},{"name":"Márcia Machado","rooms":""},{"name":"Adriana Costa","rooms":""},{"name":"Bruno Silva","rooms":""}],"noite":[{"name":"","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""},{"date":"2026-02-28","weekday":"Sábado","manha":[{"name":"Carina Sousa","rooms":""},{"name":"Ana Andrade","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"tarde":[{"name":"Márcia Machado","rooms":""},{"name":"Beatriz Freitas","rooms":""},{"name":"Jéssica Cordeiro","rooms":""},{"name":"Tânia Dias","rooms":""}],"noite":[{"name":"Francisca Eusébio","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""},{"name":"","rooms":""}],"obs":""}]}}, auxiliares:{} },
     URG: { enfermeiros:{}, auxiliares:{} }
   },
   unsaved: 0,
@@ -813,8 +842,11 @@ function applyPersistedData(persisted) {
       if (!state.schedule[svc]) return;
       const saved = persisted.schedule[svc];
       if (saved.enfermeiros !== undefined || saved.auxiliares !== undefined) {
-        if (saved.enfermeiros) state.schedule[svc].enfermeiros = saved.enfermeiros;
-        if (saved.auxiliares)  state.schedule[svc].auxiliares  = saved.auxiliares;
+        // Only overwrite if cloud has actual week data (not empty)
+        if (saved.enfermeiros && Object.keys(saved.enfermeiros).length > 0)
+          state.schedule[svc].enfermeiros = saved.enfermeiros;
+        if (saved.auxiliares && Object.keys(saved.auxiliares).length > 0)
+          state.schedule[svc].auxiliares = saved.auxiliares;
       } else if (Object.keys(saved).length > 0) {
         state.schedule[svc].enfermeiros = saved;
       }
@@ -1419,6 +1451,192 @@ function saveNewPass(){
   hideChangePass();
   saveToStorage();
   showToast('🔑 Password alterada com sucesso!');
+}
+
+// ══════════════════════════════════════
+// IMPORT HORÁRIO POR FOTO
+// ══════════════════════════════════════
+const CLAUDE_API_KEY = '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';
+let importImageBase64 = null;
+let importImageType = null;
+
+function triggerImportPhoto(){
+  document.getElementById('import-modal').style.display='flex';
+  document.getElementById('import-preview').style.display='none';
+  document.getElementById('import-status').style.display='none';
+  document.getElementById('import-send-btn').style.display='none';
+  document.getElementById('import-actions-pre').style.display='flex';
+  importImageBase64=null; importImageType=null;
+}
+function hideImportModal(){
+  document.getElementById('import-modal').style.display='none';
+}
+
+function onImportFileSelected(e){
+  const file=e.target.files[0]; if(!file) return;
+  importImageType=file.type||'image/jpeg';
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const dataUrl=ev.target.result;
+    importImageBase64=dataUrl.split(',')[1];
+    document.getElementById('import-img').src=dataUrl;
+    document.getElementById('import-preview').style.display='block';
+    document.getElementById('import-send-btn').style.display='block';
+  };
+  reader.readAsDataURL(file);
+  // reset input so same file can be re-selected
+  e.target.value='';
+}
+
+async function sendImageToClaude(){
+  if(!importImageBase64){return;}
+  document.getElementById('import-actions-pre').style.display='none';
+  document.getElementById('import-send-btn').style.display='none';
+  document.getElementById('import-status').style.display='block';
+  document.getElementById('import-status-msg').textContent='A analisar imagem...';
+
+  const svc=state.activeSvc;
+  const prompt=`Analisa este horário de enfermagem/auxiliares e extrai os turnos de cada pessoa para cada dia.
+
+Regras:
+- M1, M118, ou qualquer turno que comece com M = turno "M" (Manhã)
+- T5, T11, ou qualquer turno que comece com T = turno "T" (Tarde)  
+- N2, ou qualquer turno que comece com N = turno "N" (Noite)
+- DC (Descanso Complementar), DS (Descanso Semanal), Fe (Férias), Au (Ausência), Aup = ignorar (pessoa não trabalha)
+- FI (Falta Injustificada) = ignorar
+
+O documento tem dias numerados no topo (ex: 1, 2, 3... 28 ou 31).
+Determina o mês e ano do documento.
+
+Responde APENAS com JSON válido neste formato exato:
+{
+  "mes": 2,
+  "ano": 2026,
+  "pessoas": {
+    "Nome Completo": ["M","","N","T","","M","","T","N","","M","T","","","N","M","","T","","M","N","","T","M","","","N","T"],
+    ...
+  }
+}
+
+O array de cada pessoa tem uma entrada por dia (dia 1 até ao último dia do mês).
+Usa "" para dias em que a pessoa não trabalha (DC, DS, Fe, Au, etc).
+Inclui TODOS os dias do mês mesmo que alguns estejam fora do documento (usa "" nesses casos).`;
+
+  try {
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':CLAUDE_API_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-opus-4-5',
+        max_tokens:4096,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:importImageType,data:importImageBase64}},
+            {type:'text',text:prompt}
+          ]
+        }]
+      })
+    });
+
+    if(!resp.ok){const e=await resp.text();throw new Error(e);}
+    const data=await resp.json();
+    const raw=data.content[0].text;
+    
+    // Extract JSON from response
+    const jsonMatch=raw.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('Resposta inválida da API');
+    const parsed=JSON.parse(jsonMatch[0]);
+
+    document.getElementById('import-status-msg').textContent='A organizar semanas...';
+    applyImportedSchedule(parsed, svc);
+
+  } catch(err){
+    console.error(err);
+    document.getElementById('import-status-msg').textContent='❌ Erro: '+err.message;
+    setTimeout(()=>{
+      document.getElementById('import-status').style.display='none';
+      document.getElementById('import-actions-pre').style.display='flex';
+    },3000);
+  }
+}
+
+function applyImportedSchedule(parsed, svc){
+  const {mes, ano, pessoas} = parsed;
+  
+  // Build a map: "YYYY-MM-DD" -> {M:[], T:[], N:[]}
+  const dayMap={};
+  const daysInMonth=new Date(ano, mes, 0).getDate();
+  
+  for(const [nome, turnos] of Object.entries(pessoas)){
+    for(let d=1;d<=daysInMonth;d++){
+      const t=turnos[d-1]||'';
+      if(!t) continue;
+      const dateStr=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      if(!dayMap[dateStr]) dayMap[dateStr]={M:[],T:[],N:[]};
+      if(t==='M') dayMap[dateStr].M.push(nome);
+      else if(t==='T') dayMap[dateStr].T.push(nome);
+      else if(t==='N') dayMap[dateStr].N.push(nome);
+    }
+  }
+
+  // Group days into weeks (Monday-based)
+  const weekdays=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  function getMonWeek(dateStr){
+    const d=new Date(dateStr+'T00:00:00');
+    const day=d.getDay();
+    const diff=day===0?-6:1-day;
+    const mon=new Date(d);mon.setDate(d.getDate()+diff);
+    return mon.toISOString().split('T')[0];
+  }
+
+  // Determine slot count for service
+  const slotCount=(svc==='UC'||svc==='IMC'||svc==='IMP3')?3:
+                  (svc==='URG')?4:4;
+
+  function padSlots(arr,n){
+    const slots=arr.slice(0,n).map(name=>({name,rooms:''}));
+    while(slots.length<n) slots.push({name:'',rooms:''});
+    return slots;
+  }
+
+  // Build weeks
+  const weeksMap={};
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const wkey=getMonWeek(dateStr);
+    const date=new Date(dateStr+'T00:00:00');
+    const wdIdx=(date.getDay()+6)%7; // 0=Mon
+    const wd=weekdays[wdIdx];
+    if(!weeksMap[wkey]) weeksMap[wkey]={published:true, days:[]};
+    const daySlots=dayMap[dateStr]||{M:[],T:[],N:[]};
+    weeksMap[wkey].days.push({
+      date:dateStr, weekday:wd,
+      manha:padSlots(daySlots.M,slotCount),
+      tarde:padSlots(daySlots.T,slotCount),
+      noite:padSlots(daySlots.N,slotCount),
+      obs:''
+    });
+  }
+
+  // Sort days within each week
+  Object.values(weeksMap).forEach(w=>{
+    w.days.sort((a,b)=>a.date.localeCompare(b.date));
+  });
+
+  // Apply to state
+  const cat=state.activeCat||'enfermeiros';
+  if(!state.schedule[svc]) state.schedule[svc]={enfermeiros:{},auxiliares:{}};
+  Object.assign(state.schedule[svc][cat], weeksMap);
+
+  hideImportModal();
+  renderAll();
+  showToast(`✅ Horário importado! ${Object.keys(weeksMap).length} semanas preenchidas.`);
 }
 
 function showToast(msg){
