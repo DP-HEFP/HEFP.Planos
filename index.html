@@ -315,13 +315,13 @@
     <div class="fg">
       <label>Serviço</label>
       <div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="svc-card" data-svc="URG"  onclick="selectSvc('URG')"><div class="svc-icon">🚨</div><div class="svc-name">URG</div><div class="svc-desc">Urgência</div></div>
+        <div class="svc-card" data-svc="CE"   onclick="selectSvc('CE')"><div class="svc-icon">🩹</div><div class="svc-name">CE</div><div class="svc-desc">Consulta Externa</div></div>
+        <div class="svc-card" data-svc="IMP3" onclick="selectSvc('IMP3')"><div class="svc-icon">🏨</div><div class="svc-name">IMP3</div><div class="svc-desc">Int. Médico · Piso 3</div></div>
+        <div class="svc-card" data-svc="UMDR" onclick="selectSvc('UMDR')"><div class="svc-icon">🩺</div><div class="svc-name">UMDR</div><div class="svc-desc">Média Duração · Piso 3</div></div>
         <div class="svc-card" data-svc="ULDM" onclick="selectSvc('ULDM')"><div class="svc-icon">🛏️</div><div class="svc-name">ULDM</div><div class="svc-desc">Longa Duração · Piso 4</div></div>
         <div class="svc-card" data-svc="UC"   onclick="selectSvc('UC')"><div class="svc-icon">💊</div><div class="svc-name">UC</div><div class="svc-desc">Convalescença · Piso 4</div></div>
         <div class="svc-card" data-svc="IMC"  onclick="selectSvc('IMC')"><div class="svc-icon">🏥</div><div class="svc-name">IMC</div><div class="svc-desc">IMC · Piso 5</div></div>
-        <div class="svc-card" data-svc="IMP3" onclick="selectSvc('IMP3')"><div class="svc-icon">🏨</div><div class="svc-name">IMP3</div><div class="svc-desc">Int. Médico · Piso 3</div></div>
-        <div class="svc-card" data-svc="UMDR" onclick="selectSvc('UMDR')"><div class="svc-icon">🩺</div><div class="svc-name">UMDR</div><div class="svc-desc">Média Duração · Piso 3</div></div>
-        <div class="svc-card" data-svc="URG"  onclick="selectSvc('URG')"><div class="svc-icon">🚨</div><div class="svc-name">URG</div><div class="svc-desc">Urgência</div></div>
-        <div class="svc-card" data-svc="CE"   onclick="selectSvc('CE')"><div class="svc-icon">🔬</div><div class="svc-name">CE</div><div class="svc-desc">Consulta Externa</div></div>
       </div>
     </div>
 
@@ -399,13 +399,13 @@
       </div>
     </div>
     <div class="topbar-row2" id="topbar-row2">
+      <div class="tb-svc-icon" data-svc="URG"  onclick="switchSvc('URG')"  title="URG">🚨</div>
+      <div class="tb-svc-icon" data-svc="CE"   onclick="switchSvc('CE')"   title="CE">🩹</div>
+      <div class="tb-svc-icon" data-svc="IMP3" onclick="switchSvc('IMP3')" title="IMP3">🏨</div>
+      <div class="tb-svc-icon" data-svc="UMDR" onclick="switchSvc('UMDR')" title="UMDR">🩺</div>
       <div class="tb-svc-icon" data-svc="ULDM" onclick="switchSvc('ULDM')" title="ULDM">🛏</div>
       <div class="tb-svc-icon" data-svc="UC"   onclick="switchSvc('UC')"   title="UC">💊</div>
       <div class="tb-svc-icon" data-svc="IMC"  onclick="switchSvc('IMC')"  title="IMC">🏥</div>
-      <div class="tb-svc-icon" data-svc="IMP3" onclick="switchSvc('IMP3')" title="IMP3">🏨</div>
-      <div class="tb-svc-icon" data-svc="UMDR" onclick="switchSvc('UMDR')" title="UMDR">🩺</div>
-      <div class="tb-svc-icon" data-svc="URG"  onclick="switchSvc('URG')"  title="URG">🚨</div>
-      <div class="tb-svc-icon" data-svc="CE"   onclick="switchSvc('CE')"   title="CE">🔬</div>
     </div>
   </div>
 
@@ -419,7 +419,7 @@
     <!-- Storage indicator (coord only) -->
     <div class="storage-bar" id="storage-bar" style="display:none">
       <div class="s-dot" id="s-dot"></div>
-      <span id="s-msg">Dados guardados localmente</span>
+      <span id="s-msg">☁️ Pronto</span>
       <button class="btn btn-ghost btn-sm" style="margin-left:auto;padding:4px 10px;font-size:11px" onclick="exportData()">📤 Exportar</button>
     </div>
 
@@ -520,13 +520,13 @@
   </div><!-- /main -->
 
   <div class="bottom-nav" id="bottom-nav" style="display:none">
+    <div class="bn-tab" data-tab="URG"  onclick="switchSvc('URG')"><span class="bn-icon">🚨</span>URG</div>
+    <div class="bn-tab" data-tab="CE"   onclick="switchSvc('CE')"><span class="bn-icon">🩹</span>CE</div>
+    <div class="bn-tab" data-tab="IMP3" onclick="switchSvc('IMP3')"><span class="bn-icon">🏨</span>IMP3</div>
+    <div class="bn-tab" data-tab="UMDR" onclick="switchSvc('UMDR')"><span class="bn-icon">🩺</span>UMDR</div>
     <div class="bn-tab" data-tab="ULDM" onclick="switchSvc('ULDM')"><span class="bn-icon">🛏</span>ULDM</div>
     <div class="bn-tab" data-tab="UC"   onclick="switchSvc('UC')"><span class="bn-icon">💊</span>UC</div>
     <div class="bn-tab" data-tab="IMC"  onclick="switchSvc('IMC')"><span class="bn-icon">🏥</span>IMC</div>
-    <div class="bn-tab" data-tab="IMP3" onclick="switchSvc('IMP3')"><span class="bn-icon">🏨</span>IMP3</div>
-    <div class="bn-tab" data-tab="UMDR" onclick="switchSvc('UMDR')"><span class="bn-icon">🩺</span>UMDR</div>
-    <div class="bn-tab" data-tab="URG"  onclick="switchSvc('URG')"><span class="bn-icon">🚨</span>URG</div>
-    <div class="bn-tab" data-tab="CE"   onclick="switchSvc('CE')"><span class="bn-icon">🔬</span>CE</div>
   </div>
 
   <div class="save-bar" id="save-bar" style="display:none">
@@ -580,10 +580,10 @@ updateOnline();
 // ══════════════════════════════════════
 // STORAGE — JSONBin cloud + localStorage cache
 // ══════════════════════════════════════
-const JSONBIN_KEY = '$2a$10$WSwa2GSR2kjrgHPSZ0alteVav5m/MWjnizdGQUvTlsEiDLM6Jiduy';
-const JSONBIN_BIN = '69984226ae596e708f39d0b3';
-const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN}`;
-const CACHE_KEY   = 'hfp_planos_cache';
+const JSONBIN_KEY       = '$2a$10$WSwa2GSR2kjrgHPSZ0alteVav5m/MWjnizdGQUvTlsEiDLM6Jiduy';
+const JSONBIN_BIN_SCHED = '69984226ae596e708f39d0b3';           // bin principal — schedule
+const JSONBIN_META_KEY  = 'hfp_meta_bin_id';                    // localStorage key para o ID do bin meta
+const CACHE_KEY         = 'hfp_planos_cache';
 
 function cacheLocal(data) {
   try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch(e) {}
@@ -592,26 +592,50 @@ function loadCache() {
   try { const r = localStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
 }
 
+const JBHDR = { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY };
+const JB    = id => `https://api.jsonbin.io/v3/b/${id}`;
+
+async function getMetaBinId() {
+  let id = localStorage.getItem(JSONBIN_META_KEY);
+  if (id) return id;
+  // Create meta bin on first use
+  try {
+    const resp = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: { ...JBHDR, 'X-Bin-Name': 'hfp-meta', 'X-Private': 'false' },
+      body: JSON.stringify({ customPasswords:{}, notifications:[] })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const json = await resp.json();
+    id = json?.metadata?.id;
+    if (id) { localStorage.setItem(JSONBIN_META_KEY, id); return id; }
+    throw new Error('No bin ID returned');
+  } catch(e) {
+    console.warn('Meta bin create error:', e);
+    return null;
+  }
+}
+
 async function saveToStorage() {
-  const data = {
-    schedule: state.schedule,
-    notifications: state.notifications,
-    customPasswords: state.customPasswords,
-    savedAt: new Date().toISOString()
-  };
-  cacheLocal(data);
+  const schedData = { schedule: state.schedule, savedAt: new Date().toISOString() };
+  const metaData  = { customPasswords: state.customPasswords, notifications: state.notifications, savedAt: new Date().toISOString() };
+  // Cache full state locally
+  cacheLocal({ ...schedData, ...metaData });
   updateStorageBar('saving');
   try {
-    const body = JSON.stringify(data);
-    const resp = await fetch(JSONBIN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: body
+    // Save schedule to bin 1
+    const r1 = await fetch(JB(JSONBIN_BIN_SCHED), {
+      method: 'PUT', headers: JBHDR, body: JSON.stringify(schedData)
     });
-    if (!resp.ok) {
-      const errText = await resp.text();
-      console.warn('JSONBin error:', resp.status, errText);
-      throw new Error('HTTP ' + resp.status + ': ' + errText);
+    if (!r1.ok) throw new Error('Schedule bin HTTP ' + r1.status + ': ' + await r1.text());
+
+    // Save meta to bin 2
+    const metaId = await getMetaBinId();
+    if (metaId) {
+      const r2 = await fetch(JB(metaId), {
+        method: 'PUT', headers: JBHDR, body: JSON.stringify(metaData)
+      });
+      if (!r2.ok) console.warn('Meta bin save error:', r2.status);
     }
     updateStorageBar(true);
   } catch(e) {
@@ -623,10 +647,22 @@ async function saveToStorage() {
 
 async function loadFromCloud() {
   try {
-    const resp = await fetch(JSONBIN_URL + '/latest');
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const json = await resp.json();
-    return json.record || null;
+    // Load schedule
+    const r1 = await fetch(JB(JSONBIN_BIN_SCHED) + '/latest');
+    if (!r1.ok) throw new Error('HTTP ' + r1.status);
+    const j1 = await r1.json();
+    const sched = j1.record || {};
+
+    // Load meta
+    let meta = {};
+    const metaId = localStorage.getItem(JSONBIN_META_KEY);
+    if (metaId) {
+      try {
+        const r2 = await fetch(JB(metaId) + '/latest');
+        if (r2.ok) { const j2 = await r2.json(); meta = j2.record || {}; }
+      } catch(e) { console.warn('Meta bin load error:', e); }
+    }
+    return { ...sched, ...meta };
   } catch(e) {
     console.warn('JSONBin load error:', e);
     return null;
