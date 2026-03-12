@@ -581,8 +581,8 @@ updateOnline();
 // STORAGE — JSONBin cloud + localStorage cache
 // ══════════════════════════════════════
 const JSONBIN_KEY       = '$2a$10$WSwa2GSR2kjrgHPSZ0alteVav5m/MWjnizdGQUvTlsEiDLM6Jiduy';
-const JSONBIN_BIN_SCHED = '69984226ae596e708f39d0b3';           // bin principal — schedule
-const JSONBIN_META_KEY  = 'hfp_meta_bin_id';                    // localStorage key para o ID do bin meta
+const JSONBIN_SCHED_KEY = 'hfp_sched_bin_id';  // localStorage — ID do bin de schedule
+const JSONBIN_META_KEY  = 'hfp_meta_bin_id';   // localStorage — ID do bin de meta
 const CACHE_KEY         = 'hfp_planos_cache';
 
 function cacheLocal(data) {
@@ -592,13 +592,96 @@ function loadCache() {
   try { const r = localStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
 }
 
+// Strip empty/default fields before sending to JSONBin
+function compressSchedule(schedule) {
+  const out = {};
+  for (const [svc, cats] of Object.entries(schedule)) {
+    out[svc] = {};
+    for (const [cat, weeks] of Object.entries(cats)) {
+      if (!Object.keys(weeks).length) continue;
+      out[svc][cat] = {};
+      for (const [wk, wdata] of Object.entries(weeks)) {
+        const days = (wdata.days || []).map(day => {
+          const d = { date: day.date };
+          if (day.weekday) d.wd = day.weekday.slice(0,3); // "Segunda" -> "Seg"
+          if (day.obs) d.obs = day.obs;
+          for (const sk of ['manha','tarde','noite']) {
+            const slots = (day[sk] || []).filter(s => s.name || s.rooms || s.hours || s.rooms2);
+            if (slots.length) {
+              d[sk] = slots.map(s => {
+                const c = {};
+                if (s.name)   c.n = s.name;
+                if (s.hours)  c.h = s.hours;
+                if (s.rooms)  c.r = s.rooms;
+                if (s.rooms2) c.r2= s.rooms2;
+                return c;
+              });
+            }
+          }
+          return d;
+        });
+        out[svc][cat][wk] = { p: wdata.published ? 1 : 0, d: days };
+      }
+    }
+  }
+  return out;
+}
+
+// Restore full structure after loading from JSONBin
+function decompressSchedule(compressed) {
+  const WD_MAP = {Seg:'Segunda',Ter:'Terça',Qua:'Quarta',Qui:'Quinta',Sex:'Sexta',Sáb:'Sábado',Dom:'Domingo'};
+  const out = {};
+  for (const [svc, cats] of Object.entries(compressed || {})) {
+    out[svc] = {};
+    for (const [cat, weeks] of Object.entries(cats || {})) {
+      out[svc][cat] = {};
+      for (const [wk, wdata] of Object.entries(weeks || {})) {
+        const days = (wdata.d || []).map(d => {
+          const day = {
+            date: d.date,
+            weekday: WD_MAP[d.wd] || d.wd || '',
+            obs: d.obs || ''
+          };
+          for (const sk of ['manha','tarde','noite']) {
+            day[sk] = (d[sk] || []).map(s => ({
+              name:   s.n  || '',
+              hours:  s.h  || '',
+              rooms:  s.r  || '',
+              rooms2: s.r2 || ''
+            }));
+          }
+          return day;
+        });
+        out[svc][cat][wk] = { published: !!wdata.p, days };
+      }
+    }
+  }
+  return out;
+}
+
 const JBHDR = { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY };
 const JB    = id => `https://api.jsonbin.io/v3/b/${id}`;
+
+async function getSchedBinId() {
+  let id = localStorage.getItem(JSONBIN_SCHED_KEY);
+  if (id) return id;
+  try {
+    const resp = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: { ...JBHDR, 'X-Bin-Name': 'hfp-schedule', 'X-Private': 'false' },
+      body: JSON.stringify({ schedule:{}, savedAt: new Date().toISOString() })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const json = await resp.json();
+    id = json?.metadata?.id;
+    if (id) { localStorage.setItem(JSONBIN_SCHED_KEY, id); return id; }
+    throw new Error('No bin ID');
+  } catch(e) { console.warn('Sched bin create error:', e); return null; }
+}
 
 async function getMetaBinId() {
   let id = localStorage.getItem(JSONBIN_META_KEY);
   if (id) return id;
-  // Create meta bin on first use
   try {
     const resp = await fetch('https://api.jsonbin.io/v3/b', {
       method: 'POST',
@@ -617,19 +700,24 @@ async function getMetaBinId() {
 }
 
 async function saveToStorage() {
-  const schedData = { schedule: state.schedule, savedAt: new Date().toISOString() };
-  const metaData  = { customPasswords: state.customPasswords, notifications: state.notifications, savedAt: new Date().toISOString() };
-  // Cache full state locally
-  cacheLocal({ ...schedData, ...metaData });
+  const compressed = compressSchedule(state.schedule);
+  const schedData  = { schedule: compressed, savedAt: new Date().toISOString() };
+  const metaData   = { customPasswords: state.customPasswords, notifications: state.notifications, savedAt: new Date().toISOString() };
+  cacheLocal({ schedule: state.schedule, ...metaData });
   updateStorageBar('saving');
+
+  // Log size for debugging
+  const schedSize = JSON.stringify(schedData).length;
+  console.log(`Schedule payload: ${schedSize} bytes (~${Math.round(schedSize/1024)}KB)`);
+
   try {
-    // Save schedule to bin 1
-    const r1 = await fetch(JB(JSONBIN_BIN_SCHED), {
+    const schedId = await getSchedBinId();
+    if (!schedId) throw new Error('Sem bin de schedule');
+    const r1 = await fetch(JB(schedId), {
       method: 'PUT', headers: JBHDR, body: JSON.stringify(schedData)
     });
     if (!r1.ok) throw new Error('Schedule bin HTTP ' + r1.status + ': ' + await r1.text());
 
-    // Save meta to bin 2
     const metaId = await getMetaBinId();
     if (metaId) {
       const r2 = await fetch(JB(metaId), {
@@ -647,13 +735,22 @@ async function saveToStorage() {
 
 async function loadFromCloud() {
   try {
-    // Load schedule
-    const r1 = await fetch(JB(JSONBIN_BIN_SCHED) + '/latest');
+    const schedId = localStorage.getItem(JSONBIN_SCHED_KEY);
+    if (!schedId) return null; // no bin yet, use embedded seeded data
+    const r1 = await fetch(JB(schedId) + '/latest');
     if (!r1.ok) throw new Error('HTTP ' + r1.status);
     const j1 = await r1.json();
-    const sched = j1.record || {};
+    const rec = j1.record || {};
+    // Detect compressed format: compressed has {ULDM:{enfermeiros:{...}}} with short keys inside
+    let sched = {};
+    if (rec.schedule) {
+      const firstSvc = Object.values(rec.schedule)[0];
+      const firstCat = firstSvc ? Object.values(firstSvc)[0] : null;
+      const firstWk  = firstCat ? Object.values(firstCat)[0] : null;
+      const isCompressed = firstWk && ('d' in firstWk || 'p' in firstWk);
+      sched = isCompressed ? decompressSchedule(rec.schedule) : rec.schedule;
+    }
 
-    // Load meta
     let meta = {};
     const metaId = localStorage.getItem(JSONBIN_META_KEY);
     if (metaId) {
@@ -662,7 +759,7 @@ async function loadFromCloud() {
         if (r2.ok) { const j2 = await r2.json(); meta = j2.record || {}; }
       } catch(e) { console.warn('Meta bin load error:', e); }
     }
-    return { ...sched, ...meta };
+    return { schedule: sched, ...meta };
   } catch(e) {
     console.warn('JSONBin load error:', e);
     return null;
