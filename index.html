@@ -593,6 +593,31 @@ function loadCache() {
 }
 
 // Strip empty/default fields before sending to JSONBin
+// Remove weeks older than 1 month before saving
+function pruneOldWeeks(schedule) {
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 1);
+  cutoff.setHours(0,0,0,0);
+  const cutoffStr = cutoff.toISOString().slice(0,10); // "YYYY-MM-DD"
+  const pruned = {};
+  let removed = 0;
+  for (const [svc, cats] of Object.entries(schedule)) {
+    pruned[svc] = {};
+    for (const [cat, weeks] of Object.entries(cats)) {
+      pruned[svc][cat] = {};
+      for (const [wk, wdata] of Object.entries(weeks)) {
+        if (wk >= cutoffStr) {
+          pruned[svc][cat][wk] = wdata;
+        } else {
+          removed++;
+        }
+      }
+    }
+  }
+  if (removed > 0) console.log(`Pruned ${removed} old week(s) before saving`);
+  return pruned;
+}
+
 function compressSchedule(schedule) {
   const out = {};
   for (const [svc, cats] of Object.entries(schedule)) {
@@ -700,7 +725,7 @@ async function getMetaBinId() {
 }
 
 async function saveToStorage() {
-  const compressed = compressSchedule(state.schedule);
+  const compressed = compressSchedule(pruneOldWeeks(state.schedule));
   const schedData  = { schedule: compressed, savedAt: new Date().toISOString() };
   const metaData   = { customPasswords: state.customPasswords, notifications: state.notifications, savedAt: new Date().toISOString() };
   cacheLocal({ schedule: state.schedule, ...metaData });
