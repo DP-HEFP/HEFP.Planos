@@ -581,8 +581,8 @@ updateOnline();
 // STORAGE — JSONBin cloud + localStorage cache
 // ══════════════════════════════════════
 const JSONBIN_KEY       = '$2a$10$WSwa2GSR2kjrgHPSZ0alteVav5m/MWjnizdGQUvTlsEiDLM6Jiduy';
-const JSONBIN_SCHED_KEY = 'hfp_sched_bin_id';  // localStorage — ID do bin de schedule
-const JSONBIN_META_KEY  = 'hfp_meta_bin_id';   // localStorage — ID do bin de meta
+const JSONBIN_BIN_SCHED = '69b3e197c3097a1dd520298f';  // bin schedule (fixo)
+const JSONBIN_BIN_META  = '69b3e1a8b7ec241ddc65828b';  // bin meta (fixo)
 const CACHE_KEY         = 'hfp_planos_cache';
 
 function cacheLocal(data) {
@@ -687,69 +687,27 @@ function decompressSchedule(compressed) {
 const JBHDR = { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY };
 const JB    = id => `https://api.jsonbin.io/v3/b/${id}`;
 
-async function getSchedBinId() {
-  let id = localStorage.getItem(JSONBIN_SCHED_KEY);
-  if (id) return id;
-  try {
-    const resp = await fetch('https://api.jsonbin.io/v3/b', {
-      method: 'POST',
-      headers: { ...JBHDR, 'X-Bin-Name': 'hfp-schedule', 'X-Private': 'false' },
-      body: JSON.stringify({ schedule:{}, savedAt: new Date().toISOString() })
-    });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const json = await resp.json();
-    id = json?.metadata?.id;
-    if (id) { localStorage.setItem(JSONBIN_SCHED_KEY, id); return id; }
-    throw new Error('No bin ID');
-  } catch(e) { console.warn('Sched bin create error:', e); return null; }
-}
-
-async function getMetaBinId() {
-  let id = localStorage.getItem(JSONBIN_META_KEY);
-  if (id) return id;
-  try {
-    const resp = await fetch('https://api.jsonbin.io/v3/b', {
-      method: 'POST',
-      headers: { ...JBHDR, 'X-Bin-Name': 'hfp-meta', 'X-Private': 'false' },
-      body: JSON.stringify({ customPasswords:{}, notifications:[] })
-    });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const json = await resp.json();
-    id = json?.metadata?.id;
-    if (id) { localStorage.setItem(JSONBIN_META_KEY, id); return id; }
-    throw new Error('No bin ID returned');
-  } catch(e) {
-    console.warn('Meta bin create error:', e);
-    return null;
-  }
-}
-
 async function saveToStorage() {
   const compressed = compressSchedule(state.schedule);
   const schedData  = { schedule: compressed, savedAt: new Date().toISOString() };
   const metaData   = { customPasswords: state.customPasswords, notifications: state.notifications, savedAt: new Date().toISOString() };
-  cacheLocal({ schedule: state.schedule, ...metaData });
+  cacheLocal({ schedule: state.schedule, customPasswords: state.customPasswords, notifications: state.notifications });
   updateStorageBar('saving');
 
-  // Log size for debugging
   const schedSize = JSON.stringify(schedData).length;
   console.log(`Schedule payload: ${schedSize} bytes (~${Math.round(schedSize/1024)}KB)`);
 
   try {
-    const schedId = await getSchedBinId();
-    if (!schedId) throw new Error('Sem bin de schedule');
-    const r1 = await fetch(JB(schedId), {
+    const r1 = await fetch(JB(JSONBIN_BIN_SCHED), {
       method: 'PUT', headers: JBHDR, body: JSON.stringify(schedData)
     });
     if (!r1.ok) throw new Error('Schedule bin HTTP ' + r1.status + ': ' + await r1.text());
 
-    const metaId = await getMetaBinId();
-    if (metaId) {
-      const r2 = await fetch(JB(metaId), {
-        method: 'PUT', headers: JBHDR, body: JSON.stringify(metaData)
-      });
-      if (!r2.ok) console.warn('Meta bin save error:', r2.status);
-    }
+    const r2 = await fetch(JB(JSONBIN_BIN_META), {
+      method: 'PUT', headers: JBHDR, body: JSON.stringify(metaData)
+    });
+    if (!r2.ok) console.warn('Meta bin save error:', r2.status);
+
     updateStorageBar(true);
   } catch(e) {
     console.warn('JSONBin save error:', e);
@@ -760,37 +718,28 @@ async function saveToStorage() {
 
 async function loadFromCloud() {
   try {
-    const schedId = localStorage.getItem(JSONBIN_SCHED_KEY);
-    if (!schedId) return null; // no bin yet — use embedded seeded data
-
-    const r1 = await fetch(JB(schedId) + '/latest');
+    const r1 = await fetch(JB(JSONBIN_BIN_SCHED) + '/latest');
     if (!r1.ok) throw new Error('HTTP ' + r1.status);
     const j1 = await r1.json();
     const rec = j1.record || {};
 
-    // Detect compressed format: has 'd' or 'p' keys inside week entries
     let sched = {};
     if (rec.schedule && Object.keys(rec.schedule).length) {
-      const firstSvc  = Object.values(rec.schedule)[0] || {};
-      const firstCat  = Object.values(firstSvc)[0] || {};
-      const firstWk   = Object.values(firstCat)[0] || {};
+      const firstSvc = Object.values(rec.schedule)[0] || {};
+      const firstCat = Object.values(firstSvc)[0] || {};
+      const firstWk  = Object.values(firstCat)[0] || {};
       const isCompressed = 'd' in firstWk || 'p' in firstWk;
       sched = isCompressed ? decompressSchedule(rec.schedule) : rec.schedule;
     }
 
-    // Load meta (passwords + notifications) from bin 2
     let meta = {};
-    const metaId = localStorage.getItem(JSONBIN_META_KEY);
-    if (metaId) {
-      try {
-        const r2 = await fetch(JB(metaId) + '/latest');
-        if (r2.ok) { const j2 = await r2.json(); meta = j2.record || {}; }
-      } catch(e) { console.warn('Meta bin load error:', e); }
-    }
+    try {
+      const r2 = await fetch(JB(JSONBIN_BIN_META) + '/latest');
+      if (r2.ok) { const j2 = await r2.json(); meta = j2.record || {}; }
+    } catch(e) { console.warn('Meta bin load error:', e); }
 
-    // Only return schedule if it actually has data
     return {
-      schedule: Object.keys(sched).length ? sched : null,
+      schedule:        Object.keys(sched).length ? sched : null,
       customPasswords: meta.customPasswords || null,
       notifications:   meta.notifications   || null,
     };
