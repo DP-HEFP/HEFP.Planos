@@ -581,8 +581,8 @@ updateOnline();
 // STORAGE — JSONBin cloud + localStorage cache
 // ══════════════════════════════════════
 const JSONBIN_KEY       = '$2a$10$WSwa2GSR2kjrgHPSZ0alteVav5m/MWjnizdGQUvTlsEiDLM6Jiduy';
-const JSONBIN_BIN_SCHED = '69b3e197c3097a1dd520298f';  // bin schedule (fixo)
-const JSONBIN_BIN_META  = '69b3e1a8b7ec241ddc65828b';  // bin meta (fixo)
+const JSONBIN_BIN_SCHED = '69984226ae596e708f39d0b3';           // bin principal — schedule
+const JSONBIN_META_KEY  = 'hfp_meta_bin_id';                    // localStorage key para o ID do bin meta
 const CACHE_KEY         = 'hfp_planos_cache';
 
 function cacheLocal(data) {
@@ -592,122 +592,51 @@ function loadCache() {
   try { const r = localStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
 }
 
-// Strip empty/default fields before sending to JSONBin
-// Remove weeks older than 1 month before saving
-function pruneOldWeeks(schedule) {
-  const cutoff = new Date();
-  cutoff.setMonth(cutoff.getMonth() - 1);
-  cutoff.setHours(0,0,0,0);
-  const cutoffStr = cutoff.toISOString().slice(0,10); // "YYYY-MM-DD"
-  const pruned = {};
-  let removed = 0;
-  for (const [svc, cats] of Object.entries(schedule)) {
-    pruned[svc] = {};
-    for (const [cat, weeks] of Object.entries(cats)) {
-      pruned[svc][cat] = {};
-      for (const [wk, wdata] of Object.entries(weeks)) {
-        if (wk >= cutoffStr) {
-          pruned[svc][cat][wk] = wdata;
-        } else {
-          removed++;
-        }
-      }
-    }
-  }
-  if (removed > 0) console.log(`Pruned ${removed} old week(s) before saving`);
-  return pruned;
-}
-
-function compressSchedule(schedule) {
-  const out = {};
-  for (const [svc, cats] of Object.entries(schedule)) {
-    out[svc] = {};
-    for (const [cat, weeks] of Object.entries(cats)) {
-      if (!Object.keys(weeks).length) continue;
-      out[svc][cat] = {};
-      for (const [wk, wdata] of Object.entries(weeks)) {
-        const days = (wdata.days || []).map(day => {
-          const d = { date: day.date };
-          if (day.weekday) d.wd = day.weekday.slice(0,3); // "Segunda" -> "Seg"
-          if (day.obs) d.obs = day.obs;
-          for (const sk of ['manha','tarde','noite']) {
-            const slots = (day[sk] || []).filter(s => s.name || s.rooms || s.hours || s.rooms2);
-            if (slots.length) {
-              d[sk] = slots.map(s => {
-                const c = {};
-                if (s.name)   c.n = s.name;
-                if (s.hours)  c.h = s.hours;
-                if (s.rooms)  c.r = s.rooms;
-                if (s.rooms2) c.r2= s.rooms2;
-                return c;
-              });
-            }
-          }
-          return d;
-        });
-        out[svc][cat][wk] = { p: wdata.published ? 1 : 0, d: days };
-      }
-    }
-  }
-  return out;
-}
-
-// Restore full structure after loading from JSONBin
-function decompressSchedule(compressed) {
-  const WD_MAP = {Seg:'Segunda',Ter:'Terça',Qua:'Quarta',Qui:'Quinta',Sex:'Sexta',Sáb:'Sábado',Dom:'Domingo'};
-  const out = {};
-  for (const [svc, cats] of Object.entries(compressed || {})) {
-    out[svc] = {};
-    for (const [cat, weeks] of Object.entries(cats || {})) {
-      out[svc][cat] = {};
-      for (const [wk, wdata] of Object.entries(weeks || {})) {
-        const days = (wdata.d || []).map(d => {
-          const day = {
-            date: d.date,
-            weekday: WD_MAP[d.wd] || d.wd || '',
-            obs: d.obs || ''
-          };
-          for (const sk of ['manha','tarde','noite']) {
-            day[sk] = (d[sk] || []).map(s => ({
-              name:   s.n  || '',
-              hours:  s.h  || '',
-              rooms:  s.r  || '',
-              rooms2: s.r2 || ''
-            }));
-          }
-          return day;
-        });
-        out[svc][cat][wk] = { published: !!wdata.p, days };
-      }
-    }
-  }
-  return out;
-}
-
 const JBHDR = { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY };
 const JB    = id => `https://api.jsonbin.io/v3/b/${id}`;
 
-async function saveToStorage() {
-  const compressed = compressSchedule(state.schedule);
-  const schedData  = { schedule: compressed, savedAt: new Date().toISOString() };
-  const metaData   = { customPasswords: state.customPasswords, notifications: state.notifications, savedAt: new Date().toISOString() };
-  cacheLocal({ schedule: state.schedule, customPasswords: state.customPasswords, notifications: state.notifications });
-  updateStorageBar('saving');
-
-  const schedSize = JSON.stringify(schedData).length;
-  console.log(`Schedule payload: ${schedSize} bytes (~${Math.round(schedSize/1024)}KB)`);
-
+async function getMetaBinId() {
+  let id = localStorage.getItem(JSONBIN_META_KEY);
+  if (id) return id;
+  // Create meta bin on first use
   try {
+    const resp = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: { ...JBHDR, 'X-Bin-Name': 'hfp-meta', 'X-Private': 'false' },
+      body: JSON.stringify({ customPasswords:{}, notifications:[] })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const json = await resp.json();
+    id = json?.metadata?.id;
+    if (id) { localStorage.setItem(JSONBIN_META_KEY, id); return id; }
+    throw new Error('No bin ID returned');
+  } catch(e) {
+    console.warn('Meta bin create error:', e);
+    return null;
+  }
+}
+
+async function saveToStorage() {
+  const schedData = { schedule: state.schedule, savedAt: new Date().toISOString() };
+  const metaData  = { customPasswords: state.customPasswords, notifications: state.notifications, savedAt: new Date().toISOString() };
+  // Cache full state locally
+  cacheLocal({ ...schedData, ...metaData });
+  updateStorageBar('saving');
+  try {
+    // Save schedule to bin 1
     const r1 = await fetch(JB(JSONBIN_BIN_SCHED), {
       method: 'PUT', headers: JBHDR, body: JSON.stringify(schedData)
     });
     if (!r1.ok) throw new Error('Schedule bin HTTP ' + r1.status + ': ' + await r1.text());
 
-    const r2 = await fetch(JB(JSONBIN_BIN_META), {
-      method: 'PUT', headers: JBHDR, body: JSON.stringify(metaData)
-    });
-    if (!r2.ok) console.warn('Meta bin save error:', r2.status);
-
+    // Save meta to bin 2
+    const metaId = await getMetaBinId();
+    if (metaId) {
+      const r2 = await fetch(JB(metaId), {
+        method: 'PUT', headers: JBHDR, body: JSON.stringify(metaData)
+      });
+      if (!r2.ok) console.warn('Meta bin save error:', r2.status);
+    }
     updateStorageBar(true);
   } catch(e) {
     console.warn('JSONBin save error:', e);
@@ -718,31 +647,22 @@ async function saveToStorage() {
 
 async function loadFromCloud() {
   try {
+    // Load schedule
     const r1 = await fetch(JB(JSONBIN_BIN_SCHED) + '/latest');
     if (!r1.ok) throw new Error('HTTP ' + r1.status);
     const j1 = await r1.json();
-    const rec = j1.record || {};
+    const sched = j1.record || {};
 
-    let sched = {};
-    if (rec.schedule && Object.keys(rec.schedule).length) {
-      const firstSvc = Object.values(rec.schedule)[0] || {};
-      const firstCat = Object.values(firstSvc)[0] || {};
-      const firstWk  = Object.values(firstCat)[0] || {};
-      const isCompressed = 'd' in firstWk || 'p' in firstWk;
-      sched = isCompressed ? decompressSchedule(rec.schedule) : rec.schedule;
-    }
-
+    // Load meta
     let meta = {};
-    try {
-      const r2 = await fetch(JB(JSONBIN_BIN_META) + '/latest');
-      if (r2.ok) { const j2 = await r2.json(); meta = j2.record || {}; }
-    } catch(e) { console.warn('Meta bin load error:', e); }
-
-    return {
-      schedule:        Object.keys(sched).length ? sched : null,
-      customPasswords: meta.customPasswords || null,
-      notifications:   meta.notifications   || null,
-    };
+    const metaId = localStorage.getItem(JSONBIN_META_KEY);
+    if (metaId) {
+      try {
+        const r2 = await fetch(JB(metaId) + '/latest');
+        if (r2.ok) { const j2 = await r2.json(); meta = j2.record || {}; }
+      } catch(e) { console.warn('Meta bin load error:', e); }
+    }
+    return { ...sched, ...meta };
   } catch(e) {
     console.warn('JSONBin load error:', e);
     return null;
@@ -981,11 +901,12 @@ const state = {
 // Load persisted data
 function applyPersistedData(persisted) {
   if (!persisted) return;
-  if (persisted.schedule && Object.keys(persisted.schedule).length) {
+  if (persisted.schedule) {
     Object.keys(persisted.schedule).forEach(svc => {
       if (!state.schedule[svc]) return;
       const saved = persisted.schedule[svc];
       if (saved.enfermeiros !== undefined || saved.auxiliares !== undefined) {
+        // Only overwrite if cloud has actual week data (not empty)
         if (saved.enfermeiros && Object.keys(saved.enfermeiros).length > 0)
           state.schedule[svc].enfermeiros = saved.enfermeiros;
         if (saved.auxiliares && Object.keys(saved.auxiliares).length > 0)
@@ -995,8 +916,8 @@ function applyPersistedData(persisted) {
       }
     });
   }
-  if (persisted.notifications != null) state.notifications = persisted.notifications;
-  if (persisted.customPasswords != null) state.customPasswords = persisted.customPasswords;
+  if (persisted.notifications) state.notifications = persisted.notifications;
+  if (persisted.customPasswords) state.customPasswords = persisted.customPasswords;
 }
 
 // Apply cache immediately so app feels instant, then sync cloud in background
