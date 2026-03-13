@@ -761,21 +761,24 @@ async function saveToStorage() {
 async function loadFromCloud() {
   try {
     const schedId = localStorage.getItem(JSONBIN_SCHED_KEY);
-    if (!schedId) return null; // no bin yet, use embedded seeded data
+    if (!schedId) return null; // no bin yet — use embedded seeded data
+
     const r1 = await fetch(JB(schedId) + '/latest');
     if (!r1.ok) throw new Error('HTTP ' + r1.status);
     const j1 = await r1.json();
     const rec = j1.record || {};
-    // Detect compressed format: compressed has {ULDM:{enfermeiros:{...}}} with short keys inside
+
+    // Detect compressed format: has 'd' or 'p' keys inside week entries
     let sched = {};
-    if (rec.schedule) {
-      const firstSvc = Object.values(rec.schedule)[0];
-      const firstCat = firstSvc ? Object.values(firstSvc)[0] : null;
-      const firstWk  = firstCat ? Object.values(firstCat)[0] : null;
-      const isCompressed = firstWk && ('d' in firstWk || 'p' in firstWk);
+    if (rec.schedule && Object.keys(rec.schedule).length) {
+      const firstSvc  = Object.values(rec.schedule)[0] || {};
+      const firstCat  = Object.values(firstSvc)[0] || {};
+      const firstWk   = Object.values(firstCat)[0] || {};
+      const isCompressed = 'd' in firstWk || 'p' in firstWk;
       sched = isCompressed ? decompressSchedule(rec.schedule) : rec.schedule;
     }
 
+    // Load meta (passwords + notifications) from bin 2
     let meta = {};
     const metaId = localStorage.getItem(JSONBIN_META_KEY);
     if (metaId) {
@@ -784,7 +787,13 @@ async function loadFromCloud() {
         if (r2.ok) { const j2 = await r2.json(); meta = j2.record || {}; }
       } catch(e) { console.warn('Meta bin load error:', e); }
     }
-    return { schedule: sched, ...meta };
+
+    // Only return schedule if it actually has data
+    return {
+      schedule: Object.keys(sched).length ? sched : null,
+      customPasswords: meta.customPasswords || null,
+      notifications:   meta.notifications   || null,
+    };
   } catch(e) {
     console.warn('JSONBin load error:', e);
     return null;
@@ -1023,12 +1032,11 @@ const state = {
 // Load persisted data
 function applyPersistedData(persisted) {
   if (!persisted) return;
-  if (persisted.schedule) {
+  if (persisted.schedule && Object.keys(persisted.schedule).length) {
     Object.keys(persisted.schedule).forEach(svc => {
       if (!state.schedule[svc]) return;
       const saved = persisted.schedule[svc];
       if (saved.enfermeiros !== undefined || saved.auxiliares !== undefined) {
-        // Only overwrite if cloud has actual week data (not empty)
         if (saved.enfermeiros && Object.keys(saved.enfermeiros).length > 0)
           state.schedule[svc].enfermeiros = saved.enfermeiros;
         if (saved.auxiliares && Object.keys(saved.auxiliares).length > 0)
@@ -1038,8 +1046,8 @@ function applyPersistedData(persisted) {
       }
     });
   }
-  if (persisted.notifications) state.notifications = persisted.notifications;
-  if (persisted.customPasswords) state.customPasswords = persisted.customPasswords;
+  if (persisted.notifications != null) state.notifications = persisted.notifications;
+  if (persisted.customPasswords != null) state.customPasswords = persisted.customPasswords;
 }
 
 // Apply cache immediately so app feels instant, then sync cloud in background
