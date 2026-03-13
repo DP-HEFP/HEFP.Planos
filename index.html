@@ -725,7 +725,7 @@ async function getMetaBinId() {
 }
 
 async function saveToStorage() {
-  const compressed = compressSchedule(pruneOldWeeks(state.schedule));
+  const compressed = compressSchedule(state.schedule);
   const schedData  = { schedule: compressed, savedAt: new Date().toISOString() };
   const metaData   = { customPasswords: state.customPasswords, notifications: state.notifications, savedAt: new Date().toISOString() };
   cacheLocal({ schedule: state.schedule, ...metaData });
