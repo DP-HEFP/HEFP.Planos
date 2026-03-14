@@ -1860,12 +1860,14 @@ function processXlsImport(){
       if(first==='M') return 'M';
       if(first==='T') return 'T';
       if(first==='N') return 'N';
-      // Siglas PMT
-      if(/^M\d/.test(first)) return 'M';
-      if(/^T\d/.test(first)) return 'T';
-      if(first==='S1') return 'N';
-      // N2: para auxiliares = turno de noite; para enfermeiros = continuação (ignorar)
-      if(first==='N2') return (xlsXlsCat==='auxiliares') ? 'N' : '';
+      // Siglas PMT — enfermeiros
+      if(/^M\d/.test(first)) return 'M';          // M1 M2 M30 = Manhã
+      if(first==='S1') return 'N';                // enfermeiros: S1 (20h-24h) = Noite
+      if(first==='N2' && xlsXlsCat==='auxiliares') return 'N'; // auxiliares: N2 = Noite (recua 1 dia)
+      if(first==='N2') return '';                 // enfermeiros: N2 (00h-08h) = continuação — ignorar
+      // Siglas PMT — auxiliares
+      if(first==='T5') return 'T';                // auxiliares: T5 = Tarde
+      if(/^T\d/.test(first)) return 'T';          // T1, T2... = Tarde
       return ''; // DS DC Fe Aup etc → ignorar
     }
 
@@ -1887,10 +1889,6 @@ function processXlsImport(){
     const daysInMonth = new Date(ano, mes, 0).getDate();
     let totalTurnos = 0;
 
-    // Para auxiliares o turno de noite (N2) pertence ao dia ANTERIOR
-    // ex: N2 assinalado no dia 5 → aparece na noite do dia 4
-    const isAux = (cat === 'auxiliares');
-
     for(const row of dataRows){
       const nome = extractName(row[0]);
       if(!nome || nome.toLowerCase().startsWith('exemplo')) continue;
@@ -1899,9 +1897,7 @@ function processXlsImport(){
         if(ci===undefined || ci>=row.length) continue;
         const val = siglaTurno(row[ci]);
         if(!val) continue;
-        // Auxiliares: noite recua um dia (mas nunca antes do dia 1)
-        const targetDay = (isAux && val==='N' && d > 1) ? d - 1 : d;
-        const dateStr = `${ano}-${String(mes).padStart(2,'0')}-${String(targetDay).padStart(2,'0')}`;
+        const dateStr = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         if(!dayMap[dateStr]) dayMap[dateStr]={M:[],T:[],N:[]};
         dayMap[dateStr][val].push(nome);
         totalTurnos++;
