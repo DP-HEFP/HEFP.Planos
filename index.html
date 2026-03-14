@@ -2355,7 +2355,7 @@ function coreXlsImport(rows,svc,cat,merge,allowedNames){
       // Upload TL: Adriano comporta-se como substituto da Pediatria
       // Se não há nenhum elemento de Pediatria nesse dia, vai para slot 1 ou 2
       // Se há elementos de Pediatria, vai para slot 0 (Adultos)
-      if(isTL || window._isTLImport){
+      if(window._isTLImport){
         // Adriano é tratado como substituto de Pediatria
         // Não preencher aqui — deixar a lógica normal tratar (isUrgPedSub já inclui Adriano)
         // Apenas retornar slots vazios para o merge adicionar depois
