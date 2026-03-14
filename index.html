@@ -1564,7 +1564,7 @@ function renderDay(day){
     const isN5=slots.length>=5;
     const cells=slots.map((slot,i)=>{
       const nm=slot.name||'';
-      const lbl=postos?postos[i]:`${posPrefix}${i+1}`;
+      const lbl=postos?(postos[i]||`${posPrefix}${i+1}`):`${posPrefix}${i+1}`;
       const hrs=slot.hours||'';
       return `<div class="nurse-cell">
         <div class="nc-pos" style="${postos?'font-size:8.5px;line-height:1.1':''}">${lbl}</div>
