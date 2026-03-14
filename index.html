@@ -685,8 +685,8 @@ async function saveToStorage() {
 
 async function loadFromCloud() {
   try {
-    // Load schedule
-    const r1 = await fetch(JB(JSONBIN_BIN_SCHED) + '/latest');
+    // Load schedule (X-Master-Key obrigatório mesmo em GET)
+    const r1 = await fetch(JB(JSONBIN_BIN_SCHED) + '/latest', { headers: JBHDR });
     if (!r1.ok) throw new Error('HTTP ' + r1.status);
     const j1 = await r1.json();
     const sched = j1.record || {};
@@ -696,7 +696,7 @@ async function loadFromCloud() {
     const metaId = localStorage.getItem(JSONBIN_META_KEY);
     if (metaId) {
       try {
-        const r2 = await fetch(JB(metaId) + '/latest');
+        const r2 = await fetch(JB(metaId) + '/latest', { headers: JBHDR });
         if (r2.ok) { const j2 = await r2.json(); meta = j2.record || {}; }
       } catch(e) { console.warn('Meta bin load error:', e); }
     }
