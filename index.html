@@ -356,17 +356,17 @@
             <div class="coord-av" style="background:var(--red)">AC</div>
             <div class="coord-info"><strong>Adriano Coutinho</strong><span>Enf.º Team Leader</span></div>
           </div>
-          <div class="coord-card" data-coord="Coordenador IMC" onclick="selectCoord('Coordenador IMC')">
+          <div class="coord-card" data-coord="Enf.º Team Leader IMC" onclick="selectCoord('Enf.º Team Leader IMC')">
             <div class="coord-av" style="background:var(--orange)">CI</div>
-            <div class="coord-info"><strong>Coordenador IMC</strong><span>Enf.º Team Leader</span></div>
+            <div class="coord-info"><strong>Enf.º Team Leader IMC</strong><span>Enf.º Team Leader</span></div>
           </div>
-          <div class="coord-card" data-coord="Coordenador IMP3" onclick="selectCoord('Coordenador IMP3')">
+          <div class="coord-card" data-coord="Enf.º Team Leader IMP3" onclick="selectCoord('Enf.º Team Leader IMP3')">
             <div class="coord-av" style="background:var(--purple)">IP</div>
-            <div class="coord-info"><strong>Coordenador IMP3</strong><span>Enf.º Team Leader</span></div>
+            <div class="coord-info"><strong>Enf.º Team Leader IMP3</strong><span>Enf.º Team Leader</span></div>
           </div>
-          <div class="coord-card" data-coord="Coordenador CE" onclick="selectCoord('Coordenador CE')">
+          <div class="coord-card" data-coord="Enf.º Team Leader CE" onclick="selectCoord('Enf.º Team Leader CE')">
             <div class="coord-av" style="background:#0ea5e9">CC</div>
-            <div class="coord-info"><strong>Coordenador CE</strong><span>Enf.º Team Leader</span></div>
+            <div class="coord-info"><strong>Enf.º Team Leader CE</strong><span>Enf.º Team Leader</span></div>
           </div>
         </div>
       </div>
@@ -463,9 +463,33 @@
 
     <div class="sched-wrap"><div id="sched-body"></div></div>
 
+    <!-- Painel Upload de Escalas (só Enfermeiro Coordenador) -->
+    <div id="multi-upload-panel" style="display:none;margin-top:14px">
+      <div class="section-card">
+        <div class="section-head">
+          <h3>📊 Upload de Escalas</h3>
+          <p id="multi-month-label" style="font-size:12px;color:var(--text2)">Seleciona um serviço e categoria para importar</p>
+        </div>
+        <div class="section-body" style="padding:10px">
+          <!-- Checklist de serviços -->
+          <div id="multi-svc-list"></div>
+          <!-- Input escondido -->
+          <input type="file" id="multi-file-input" accept=".xls,.xlsx" style="display:none" onchange="onMultiFileSelected(event)">
+          <!-- Status -->
+          <div id="multi-status" style="display:none;font-size:12px;color:var(--text2);padding:10px;background:var(--bg3);border-radius:8px;margin-top:10px;text-align:center"></div>
+          <!-- Botões Guardar / Publicar -->
+          <div id="supercoord-actions" style="display:none;margin-top:12px;gap:8px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="superSave()">💾 Guardar</button>
+            <button class="btn btn-success btn-sm" style="flex:1" onclick="superPublishAll()">📢 Publicar todas as escalas</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Coordinator panel -->
     <div class="coord-panel" id="coord-panel">
       <div class="sep"></div>
+
 
       <div class="editor-section" id="editor-section">
         <div class="ed-hdr">
@@ -530,34 +554,6 @@
           <div style="display:flex;gap:8px;margin-top:4px">
             <button class="btn btn-ghost btn-sm" style="flex:1" onclick="hideImportModal()">Cancelar</button>
             <button class="btn btn-success btn-sm" id="xls-import-btn" style="flex:1;display:none" onclick="processXlsImport()">✅ Importar</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Painel Upload Múltiplo (só Enfermeiro Coordenador) -->
-      <div id="multi-upload-panel" style="display:none;margin-bottom:14px">
-        <div class="section-card">
-          <div class="section-head">
-            <h3>📊 Upload de Escalas</h3>
-            <p>Carrega vários ficheiros Excel — distribuídos automaticamente pelos serviços</p>
-          </div>
-          <div class="section-body">
-            <div onclick="document.getElementById('multi-file-input').click()"
-              style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin-bottom:12px"
-              ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
-              ondragleave="this.style.borderColor='var(--border)'"
-              ondrop="onMultiDrop(event)">
-              <div style="font-size:32px;margin-bottom:8px">📂</div>
-              <div style="font-size:13px;font-weight:600">Clica ou arrasta os ficheiros aqui</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:4px">Aceita vários .xls ao mesmo tempo</div>
-            </div>
-            <input type="file" id="multi-file-input" accept=".xls,.xlsx" multiple style="display:none" onchange="onMultiFileSelected(event)">
-            <div id="multi-file-list" style="display:none;margin-bottom:12px"></div>
-            <div id="multi-status" style="display:none;font-size:12px;color:var(--text2);padding:10px;background:var(--bg3);border-radius:8px;margin-bottom:12px"></div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-ghost btn-sm" style="flex:1" onclick="multiClear()">🗑️ Limpar</button>
-              <button class="btn btn-success btn-sm" style="flex:1" id="multi-import-btn" style="display:none" onclick="processMultiImport()">✅ Importar todos</button>
-            </div>
           </div>
         </div>
       </div>
@@ -806,9 +802,9 @@ const COORDINATORS = {
   'Marta Cardoso':    { pass:'marta',  svc:'UMDR', color:'var(--purple)', initials:'MC' },
   'Nuno Abreu':       { pass:'nuno',   svc:'ULDM', color:'var(--green)',  initials:'NA' },
   'Adriano Coutinho': { pass:'adriano',svc:'URG',  color:'var(--red)',    initials:'AC' },
-  'Coordenador IMC':  { pass:'IMC',    svc:'IMC',  color:'var(--orange)', initials:'CI' },
-  'Coordenador IMP3': { pass:'IMP3',   svc:'IMP3', color:'var(--purple)', initials:'IP' },
-  'Coordenador CE':   { pass:'CE',     svc:'CE',   color:'#0ea5e9',       initials:'CC' },
+  'Enf.º Team Leader IMC':  { pass:'IMC',    svc:'IMC',  color:'var(--orange)', initials:'TI' },
+  'Enf.º Team Leader IMP3': { pass:'IMP3',   svc:'IMP3', color:'var(--purple)', initials:'TP' },
+  'Enf.º Team Leader CE':   { pass:'CE',     svc:'CE',   color:'#0ea5e9',       initials:'TC' },
 };
 
 const SERVICES = {
@@ -1211,6 +1207,7 @@ function doLogout(){
   document.getElementById('tb-pass-btn').style.display='none';
   document.getElementById('topbar-row2').classList.remove('visible');
   document.getElementById('multi-upload-panel').style.display='none';
+  document.getElementById('supercoord-actions').style.display='none';
   document.getElementById('supercoord-grp').style.display='none';
   state.user=null; state.unsaved=0; selectedCoord=null;
   document.getElementById('save-bar').style.display='none';
@@ -1233,13 +1230,6 @@ function setupUI(){
   if(role==='supercoord'){
     av.textContent='EC';
     av.style.background='linear-gradient(135deg,var(--accent),var(--purple))';
-    document.getElementById('topbar-row2').classList.add('visible');
-    document.getElementById('storage-bar').style.display='flex';
-    document.getElementById('multi-upload-panel').style.display='block';
-    document.getElementById('coord-panel').style.display='none';
-    document.getElementById('cat-toggle').style.display='none';
-    document.getElementById('tb-pass-btn').style.display='none';
-    updateSvcIcons();
   } else if(role==='coordinator'){
     av.textContent=initials(name);
     if(name==='Marta Cardoso') av.style.background='var(--purple)';
@@ -1248,21 +1238,32 @@ function setupUI(){
   } else if(role==='auxiliar'){
     av.textContent='AS';
     av.style.background='var(--orange)';
+    // Auxiliar: esconder toggle, mostrar só label
+    document.getElementById('cat-toggle').style.display='none';
   } else {
     av.textContent='ENF';
     av.style.background='var(--accent)';
+    // Enfermeiro: esconder toggle, mostrar só label
+    document.getElementById('cat-toggle').style.display='none';
   }
 
-  if(role==='coordinator'){
+  if(role==='coordinator' || role==='supercoord'){
+    const svc=state.activeSvc;
     document.getElementById('coord-panel').style.display='block';
     document.getElementById('editor-section').style.display='block';
     document.getElementById('bottom-nav').style.display='none';
     document.getElementById('storage-bar').style.display='flex';
     document.getElementById('cat-toggle').style.display=(svc==='CE')?'none':'flex';
     document.getElementById('topbar-row2').classList.add('visible');
-    // Show password button only for real coordinators (not admin)
-    document.getElementById('tb-pass-btn').style.display=state.user.isAdmin?'none':'block';
+    document.getElementById('tb-pass-btn').style.display='none';
     updateStorageBar(!!loadCache());
+    updateSvcIcons();
+    // Painel de upload e botões só para supercoord
+    if(role==='supercoord'){
+      document.getElementById('multi-upload-panel').style.display='block';
+      document.getElementById('supercoord-actions').style.display='flex';
+      setTimeout(renderMultiPanel, 50);
+    }
   }
   renderNotifs();
 }
@@ -1272,8 +1273,13 @@ function switchSvc(s){
   ensureWeek(s,state.currentWeek);
   const svcNameEl=document.getElementById('tb-svc-name');
   if(svcNameEl) svcNameEl.textContent=s||'';
-  if(state.user?.role!=='coordinator') {
+  if(state.user?.role!=='coordinator' && state.user?.role!=='supercoord') {
     document.querySelectorAll('.bn-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===s));
+  }
+  // Atualizar cat-toggle para coordinator e supercoord
+  if(state.user?.role==='coordinator' || state.user?.role==='supercoord'){
+    const ct=document.getElementById('cat-toggle');
+    if(ct) ct.style.display=(s==='CE')?'none':'flex';
   }
   renderAll();
 }
@@ -1319,13 +1325,13 @@ function renderAll(){
 
   // Render dynamic cat toggle
   const catToggle=document.getElementById('cat-toggle');
-  if(catToggle && state.user?.role==='coordinator'){
+  if(catToggle && (state.user?.role==='coordinator' || state.user?.role==='supercoord')){
     catToggle.innerHTML=`
       <button class="cat-btn${cat==='enfermeiros'?' active-enf':''}" onclick="switchCat('enfermeiros')">👩‍⚕️ Enfermeiros</button>
       <button class="cat-btn${cat==='auxiliares'?' active-aux':''}" onclick="switchCat('auxiliares')">🏥 Auxiliares de Saúde</button>`;
   }
 
-  // Update topbar svc icons (coordinator only)
+  // Update topbar svc icons (coordinator / supercoord)
   if(state.user?.role==='coordinator'){
     const ownSvc=state.user.ownSvc;
     const isOwn=svc===ownSvc;
@@ -1337,6 +1343,17 @@ function renderAll(){
     document.getElementById('coord-panel').style.display=isOwn?'block':'none';
     document.getElementById('cat-toggle').style.display=(isOwn&&svc!=='CE')?'flex':'none';
     document.getElementById('readonly-banner').style.display=isOwn?'none':'flex';
+  } else if(state.user?.role==='supercoord'){
+    document.querySelectorAll('.tb-svc-icon').forEach(el=>{
+      el.className='tb-svc-icon'+(el.dataset.svc===svc?' active':'');
+    });
+    document.getElementById('editor-section').style.display='none';
+    document.getElementById('coord-panel').style.display='block';
+    document.getElementById('cat-toggle').style.display=svc==='CE'?'none':'flex';
+    document.getElementById('readonly-banner').style.display='none';
+    document.getElementById('multi-upload-panel').style.display='block';
+    document.getElementById('supercoord-actions').style.display='flex';
+    renderMultiPanel();
   }
 
   renderSchedule(week);
@@ -1843,10 +1860,205 @@ function processXlsImport(){
 }
 
 // ══════════════════════════════════════
-// UPLOAD MÚLTIPLO (Enfermeiro Coordenador)
+// UPLOAD DE ESCALAS (Enfermeiro Coordenador)
 // ══════════════════════════════════════
-let multiFiles=[];
 
+// Estado do upload: qual slot está selecionado
+// slot = {svc, cat}  ex: {svc:'IMC', cat:'enfermeiros'}
+let multiSelectedSlot = null;
+
+// Mapa de uploads feitos: "SVC|cat|YYYY-MM" = true
+// Persiste em localStorage
+const MULTI_DONE_KEY = 'hfp_upload_done';
+function multiGetDone(){ try{ return JSON.parse(localStorage.getItem(MULTI_DONE_KEY)||'{}'); }catch(e){return{};} }
+function multiSetDone(svc,cat,mes,ano){ const d=multiGetDone(); d[`${svc}|${cat}|${ano}-${String(mes).padStart(2,'0')}`]=true; localStorage.setItem(MULTI_DONE_KEY,JSON.stringify(d)); }
+function multiIsDone(svc,cat,mes,ano){ return !!multiGetDone()[`${svc}|${cat}|${ano}-${String(mes).padStart(2,'0')}`]; }
+
+const MULTI_SVCS = ['URG','CE','IMP3','UMDR','ULDM','UC','IMC'];
+const MULTI_CATS = ['enfermeiros','auxiliares'];
+const SVC_ICONS  = {URG:'🚨',CE:'🩹',IMP3:'🏨',UMDR:'🩺',ULDM:'🛏️',UC:'💊',IMC:'🏥'};
+const MONTHS_PT  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function renderMultiPanel(){
+  const now = new Date();
+  const mes = now.getMonth()+1;
+  const ano = now.getFullYear();
+  const mesLabel = `${MONTHS_PT[mes-1]} ${ano}`;
+
+  const lbl = document.getElementById('multi-month-label');
+  if(lbl) lbl.textContent = `Estado dos uploads — ${mesLabel}`;
+
+  const container = document.getElementById('multi-svc-list');
+  if(!container) return;
+
+  // Slots disponíveis:
+  // Enfermeiros: {svc, cat:'enfermeiros', merge:false} + {svc, cat:'enfermeiros', merge:true} (prestadores)
+  // Auxiliares:  {svc, cat:'auxiliares', merge:false}
+  function isSlotSelected(svc,cat,merge){
+    return multiSelectedSlot &&
+           multiSelectedSlot.svc===svc &&
+           multiSelectedSlot.cat===cat &&
+           !!multiSelectedSlot.merge===!!merge;
+  }
+  function slotRow(svc, cat, merge){
+    const key   = merge ? `${svc}|${cat}|prestadores` : `${svc}|${cat}`;
+    const done  = merge ? multiIsDone(svc, cat+'_prestadores', mes, ano)
+                        : multiIsDone(svc, cat, mes, ano);
+    const isSel = isSlotSelected(svc,cat,merge);
+    const isAct = state.activeSvc===svc && state.activeCat===cat;
+    const label = merge ? 'Prestadores' : (cat==='enfermeiros'?'Enfermeiros':'Auxiliares');
+    const icon  = merge ? '🔗' : (cat==='enfermeiros'?'👩‍⚕️':'🧹');
+    const color = merge ? 'var(--purple)' : (cat==='enfermeiros'?'var(--accent)':'var(--orange)');
+    const border= isSel ? `2px solid ${color}` : isAct&&!merge ? `2px solid ${color}` : '1px solid var(--border)';
+    const bg    = isSel ? `rgba(${merge?'167,139,250':cat==='enfermeiros'?'59,130,246':'251,146,60'},.08)` : 'var(--bg3)';
+    return `
+      <div onclick="event.stopPropagation();multiSelectSlot('${svc}','${cat}',${merge})"
+        style="display:flex;align-items:center;gap:9px;padding:8px 12px;border:${border};background:${bg};border-radius:8px;cursor:pointer;transition:all .15s;margin-bottom:4px">
+        <span style="font-size:15px">${icon}</span>
+        <span style="flex:1;font-size:12px;font-weight:600;color:${color}">${label}</span>
+        ${done
+          ? `<span style="color:var(--green);font-size:11px;font-weight:700">✅ ${mesLabel}</span>`
+          : `<span style="color:var(--text3);font-size:11px">Pendente</span>`}
+        <span style="font-size:11px;color:var(--text3);background:var(--bg4);border-radius:4px;padding:2px 6px">📂</span>
+      </div>
+      ${isSel ? `
+      <div style="margin:2px 0 6px 8px;padding:10px 12px;border:2px solid ${color};border-radius:8px;background:rgba(${merge?'167,139,250':cat==='enfermeiros'?'59,130,246':'251,146,60'},.05);display:flex;align-items:center;gap:10px">
+        <div style="flex:1;font-size:11px;color:${color};font-weight:600">
+          ${merge?'Juntar prestadores à escala existente':'Carregar escala'} — ${svc}
+        </div>
+        <button class="btn btn-sm" style="background:${color};color:#fff" onclick="event.stopPropagation();document.getElementById('multi-file-input').click()">📂 Ficheiro</button>
+      </div>` : ''}`;
+  }
+
+  let html = '';
+
+  // ── ENFERMEIROS ──
+  html += `<div style="margin-bottom:16px">
+    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">👩‍⚕️ Enfermeiros</div>`;
+  for(const svc of MULTI_SVCS){
+    const isActive = state.activeSvc===svc && state.activeCat==='enfermeiros';
+    const border = isActive ? '2px solid var(--accent)' : '1px solid var(--border)';
+    const bg     = isActive ? 'rgba(59,130,246,.05)' : 'var(--bg2)';
+    html += `<div style="border:${border};background:${bg};border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer" onclick="multiNavSvc('${svc}','enfermeiros')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:18px">${SVC_ICONS[svc]||'🏥'}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">${svc}</div>
+          <div style="font-size:10px;color:var(--text3)">${SERVICES[svc]?.label||''}</div>
+        </div>
+      </div>
+      ${slotRow(svc,'enfermeiros',false)}
+      ${slotRow(svc,'enfermeiros',true)}
+    </div>`;
+  }
+  html += `</div>`;
+
+  // ── AUXILIARES ──
+  html += `<div style="margin-bottom:16px">
+    <div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">🧹 Auxiliares</div>`;
+  for(const svc of MULTI_SVCS){
+    const isActive = state.activeSvc===svc && state.activeCat==='auxiliares';
+    const border = isActive ? '2px solid var(--orange)' : '1px solid var(--border)';
+    const bg     = isActive ? 'rgba(251,146,60,.05)' : 'var(--bg2)';
+    html += `<div style="border:${border};background:${bg};border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer" onclick="multiNavSvc('${svc}','auxiliares')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:18px">${SVC_ICONS[svc]||'🏥'}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">${svc}</div>
+          <div style="font-size:10px;color:var(--text3)">${SERVICES[svc]?.label||''}</div>
+        </div>
+      </div>
+      ${slotRow(svc,'auxiliares',false)}
+    </div>`;
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+
+function multiNavSvc(svc, cat){
+  // Navegar para o serviço/categoria para ver o plano
+  state.activeSvc=svc; state.activeCat=cat;
+  ensureWeek(svc, state.currentWeek);
+  const svcNameEl=document.getElementById('tb-svc-name');
+  if(svcNameEl) svcNameEl.textContent=svc;
+  const ct=document.getElementById('cat-toggle');
+  if(ct) ct.style.display=(svc==='CE')?'none':'flex';
+  renderAll();
+}
+
+function multiSelectSlot(svc, cat, merge){
+  merge=!!merge;
+  if(multiSelectedSlot && multiSelectedSlot.svc===svc && multiSelectedSlot.cat===cat && !!multiSelectedSlot.merge===merge){
+    multiSelectedSlot=null;
+    renderMultiPanel();
+  } else {
+    multiSelectedSlot={svc,cat,merge};
+    // Navegar para o serviço/categoria SEM chamar renderAll (que reseta multiSelectedSlot via renderMultiPanel)
+    state.activeSvc=svc; state.activeCat=cat;
+    ensureWeek(svc, state.currentWeek);
+    const svcNameEl=document.getElementById('tb-svc-name');
+    if(svcNameEl) svcNameEl.textContent=svc;
+    const ct=document.getElementById('cat-toggle');
+    if(ct) ct.style.display=(svc==='CE')?'none':'flex';
+    renderSchedule((state.schedule[svc][cat]||{})[state.currentWeek]||{published:false,days:[]});
+    renderMultiPanel();
+  }
+}
+
+
+function onMultiFileSelected(e){
+  const file=e.target.files[0]; if(!file) return;
+  e.target.value='';
+  if(!multiSelectedSlot){ showToast('⚠️ Seleciona primeiro um serviço'); return; }
+  const{svc,cat}=multiSelectedSlot;
+  const st=document.getElementById('multi-status');
+  st.style.display='block';
+  st.textContent=`A processar ${file.name}…`;
+
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:true});
+
+      // Detetar se é prestadores pelo título
+      const title=String(rows[0]?.[2]||rows[0]?.[0]||file.name).toUpperCase();
+      // Usar merge do slot selecionado (não depender do título do ficheiro)
+      const merge=!!multiSelectedSlot?.merge;
+
+      const _S=state.activeSvc,_C=state.activeCat,_XC=xlsXlsCat,_XM=xlsMerge;
+      state.activeSvc=svc; state.activeCat=cat; xlsXlsCat=cat; xlsMerge=merge;
+      coreXlsImport(rows,svc,cat,merge);
+      state.activeSvc=_S; state.activeCat=_C; xlsXlsCat=_XC; xlsMerge=_XM;
+
+      // Marcar como feito
+      const now=new Date();
+      if(merge) multiSetDone(svc,cat+'_prestadores',now.getMonth()+1,now.getFullYear());
+      else multiSetDone(svc,cat,now.getMonth()+1,now.getFullYear());
+
+      xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=(state.unsaved||0)+1;
+      saveToStorage().then(()=>{ state.unsaved=0; setTimeout(()=>{xlsImporting=false;},5000); }).catch(()=>{xlsImporting=false;});
+
+      multiSelectedSlot=null;
+      st.innerHTML=`✅ ${svc} · ${cat} importado${merge?' (merge)':''}`;
+      setTimeout(()=>{ st.style.display='none'; renderMultiPanel(); }, 2000);
+      showToast(`✅ ${svc} · ${cat} importado!`);
+    }catch(err){
+      st.innerHTML=`❌ ${err.message}`;
+      setTimeout(()=>{ st.style.display='none'; },4000);
+    }
+  };
+  reader.onerror=()=>{ st.textContent='❌ Erro ao ler ficheiro'; };
+  reader.readAsArrayBuffer(file);
+}
+
+// Funções legacy (mantidas para compatibilidade com botões HTML que possam existir)
+function multiClear(){ multiSelectedSlot=null; renderMultiPanel(); }
+function onMultiDrop(e){ e.preventDefault(); }
+function addMultiFiles(){}
+function renderMultiFileList(){}
+function processMultiImport(){}
 function detectSvcFromTitle(t){
   t=t.toUpperCase();
   const isAux=t.includes('AUXILIAR');
@@ -1859,80 +2071,9 @@ function detectSvcFromTitle(t){
   else if(t.includes('CONSUL'))                                          svc='CE';
   else if(t.includes('CUIDADOS'))                                        svc='UC';
   else if(t.includes('INTERNAMENTO')||t.includes('IMC'))                 svc='IMC';
+  else if(t.includes('HEFP'))                                            svc='IMC';
   return{svc, cat:isAux?'auxiliares':'enfermeiros', merge};
 }
-
-function multiClear(){
-  multiFiles=[];
-  document.getElementById('multi-file-list').style.display='none';
-  document.getElementById('multi-file-list').innerHTML='';
-  document.getElementById('multi-import-btn').style.display='none';
-  document.getElementById('multi-status').style.display='none';
-}
-function onMultiDrop(e){
-  e.preventDefault();
-  addMultiFiles(Array.from(e.dataTransfer.files).filter(f=>f.name.match(/\.xls/i)));
-}
-function onMultiFileSelected(e){addMultiFiles(Array.from(e.target.files));e.target.value='';}
-function addMultiFiles(files){
-  files.forEach(f=>{if(!multiFiles.find(x=>x.name===f.name))multiFiles.push(f);});
-  renderMultiFileList();
-}
-function renderMultiFileList(){
-  const list=document.getElementById('multi-file-list');
-  list.style.display=multiFiles.length?'block':'none';
-  list.innerHTML=multiFiles.map((f,i)=>{
-    const{svc,cat,merge}=detectSvcFromTitle(f.name);
-    const label=svc?`${svc} · ${cat}${merge?' (merge)':''}`:'⚠️ não detetado';
-    const color=svc?'var(--green)':'var(--orange)';
-    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px;font-size:12px">
-      <span style="font-size:16px">📄</span>
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
-      <span style="color:${color};font-weight:700;flex-shrink:0">${label}</span>
-      <span onclick="multiFiles.splice(${i},1);renderMultiFileList()" style="cursor:pointer;color:var(--text3);font-size:18px;line-height:1">×</span>
-    </div>`;
-  }).join('');
-  document.getElementById('multi-import-btn').style.display=multiFiles.length?'block':'none';
-}
-
-async function processMultiImport(){
-  if(!multiFiles.length)return;
-  const st=document.getElementById('multi-status');
-  st.style.display='block';
-  document.getElementById('multi-import-btn').style.display='none';
-  let ok=0,skip=0,errs=[];
-  for(const file of multiFiles){
-    st.textContent=`A processar ${file.name}…`;
-    try{
-      const wb=await new Promise((res,rej)=>{
-        const r=new FileReader();
-        r.onload=ev=>{try{res(XLSX.read(new Uint8Array(ev.target.result),{type:'array'}));}catch(e){rej(e);}};
-        r.onerror=rej; r.readAsArrayBuffer(file);
-      });
-      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:true});
-      const title=String(rows[0]?.[2]||rows[0]?.[0]||file.name);
-      let{svc,cat,merge}=detectSvcFromTitle(title);
-      if(!svc){
-        const bn=detectSvcFromTitle(file.name);
-        if(bn.svc){svc=bn.svc;cat=bn.cat;merge=bn.merge;}
-        else{skip++;errs.push(`${file.name}: serviço não detetado`);continue;}
-      }
-      const _S=state.activeSvc,_C=state.activeCat,_XC=xlsXlsCat,_XM=xlsMerge;
-      state.activeSvc=svc;state.activeCat=cat;xlsXlsCat=cat;xlsMerge=merge;
-      coreXlsImport(rows,svc,cat,merge);
-      state.activeSvc=_S;state.activeCat=_C;xlsXlsCat=_XC;xlsMerge=_XM;
-      ok++;
-    }catch(e){errs.push(`${file.name}: ${e.message}`);}
-  }
-  xlsImporting=true;state.lastImportAt=Date.now();state.unsaved=(state.unsaved||0)+1;
-  renderAll();
-  saveToStorage().then(()=>{state.unsaved=0;setTimeout(()=>{xlsImporting=false;},5000);}).catch(()=>{xlsImporting=false;});
-  const msg=`✅ ${ok} importado(s)`+(skip?` · ⚠️ ${skip} ignorado(s)`:'');
-  st.innerHTML=msg+(errs.length?'<br><small style="color:var(--orange)">'+errs.join('<br>')+'</small>':'');
-  showToast(msg);renderMultiFileList();
-  document.getElementById('multi-import-btn').style.display='block';
-}
-
 // Lógica core partilhada
 function coreXlsImport(rows,svc,cat,merge){
   const MES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro',
@@ -2013,6 +2154,32 @@ function coreXlsImport(rows,svc,cat,merge){
       });
     });
   }
+}
+
+function superSave(){
+  xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=0;
+  saveToStorage().then(()=>{ xlsImporting=false; showToast('💾 Guardado!'); }).catch(()=>{ xlsImporting=false; });
+}
+
+function superPublishAll(){
+  if(!confirm('Publicar TODAS as escalas de todos os serviços (incluindo pendentes)?')) return;
+  // Publicar todas as semanas de todos os serviços e categorias
+  let count=0;
+  Object.keys(state.schedule).forEach(svc=>{
+    ['enfermeiros','auxiliares'].forEach(cat=>{
+      const weeks=state.schedule[svc][cat]||{};
+      Object.keys(weeks).forEach(wkey=>{
+        if(!weeks[wkey].published){ weeks[wkey].published=true; count++; }
+      });
+    });
+  });
+  const notif={id:Date.now(),ico:'📢',title:'Todas as escalas publicadas',
+    msg:`${count} semana(s) publicadas pelo Enfermeiro Coordenador.`,time:'Agora',read:false};
+  state.notifications.unshift(notif);
+  xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=0;
+  saveToStorage().then(()=>{ xlsImporting=false; }).catch(()=>{ xlsImporting=false; });
+  renderAll();
+  showToast(`📢 ${count} semana(s) publicadas em todos os serviços!`);
 }
 
 function showToast(msg){
