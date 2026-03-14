@@ -1054,7 +1054,7 @@ function cleanCEData() {
       while(slots.length < 6) slots.push({name:'',rooms:CE_POSTOS_NAMES[slots.length]||'',hours:''});
 
       // Passo 1: fixar Adelina→slot0, Conceição→slot1 (excepto sábado)
-      const isSaturday = new Date(day.date+'T00:00:00').getDay()===6;
+      const isSaturday = day.weekday==='Sábado' || new Date((day.date||'')+'T00:00:00').getDay()===6;
       let adelina = null, conceicao = null;
       const others = [];
       slots.forEach(s => {
@@ -1063,14 +1063,25 @@ function cleanCEData() {
         else if(s.name.toLowerCase().includes('conceição')||s.name.toLowerCase().includes('conceicao')) conceicao = s;
         else others.push(s);
       });
-      // Ao sábado, Pediatria (slot 1) não existe — Conceição vai para os outros
-      if(isSaturday && conceicao) others.push(conceicao), conceicao = null;
       const newSlots = Array.from({length:6}, (_,i) => ({name:'',rooms:CE_POSTOS_NAMES[i]||'',hours:''}));
-      if(adelina)   newSlots[0] = {...adelina,  rooms:CE_POSTOS_NAMES[0]};
-      if(conceicao) newSlots[1] = {...conceicao, rooms:CE_POSTOS_NAMES[1]};
-      let oi = 0;
-      for(let i=isSaturday?1:2; i<6 && oi<others.length; i++){
-        if(!newSlots[i].name){ newSlots[i] = {...others[oi], rooms:CE_POSTOS_NAMES[i]}; oi++; }
+      if(isSaturday){
+        // Sábado: só postos D(0), F(2), G(3) — sem Posto A
+        // Adelina → D(0), os outros 2 → F(2) e G(3)
+        const satPeople = [adelina, conceicao, ...others].filter(Boolean);
+        const satSlots  = [0, 2, 3]; // D, F, G
+        satPeople.forEach((p, i) => {
+          if(i < satSlots.length){
+            const si = satSlots[i];
+            newSlots[si] = {...p, rooms:CE_POSTOS_NAMES[si]};
+          }
+        });
+      } else {
+        if(adelina)   newSlots[0] = {...adelina,  rooms:CE_POSTOS_NAMES[0]};
+        if(conceicao) newSlots[1] = {...conceicao, rooms:CE_POSTOS_NAMES[1]};
+        let oi = 0;
+        for(let i=2; i<6 && oi<others.length; i++){
+          if(!newSlots[i].name){ newSlots[i] = {...others[oi], rooms:CE_POSTOS_NAMES[i]}; oi++; }
+        }
       }
 
       // Passo 2: se posto principal vazio, usar apoio para cobrir
@@ -1509,9 +1520,12 @@ function renderDay(day){
 
   // CE: special rendering — no shifts, just postos for the day
   if(svc==='CE'){
+    const isSat = day.weekday==='Sábado' || new Date((day.date||'')+'T00:00:00').getDay()===6;
     const postos=cfg.postos||[];
     const slots=day.manha||[];
     const cells=postos.map((posto,i)=>{
+      // Ao sábado, Posto A (Pediatria) — índice 1 — não existe
+      if(isSat && i===1) return '';
       const nm=slots[i]?.name||'';
       const hrs=slots[i]?.hours||'';
       const sp=slots[i]?.rooms||'';
