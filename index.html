@@ -1040,27 +1040,28 @@ function cleanURGData() {
 }
 
 function cleanCEData() {
-  // Garantir que Adelina está sempre no slot 0 (Posto D) e Conceição no slot 1 (Posto A)
   const CE_POSTOS_NAMES = ['Posto D','Posto A (Pediatria)','Posto F','Posto G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'];
+  // Postos principais que nunca podem ficar vazios se há alguém de apoio disponível
+  // Apoio 1 (slot 4) cobre: G (3), D (0)
+  // Apoio 2 (slot 5) cobre: F (2), A (1)
+  const CE_APOIO_MAP = {4:[3,0], 5:[2,1]};
+
   const ceAux = state.schedule?.CE?.auxiliares || {};
   Object.values(ceAux).forEach(week => {
     (week.days||[]).forEach(day => {
       const slots = day.manha || [];
       if(!slots.length) return;
-      // Garantir 6 slots
       while(slots.length < 6) slots.push({name:'',rooms:CE_POSTOS_NAMES[slots.length]||'',hours:''});
 
-      // Extrair Adelina e Conceição de onde quer que estejam
+      // Passo 1: fixar Adelina→slot0, Conceição→slot1
       let adelina = null, conceicao = null;
       const others = [];
       slots.forEach(s => {
         if(!s.name) return;
         if(s.name.toLowerCase().includes('adelina')) adelina = s;
-        else if(s.name.toLowerCase().includes('conceição') || s.name.toLowerCase().includes('conceicao')) conceicao = s;
+        else if(s.name.toLowerCase().includes('conceição')||s.name.toLowerCase().includes('conceicao')) conceicao = s;
         else others.push(s);
       });
-
-      // Reconstruir: slot 0=Adelina, slot 1=Conceição, resto por ordem
       const newSlots = Array.from({length:6}, (_,i) => ({name:'',rooms:CE_POSTOS_NAMES[i]||'',hours:''}));
       if(adelina)   newSlots[0] = {...adelina,  rooms:CE_POSTOS_NAMES[0]};
       if(conceicao) newSlots[1] = {...conceicao, rooms:CE_POSTOS_NAMES[1]};
@@ -1068,6 +1069,23 @@ function cleanCEData() {
       for(let i=2; i<6 && oi<others.length; i++){
         if(!newSlots[i].name){ newSlots[i] = {...others[oi], rooms:CE_POSTOS_NAMES[i]}; oi++; }
       }
+
+      // Passo 2: se posto principal vazio, usar apoio para cobrir
+      // Apoio 1 (slot 4) → cobre G (3) primeiro, depois D (0)
+      // Apoio 2 (slot 5) → cobre F (2) primeiro, depois A (1)
+      for(const [apoioIdx, postosCobertos] of Object.entries(CE_APOIO_MAP)){
+        const ai = parseInt(apoioIdx);
+        if(!newSlots[ai].name) continue; // apoio está vazio, nada a fazer
+        for(const pi of postosCobertos){
+          if(!newSlots[pi].name){
+            // Mover apoio para o posto vazio
+            newSlots[pi] = {...newSlots[ai], rooms:CE_POSTOS_NAMES[pi]};
+            newSlots[ai] = {name:'',rooms:CE_POSTOS_NAMES[ai],hours:''};
+            break; // apoio só cobre um posto por dia
+          }
+        }
+      }
+
       day.manha = newSlots;
     });
   });
