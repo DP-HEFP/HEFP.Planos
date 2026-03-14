@@ -2129,6 +2129,9 @@ const SVC_ICONS  = {URG:'🚨',CE:'🩹',IMP3:'🏨',UMDR:'🩺',ULDM:'🛏️',
 const MONTHS_PT  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 function renderMultiPanel(){
+  // Preservar posição do scroll
+  const panel=document.getElementById('multi-svc-list');
+  const scrollY=window.scrollY||window.pageYOffset;
   const now = new Date();
   const mes = now.getMonth()+1;
   const ano = now.getFullYear();
@@ -2255,6 +2258,8 @@ function renderMultiPanel(){
   html += `</div>`;
 
   container.innerHTML = html;
+  // Restaurar posição do scroll
+  window.scrollTo({top:scrollY,behavior:'instant'});
 }
 
 function multiNavSvc(svc, cat){
@@ -2294,8 +2299,10 @@ function multiSelectSlot(svc, cat, merge){
     if(svcNameEl) svcNameEl.textContent=svc;
     const ct=document.getElementById('cat-toggle');
     if(ct) ct.style.display=(svc==='CE')?'none':'flex';
+    const _sy=window.scrollY||0;
     renderSchedule((state.schedule[svc][cat]||{})[state.currentWeek]||{published:false,days:[]});
     renderMultiPanel();
+    window.scrollTo({top:_sy,behavior:'instant'});
   }
 }
 
