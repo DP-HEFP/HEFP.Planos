@@ -1053,7 +1053,8 @@ function cleanCEData() {
       if(!slots.length) return;
       while(slots.length < 6) slots.push({name:'',rooms:CE_POSTOS_NAMES[slots.length]||'',hours:''});
 
-      // Passo 1: fixar Adelina→slot0, Conceição→slot1
+      // Passo 1: fixar Adelina→slot0, Conceição→slot1 (excepto sábado)
+      const isSaturday = new Date(day.date+'T00:00:00').getDay()===6;
       let adelina = null, conceicao = null;
       const others = [];
       slots.forEach(s => {
@@ -1062,11 +1063,13 @@ function cleanCEData() {
         else if(s.name.toLowerCase().includes('conceição')||s.name.toLowerCase().includes('conceicao')) conceicao = s;
         else others.push(s);
       });
+      // Ao sábado, Pediatria (slot 1) não existe — Conceição vai para os outros
+      if(isSaturday && conceicao) others.push(conceicao), conceicao = null;
       const newSlots = Array.from({length:6}, (_,i) => ({name:'',rooms:CE_POSTOS_NAMES[i]||'',hours:''}));
       if(adelina)   newSlots[0] = {...adelina,  rooms:CE_POSTOS_NAMES[0]};
       if(conceicao) newSlots[1] = {...conceicao, rooms:CE_POSTOS_NAMES[1]};
       let oi = 0;
-      for(let i=2; i<6 && oi<others.length; i++){
+      for(let i=isSaturday?1:2; i<6 && oi<others.length; i++){
         if(!newSlots[i].name){ newSlots[i] = {...others[oi], rooms:CE_POSTOS_NAMES[i]}; oi++; }
       }
 
