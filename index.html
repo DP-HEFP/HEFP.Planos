@@ -2137,6 +2137,31 @@ function renderMultiPanel(){
   // ── ENFERMEIROS ──
   html += `<div style="margin-bottom:16px">
     <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">👩‍⚕️ Enfermeiros</div>`;
+
+  // Slot especial UCC Prestadores (distribui por UC, UMDR, ULDM)
+  const uccDone = multiIsDone('UCC','prestadores_ucc', mes, ano);
+  const uccSel  = multiSelectedSlot && multiSelectedSlot.svc==='UCC';
+  const uccBorder = uccSel ? '2px solid var(--purple)' : '1px solid var(--border)';
+  const uccBg     = uccSel ? 'rgba(167,139,250,.08)' : 'var(--bg3)';
+  html += `<div style="border:${uccBorder};background:${uccBg};border-radius:9px;cursor:pointer;margin-bottom:8px;padding:10px 12px"
+    onclick="multiSelectSlot('UCC','ucc_prestadores','ucc')">
+    <div style="display:flex;align-items:center;gap:9px">
+      <span style="font-size:15px">🔗</span>
+      <span style="flex:1;font-size:13px;font-weight:700;color:var(--purple)">UCC — Prestadores (UC · UMDR · ULDM)</span>
+      ${uccDone
+        ? `<span style="color:var(--green);font-size:11px;font-weight:700">✅ ${mesLabel}</span>`
+        : `<span style="color:var(--text3);font-size:11px">Pendente</span>`}
+      <span style="font-size:11px;color:var(--text3);background:var(--bg4);border-radius:4px;padding:2px 6px">📂</span>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:4px;padding-left:24px">Distribui automaticamente por UC, UMDR e ULDM conforme vagas</div>
+    ${uccSel ? `
+    <div style="margin-top:8px;padding:10px 12px;border:2px solid var(--purple);border-radius:8px;background:rgba(167,139,250,.05);display:flex;align-items:center;gap:10px"
+      onclick="event.stopPropagation()">
+      <div style="flex:1;font-size:11px;color:var(--purple);font-weight:600">Carregar escala de prestadores UCC</div>
+      <button class="btn btn-sm" style="background:var(--purple);color:#fff" onclick="event.stopPropagation();document.getElementById('multi-file-input').click()">📂 Ficheiro</button>
+    </div>` : ''}
+  </div>`;
+
   for(const svc of MULTI_SVCS){
     const isActive = state.activeSvc===svc && state.activeCat==='enfermeiros';
     const border = isActive ? '2px solid var(--accent)' : '1px solid var(--border)';
@@ -2192,6 +2217,14 @@ function multiNavSvc(svc, cat){
 }
 
 function multiSelectSlot(svc, cat, merge){
+  // UCC: caso especial — distribui por UC, UMDR, ULDM
+  if(svc==='UCC'){
+    if(multiSelectedSlot && multiSelectedSlot.svc==='UCC'){
+      multiSelectedSlot=null; renderMultiPanel(); return;
+    }
+    multiSelectedSlot={svc:'UCC', cat:'ucc_prestadores', merge:'ucc', isUCC:true};
+    renderMultiPanel(); return;
+  }
   const isDep = (merge==='dependentes');
   if(merge==='dependentes'||merge===true||merge==='true') merge=true;
   else merge=false;
@@ -2218,6 +2251,13 @@ function onMultiFileSelected(e){
   const file=e.target.files[0]; if(!file) return;
   e.target.value='';
   if(!multiSelectedSlot){ showToast('⚠️ Seleciona primeiro um serviço'); return; }
+
+  // UCC: processamento especial
+  if(multiSelectedSlot.isUCC){
+    processUCCPrestadores(file);
+    return;
+  }
+
   const{svc,cat}=multiSelectedSlot;
   const st=document.getElementById('multi-status');
   st.style.display='block';
@@ -2484,6 +2524,138 @@ function coreXlsImport(rows,svc,cat,merge,allowedNames,isDependentes){
       });
     });
   }
+}
+
+function processUCCPrestadores(file){
+  const st=document.getElementById('multi-status');
+  st.style.display='block'; st.textContent='A processar prestadores UCC…';
+
+  // Rácios de slots disponíveis por serviço/turno
+  const UCC_RATIOS = {
+    UC:   {M:2, T:2, N:1},
+    UMDR: {M:4, T:2, N:2},
+    ULDM: {M:4, T:2, N:2},
+  };
+  const UCC_SVCS = ['ULDM','UMDR','UC'];
+
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:true});
+
+      // Parsear o ficheiro — reutilizar lógica do coreXlsImport
+      // Encontrar mês/ano e mapa de dias
+      let mes=0,ano=0,dayColMap={};
+      const MESES_PT={'janeiro':1,'fevereiro':2,'março':3,'abril':4,'maio':5,'junho':6,'julho':7,'agosto':8,'setembro':9,'outubro':10,'novembro':11,'dezembro':12};
+      for(let ri=0;ri<Math.min(rows.length,5);ri++){
+        const v0=String(rows[ri][0]||'').trim().toLowerCase();
+        if(MESES_PT[v0]){ mes=MESES_PT[v0]; for(let ci=0;ci<rows[ri].length;ci++){try{const d=parseInt(rows[ri][ci]);if(d>=1&&d<=31)dayColMap[d]=ci;}catch(e){}} }
+        const n=parseInt(v0); if(n>=2020&&n<=2030) ano=n;
+        if(!ano){const n2=parseInt(String(rows[ri][0]||'').trim()); if(n2>=2020&&n2<=2030) ano=n2;}
+      }
+      if(!mes||!ano){st.innerHTML='❌ Não foi possível detectar mês/ano'; return;}
+
+      const WD=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+      const dim=new Date(ano,mes,0).getDate();
+      function monWeek(ds){const d=new Date(ds+'T00:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()+(day===0?-6:1-day));return mon.toISOString().split('T')[0];}
+
+      // Construir dayMap de prestadores UCC
+      const UCC_TURNOS={'M1':'M','M2':'M','M6':'M','M30':'M','MT15':'M','T1':'T','T5':'T','T14':'T','T27':'T','T34':'T','T114':'T','N2':'N','S1':'N'};
+      function sigUCC(raw){
+        const s=String(raw||'').trim().replace(/^Au/,'');
+        const f=s.split(/\s+/)[0].toUpperCase();
+        if(UCC_TURNOS[f]) return UCC_TURNOS[f];
+        if(/^M\d/.test(f)) return'M';
+        if(/^T\d/.test(f)) return'T';
+        return'';
+      }
+      function nomUCC(raw){const s=String(raw||'').trim();const m=s.match(/^\d+\s+\d+\s+(.+)$/);return m?m[1].trim():s;}
+
+      const dayMap={};
+      for(const row of rows){
+        const nome=nomUCC(row[0]);
+        if(!nome||nome.toLowerCase().startsWith('exemplo')||!nome.match(/[a-záàâãéêíóôõúç]/i)) continue;
+        for(let d=1;d<=dim;d++){
+          const ci=dayColMap[d]; if(ci===undefined||ci>=row.length) continue;
+          const v=sigUCC(row[ci]); if(!v) continue;
+          const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          if(!dayMap[ds])dayMap[ds]={M:[],T:[],N:[]};
+          dayMap[ds][v].push(nome);
+        }
+      }
+
+      // Distribuir pelos 3 serviços conforme rácios e vagas disponíveis
+      let count=0;
+      for(let d=1;d<=dim;d++){
+        const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const wk=monWeek(ds);
+        const dt=new Date(ds+'T00:00:00');
+        const wd=WD[(dt.getDay()+6)%7];
+        if(!dayMap[ds]) continue;
+
+        for(const sh of ['M','T','N']){
+          const prestadores=[...dayMap[ds][sh]]; // cópia
+          if(!prestadores.length) continue;
+
+          // Para cada serviço, ver quantas vagas há
+          for(const svc of UCC_SVCS){
+            const ratio=UCC_RATIOS[svc][sh]||0;
+            if(!ratio) continue;
+            if(!state.schedule[svc]) continue;
+            if(!state.schedule[svc].enfermeiros) state.schedule[svc].enfermeiros={};
+            if(!state.schedule[svc].enfermeiros[wk]){
+              // Criar semana vazia
+              const days=[];
+              const wkStart=new Date(wk+'T00:00:00');
+              for(let i=0;i<7;i++){
+                const dd=new Date(wkStart);dd.setDate(wkStart.getDate()+i);
+                const ddStr=dd.toISOString().split('T')[0];
+                days.push({date:ddStr,weekday:WD[i],manha:Array(UCC_RATIOS[svc].M||3).fill(null).map(()=>({name:'',rooms:''})),tarde:Array(UCC_RATIOS[svc].T||3).fill(null).map(()=>({name:'',rooms:''})),noite:Array(UCC_RATIOS[svc].N||3).fill(null).map(()=>({name:'',rooms:''})),obs:''});
+              }
+              state.schedule[svc].enfermeiros[wk]={published:false,days};
+            }
+            const week=state.schedule[svc].enfermeiros[wk];
+            const dayEntry=week.days.find(dd=>dd.date===ds);
+            if(!dayEntry) continue;
+
+            const shKey=sh==='M'?'manha':sh==='T'?'tarde':'noite';
+            const slots=dayEntry[shKey]||[];
+            while(slots.length<ratio) slots.push({name:'',rooms:''});
+
+            // Preencher slots vazios com prestadores
+            const existing=slots.map(s=>s.name.toLowerCase()).filter(Boolean);
+            for(let si=0;si<slots.length&&prestadores.length;si++){
+              if(!slots[si].name){
+                const nm=prestadores.shift();
+                if(!existing.includes(nm.toLowerCase())){
+                  slots[si]={name:nm,rooms:''};
+                  existing.push(nm.toLowerCase());
+                  count++;
+                }
+              }
+            }
+            dayEntry[shKey]=slots;
+          }
+        }
+      }
+
+      // Guardar
+      const now=new Date();
+      multiSetDone('UCC','prestadores_ucc',now.getMonth()+1,now.getFullYear());
+      xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=1;
+      saveToStorage().then(()=>{state.unsaved=0;setTimeout(()=>{xlsImporting=false;},5000);}).catch(()=>{xlsImporting=false;});
+      multiSelectedSlot=null;
+      st.innerHTML=`✅ ${count} turnos de prestadores distribuídos por UC, UMDR e ULDM`;
+      setTimeout(()=>{st.style.display='none';renderMultiPanel();renderAll();},2500);
+      showToast(`✅ Prestadores UCC distribuídos!`);
+    }catch(err){
+      st.innerHTML=`❌ ${err.message}`;
+      setTimeout(()=>{st.style.display='none';},4000);
+    }
+  };
+  reader.onerror=()=>{st.textContent='❌ Erro ao ler ficheiro';};
+  reader.readAsArrayBuffer(file);
 }
 
 function superSave(){
