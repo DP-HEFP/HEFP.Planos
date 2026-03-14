@@ -1162,7 +1162,7 @@ function cleanCEData() {
         // Sábado: Adelina→D(0), Ana Paula→F(2), outros→G(3) e seguintes
         // Conceição entra nos outros (sem Posto A ao sábado)
         const satFixed = [adelina, anapaula].filter(Boolean);
-        const satFixedSlots = [0, 2];
+        const satFixedSlots = [0, 3];
         satFixed.forEach((p, i) => {
           newSlots[satFixedSlots[i]] = {...p, rooms:CE_POSTOS_NAMES[satFixedSlots[i]]};
         });
@@ -1174,7 +1174,7 @@ function cleanCEData() {
       } else {
         if(adelina)   newSlots[0] = {...adelina,  rooms:CE_POSTOS_NAMES[0]};
         if(conceicao) newSlots[1] = {...conceicao, rooms:CE_POSTOS_NAMES[1]};
-        if(anapaula)  newSlots[2] = {...anapaula,  rooms:CE_POSTOS_NAMES[2]};
+        if(anapaula)  newSlots[3] = {...anapaula,  rooms:CE_POSTOS_NAMES[3]};
         let oi = 0;
         for(let i=2; i<6 && oi<others.length; i++){
           if(!newSlots[i].name){ newSlots[i] = {...others[oi], rooms:CE_POSTOS_NAMES[i]}; oi++; }
@@ -2521,7 +2521,7 @@ function coreXlsImport(rows,svc,cat,merge,allowedNames,isDependentes){
         let fixedIdx = -1;
         if(nm_lower.includes('adelina')) fixedIdx=0;
         else if(nm_lower.includes('conceição')||nm_lower.includes('conceicao')) fixedIdx=1;
-        else if(nm_lower.includes('ana paula')) fixedIdx=2;
+        else if(nm_lower.includes('ana paula')) fixedIdx=3;
         if(fixedIdx>=0) slots[fixedIdx]={name:nm,rooms:CE_POSTOS[fixedIdx]||'',hours:hrs};
         else remaining.push({name:nm,rooms:'',hours:hrs});
       }
