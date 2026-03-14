@@ -2124,7 +2124,29 @@ function coreXlsImport(rows,svc,cat,merge){
   const WD=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
   function monWeek(ds){const d=new Date(ds+'T00:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()+(day===0?-6:1-day));return mon.toISOString().split('T')[0];}
   function sc(s,c){if(s==='CE')return c==='enfermeiros'?6:0;if(['UC','IMC','IMP3'].includes(s))return 3;if(['ULDM','UMDR'].includes(s))return 4;if(s==='URG')return c==='enfermeiros'?4:2;return 3;}
-  function pad(arr,n){const sl=arr.slice(0,n).map(nm=>({name:nm,rooms:''}));while(sl.length<n)sl.push({name:'',rooms:''});return sl;}
+  // Enfermeiros URG que devem ser alocados à Pediatria/Consulta Ped. (slots 1 e 2)
+  // Identificados pelo nome completo (após remoção do prefixo numérico)
+  const URG_PED_NAMES = ['Ana Ricardo','Ana Moreira','José Silva','Graciela Abreu'];
+  function isUrgPed(nm){
+    return URG_PED_NAMES.some(p => nm.toLowerCase().includes(p.toLowerCase()));
+  }
+
+  function pad(arr, n){
+    if(svc==='URG' && cat==='enfermeiros'){
+      // Slots URG: 0=Adultos, 1=Pediatria, 2=Consulta Ped., 3=SMIP
+      const slots = [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}];
+      const pedNames   = arr.filter(nm => isUrgPed(nm));
+      const adultNames = arr.filter(nm => !isUrgPed(nm));
+      if(adultNames[0]) slots[0]={name:adultNames[0],rooms:''};
+      if(adultNames[1]) slots[3]={name:adultNames[1],rooms:''};
+      if(pedNames[0])   slots[1]={name:pedNames[0],rooms:''};
+      if(pedNames[1])   slots[2]={name:pedNames[1],rooms:''};
+      return slots;
+    }
+    const sl=arr.slice(0,n).map(nm=>({name:nm,rooms:''}));
+    while(sl.length<n)sl.push({name:'',rooms:''});
+    return sl;
+  }
   const n=sc(svc,cat),wm={};
   for(let d=1;d<=dim;d++){
     const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
