@@ -1887,6 +1887,10 @@ function processXlsImport(){
     const daysInMonth = new Date(ano, mes, 0).getDate();
     let totalTurnos = 0;
 
+    // Para auxiliares o turno de noite (N2) pertence ao dia ANTERIOR
+    // ex: N2 assinalado no dia 5 → aparece na noite do dia 4
+    const isAux = (cat === 'auxiliares');
+
     for(const row of dataRows){
       const nome = extractName(row[0]);
       if(!nome || nome.toLowerCase().startsWith('exemplo')) continue;
@@ -1895,7 +1899,9 @@ function processXlsImport(){
         if(ci===undefined || ci>=row.length) continue;
         const val = siglaTurno(row[ci]);
         if(!val) continue;
-        const dateStr = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        // Auxiliares: noite recua um dia (mas nunca antes do dia 1)
+        const targetDay = (isAux && val==='N' && d > 1) ? d - 1 : d;
+        const dateStr = `${ano}-${String(mes).padStart(2,'0')}-${String(targetDay).padStart(2,'0')}`;
         if(!dayMap[dateStr]) dayMap[dateStr]={M:[],T:[],N:[]};
         dayMap[dateStr][val].push(nome);
         totalTurnos++;
