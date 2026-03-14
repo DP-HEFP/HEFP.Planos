@@ -290,6 +290,7 @@
     .stats{grid-template-columns:repeat(2,1fr);}
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -460,7 +461,7 @@
         <div class="ed-hdr">
           <h3>✏️ Editar Plano</h3>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" onclick="triggerImportPhoto()">📷 Importar</button>
+            <button class="btn btn-ghost btn-sm" onclick="triggerImportExcel()">📊 Excel</button>
             <button class="btn btn-ghost btn-sm" onclick="downloadPDF()">📄 PDF</button>
             <button class="btn btn-ghost btn-sm" onclick="publishPlan()">📢 Publicar</button>
             <button class="btn btn-success btn-sm" onclick="savePlan()">💾 Guardar</button>
@@ -469,47 +470,48 @@
         <div class="ed-card" id="ed-body"></div>
       </div>
 
-      <!-- Import photo modal -->
+      <!-- Import Excel modal -->
       <div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px">
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:420px">
-          <h3 style="margin-bottom:8px">📷 Importar Horário</h3>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Tira uma foto ou carrega uma imagem do horário.</p>
+          <h3 style="margin-bottom:6px">📊 Importar Excel</h3>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Grelha mensal: primeira coluna = nomes, colunas seguintes = dias 1…31, células = M / T / N</p>
 
-          <!-- Tipo de documento -->
+          <!-- Categoria -->
           <div style="margin-bottom:14px">
-            <p style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Tipo de documento</p>
+            <p style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Categoria a importar</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-              <div id="itype-diario" onclick="selectImportType('diario')" style="border:2px solid var(--accent);background:rgba(59,130,246,.1);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center">
-                <div style="font-size:18px;margin-bottom:3px">📋</div>
-                <div style="font-size:12px;font-weight:700">Plano Diario</div>
-                <div style="font-size:10px;color:var(--text2);margin-top:2px">Dias/turnos com nomes<br>ex: ICP5, IMC...</div>
+              <div id="xcat-enf" onclick="selectXlsCat('enfermeiros')" style="border:2px solid var(--accent);background:rgba(59,130,246,.1);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center">
+                <div style="font-size:18px;margin-bottom:3px">👩‍⚕️</div>
+                <div style="font-size:12px;font-weight:700">Enfermeiros</div>
               </div>
-              <div id="itype-mensal" onclick="selectImportType('mensal')" style="border:2px solid var(--border);background:var(--bg3);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center">
-                <div style="font-size:18px;margin-bottom:3px">📅</div>
-                <div style="font-size:12px;font-weight:700">Grelha Mensal</div>
-                <div style="font-size:10px;color:var(--text2);margin-top:2px">Pessoas x dias do mes<br>com codigos M/T/N</div>
+              <div id="xcat-aux" onclick="selectXlsCat('auxiliares')" style="border:2px solid var(--border);background:var(--bg3);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center">
+                <div style="font-size:18px;margin-bottom:3px">🧹</div>
+                <div style="font-size:12px;font-weight:700">Auxiliares</div>
               </div>
             </div>
           </div>
 
-          <div id="import-preview" style="display:none;margin-bottom:12px;text-align:center">
-            <img id="import-img" style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid var(--border)">
+          <!-- Ficheiro selecionado -->
+          <div id="xls-file-info" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;display:none;align-items:center;gap:8px">
+            <span style="font-size:18px">📄</span>
+            <span id="xls-file-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
           </div>
 
-          <input type="file" id="import-file-input" accept="image/*" capture="environment" style="display:none" onchange="onImportFileSelected(event)">
-          
-          <div id="import-actions-pre" style="display:flex;gap:8px;margin-bottom:12px">
-            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="document.getElementById('import-file-input').click()">🖼️ Galeria / Camara</button>
+          <input type="file" id="xls-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsFileSelected(event)">
+
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="downloadXlsTemplate()">📥 Template</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="document.getElementById('xls-file-input').click()">📂 Abrir ficheiro</button>
           </div>
 
-          <div id="import-status" style="display:none;text-align:center;padding:16px;color:var(--text2);font-size:13px">
-            <div style="font-size:24px;margin-bottom:8px">⏳</div>
-            <div id="import-status-msg">A analisar imagem...</div>
+          <div id="xls-status" style="display:none;text-align:center;padding:12px;color:var(--text2);font-size:13px">
+            <div style="font-size:22px;margin-bottom:6px">⏳</div>
+            <div id="xls-status-msg">A processar...</div>
           </div>
 
           <div style="display:flex;gap:8px;margin-top:4px">
             <button class="btn btn-ghost btn-sm" style="flex:1" onclick="hideImportModal()">Cancelar</button>
-            <button class="btn btn-success btn-sm" id="import-send-btn" style="flex:1;display:none" onclick="sendImageToClaude()">🔍 Analisar</button>
+            <button class="btn btn-success btn-sm" id="xls-import-btn" style="flex:1;display:none" onclick="processXlsImport()">✅ Importar</button>
           </div>
         </div>
       </div>
@@ -626,6 +628,16 @@ async function getMetaBinId() {
 }
 
 // Retorna apenas 1 semana anterior + 8 semanas futuras — payload < 50KB
+function weekHasData(week) {
+  // Retorna true se a semana tiver pelo menos um slot com nome preenchido
+  if (!week || !week.days) return false;
+  return week.days.some(day =>
+    ['manha','tarde','noite'].some(shift =>
+      (day[shift]||[]).some(slot => slot.name && slot.name.trim())
+    )
+  );
+}
+
 function buildTrimmedSchedule() {
   const now = new Date();
   const past = new Date(now); past.setDate(past.getDate() - 7);
@@ -639,12 +651,16 @@ function buildTrimmedSchedule() {
     ['enfermeiros','auxiliares'].forEach(cat => {
       const weeks = state.schedule[svc][cat] || {};
       Object.keys(weeks).forEach(wkey => {
-        if (wkey >= pastStr && wkey <= futureStr) {
+        if (wkey >= pastStr && wkey <= futureStr && weekHasData(weeks[wkey])) {
           trimmed[svc][cat][wkey] = weeks[wkey];
         }
       });
     });
   });
+
+  // Log do tamanho para debug
+  const j = JSON.stringify(trimmed);
+  console.log('[Cloud] Payload schedule:', Math.round(j.length/1024) + 'KB');
   return trimmed;
 }
 
@@ -930,6 +946,7 @@ const state = {
   },
   unsaved: 0,
   parsedData: null,
+  lastImportAt: 0, // timestamp da última importação Excel
   customPasswords: {},
   notifications: [
     {id:1,ico:'📋',title:'Plano ULDM publicado',msg:'Plano da semana atual publicado.',time:'Há 2h',read:false},
@@ -964,13 +981,22 @@ function applyPersistedData(persisted) {
 applyPersistedData(loadCache());
 
 async function syncFromCloud() {
+  // Não sincronizar se importação recente (60s) ou alterações não guardadas
+  if (xlsImporting) return;
+  if (state.unsaved > 0) return;
+  if (Date.now() - (state.lastImportAt||0) < 60000) return;
+
   const cloud = await loadFromCloud();
   if (!cloud) return;
+
+  // Verificar novamente após o fetch (pode ter mudado entretanto)
+  if (xlsImporting) return;
+  if (state.unsaved > 0) return;
+  if (Date.now() - (state.lastImportAt||0) < 60000) return;
+
   cacheLocal(cloud);
   applyPersistedData(cloud);
   if (state.user) {
-    // Don't re-render if coordinator has unsaved changes — would reset inputs
-    if (state.user.role === 'coordinator' && state.unsaved > 0) return;
     const wkey = state.currentWeek;
     if (wkey && !((state.schedule[state.activeSvc][state.activeCat]||{})[wkey])) {
       ensureWeek(state.activeSvc, wkey);
@@ -1612,329 +1638,304 @@ function saveNewPass(){
 // ══════════════════════════════════════
 // IMPORT HORÁRIO POR FOTO
 // ══════════════════════════════════════
-const CLAUDE_API_KEY = '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';
-let importImageBase64 = null;
-let importImageType = null;
-let importDocType = 'diario'; // 'diario' | 'mensal'
+// ══════════════════════════════════════
+// IMPORTAÇÃO EXCEL (SheetJS)
+// ══════════════════════════════════════
+let xlsWorkbook      = null;
+let xlsXlsCat        = 'enfermeiros';
+let xlsImporting     = false; // bloqueia syncFromCloud durante importação
 
-function selectImportType(t){
-  importDocType = t;
-  const d = document.getElementById('itype-diario');
-  const m = document.getElementById('itype-mensal');
-  if(t==='diario'){
-    d.style.border='2px solid var(--accent)'; d.style.background='rgba(59,130,246,.1)';
-    m.style.border='2px solid var(--border)';  m.style.background='var(--bg3)';
+function selectXlsCat(cat){
+  xlsXlsCat = cat;
+  const enf = document.getElementById('xcat-enf');
+  const aux = document.getElementById('xcat-aux');
+  if(cat==='enfermeiros'){
+    enf.style.border='2px solid var(--accent)'; enf.style.background='rgba(59,130,246,.1)';
+    aux.style.border='2px solid var(--border)';  aux.style.background='var(--bg3)';
   } else {
-    m.style.border='2px solid var(--accent)'; m.style.background='rgba(59,130,246,.1)';
-    d.style.border='2px solid var(--border)';  d.style.background='var(--bg3)';
+    aux.style.border='2px solid var(--accent)'; aux.style.background='rgba(59,130,246,.1)';
+    enf.style.border='2px solid var(--border)';  enf.style.background='var(--bg3)';
   }
 }
 
-function triggerImportPhoto(){
+function triggerImportExcel(){
   document.getElementById('import-modal').style.display='flex';
-  document.getElementById('import-preview').style.display='none';
-  document.getElementById('import-status').style.display='none';
-  document.getElementById('import-send-btn').style.display='none';
-  document.getElementById('import-actions-pre').style.display='flex';
-  importImageBase64=null; importImageType=null;
-  selectImportType('diario');
+  document.getElementById('xls-status').style.display='none';
+  document.getElementById('xls-import-btn').style.display='none';
+  document.getElementById('xls-file-info').style.display='none';
+  xlsWorkbook=null;
+  selectXlsCat('enfermeiros');
 }
 function hideImportModal(){
   document.getElementById('import-modal').style.display='none';
 }
 
-function onImportFileSelected(e){
-  const file=e.target.files[0]; if(!file) return;
-  importImageType=file.type||'image/jpeg';
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    const dataUrl=ev.target.result;
-    importImageBase64=dataUrl.split(',')[1];
-    document.getElementById('import-img').src=dataUrl;
-    document.getElementById('import-preview').style.display='block';
-    document.getElementById('import-send-btn').style.display='block';
-  };
-  reader.readAsDataURL(file);
-  e.target.value='';
-}
-
-// ─────────────────────────────────────────────
-// PROMPT PARA PLANO DIÁRIO (ICP5 / IMC / etc.)
-// Formato: tabela com dias, turnos Manhã/Tarde/Noite e nomes nas células
-// ─────────────────────────────────────────────
-function buildPromptDiario(){
-  return `Analisa este "Plano de Trabalho Diário" de enfermagem hospitalar e extrai os turnos de cada pessoa para cada dia.
-
-O documento tem uma tabela com:
-- Coluna de dia (ex: 3ª feira, 10/03/2026)
-- Coluna de turno: Manhã, Tarde, Noite
-- Colunas com nomes de Enfermeiros (Enf. NomeR ou Enf. Nome) e Assistentes Operacionais (AO Nome)
-
-Regras de extração:
-- Ignora a linha "Doentes" (é uma linha de registo de doentes, não de pessoal)
-- Remove prefixos: "Enf.", "Enf. ", "AO ", "AO" — extrai apenas o nome
-- Remove sufixos de função: R, I, Re, VCE (ex: "Enf. Filipa C R" → "Filipa C")
-- Células em branco, "Enf." sozinho, ou "AO" sozinho = slot vazio (ignora)
-- Determina as datas exatas de cada linha a partir do documento
-- Enfermeiros e AOs são categorias separadas
-
-Responde APENAS com JSON válido neste formato:
-{
-  "dias": [
-    {
-      "date": "2026-03-10",
-      "weekday": "Terça",
-      "manha":  { "enfermeiros": ["Filipa C","Mariana R"], "auxiliares": ["Isabette","Roberto","Paula P"] },
-      "tarde":  { "enfermeiros": ["Raquel"],               "auxiliares": ["Mónica","Tabata"] },
-      "noite":  { "enfermeiros": ["Filipa","Mariana V"],   "auxiliares": ["Sónia"] }
-    }
-  ]
-}
-
-Inclui TODOS os dias visíveis no documento. Nomes parcialmente ilegíveis: usa o que consegues ler.`;
-}
-
-// ─────────────────────────────────────────────
-// PROMPT PARA GRELHA MENSAL (formato anterior)
-// ─────────────────────────────────────────────
-function buildPromptMensal(){
-  return `Analisa este horário de enfermagem/auxiliares e extrai os turnos de cada pessoa para cada dia.
-
-Regras:
-- M1, M118, ou qualquer turno que comece com M = turno "M" (Manhã)
-- T5, T11, ou qualquer turno que comece com T = turno "T" (Tarde)  
-- N2, ou qualquer turno que comece com N = turno "N" (Noite)
-- DC (Descanso Complementar), DS (Descanso Semanal), Fe (Férias), Au (Ausência), Aup = ignorar
-- FI (Falta Injustificada) = ignorar
-
-O documento tem dias numerados no topo (ex: 1, 2, 3... 28 ou 31).
-Determina o mês e ano do documento.
-
-Responde APENAS com JSON válido neste formato exato:
-{
-  "mes": 2,
-  "ano": 2026,
-  "pessoas": {
-    "Nome Completo": ["M","","N","T","","M","","T","N","","M","T","","","N","M","","T","","M","N","","T","M","","","N","T"],
-    ...
-  }
-}
-
-O array de cada pessoa tem uma entrada por dia (dia 1 até ao último dia do mês).
-Usa "" para dias em que a pessoa não trabalha.
-Inclui TODOS os dias do mês mesmo que alguns estejam fora do documento (usa "" nesses casos).`;
-}
-
-async function sendImageToClaude(){
-  if(!importImageBase64){return;}
-  document.getElementById('import-actions-pre').style.display='none';
-  document.getElementById('import-send-btn').style.display='none';
-  document.getElementById('import-status').style.display='block';
-  document.getElementById('import-status-msg').textContent='A analisar imagem…';
-
+// Template Excel para download
+// Formato: linha 1 = título, linha 2 = [vazio, 1, 2...31], linhas seguintes = [Nome, M/T/N, ...]
+function downloadXlsTemplate(){
+  if(typeof XLSX==='undefined'){ showToast('⚠️ SheetJS ainda a carregar, tenta já a seguir.'); return; }
   const svc = state.activeSvc;
-  const prompt = importDocType==='diario' ? buildPromptDiario() : buildPromptMensal();
+  const now = new Date();
+  const ano = now.getFullYear();
+  const mes = now.getMonth()+1;
+  const daysInMonth = new Date(ano, mes, 0).getDate();
+  const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  const rows = [
+    // Linha 1: título
+    [`${svc} - ${MONTHS[mes-1]} ${ano}`, ...Array(daysInMonth).fill('')],
+    // Linha 2: dias 1..N (coluna A vazia)
+    ['Nome', ...Array.from({length:daysInMonth},(_,i)=>i+1)],
+    // Exemplos
+    ['Exemplo Pessoa 1', ...Array.from({length:daysInMonth},(_,i)=>['M','T','N','','','',''][i%7])],
+    ['Exemplo Pessoa 2', ...Array.from({length:daysInMonth},()=>'')],
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:22}, ...Array(daysInMonth).fill({wch:4})];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `${svc}-${mes}-${ano}`);
+  XLSX.writeFile(wb, `template-horario-${svc}-${mes}-${ano}.xlsx`);
+  showToast('📥 Template descarregado!');
+}
+
+function onXlsFileSelected(e){
+  const file = e.target.files[0]; if(!file) return;
+  e.target.value='';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = new Uint8Array(ev.target.result);
+      xlsWorkbook = XLSX.read(data, {type:'array'});
+      document.getElementById('xls-file-name').textContent = file.name;
+      document.getElementById('xls-file-info').style.display='flex';
+      document.getElementById('xls-import-btn').style.display='block';
+      document.getElementById('xls-status').style.display='none';
+    } catch(err){
+      showToast('❌ Erro ao ler ficheiro: '+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processXlsImport(){
+  if(!xlsWorkbook){ showToast('⚠️ Nenhum ficheiro carregado.'); return; }
+
+  document.getElementById('xls-status').style.display='block';
+  document.getElementById('xls-status-msg').textContent='A processar…';
+  document.getElementById('xls-import-btn').style.display='none';
 
   try {
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':CLAUDE_API_KEY,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-sonnet-4-5-20251001',
-        max_tokens:4096,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'image',source:{type:'base64',media_type:importImageType,data:importImageBase64}},
-            {type:'text',text:prompt}
-          ]
-        }]
-      })
-    });
+    const svc = state.activeSvc;
+    const cat = xlsXlsCat;
+    const sheetName = xlsWorkbook.SheetNames[0];
+    const ws = xlsWorkbook.Sheets[sheetName];
 
-    if(!resp.ok){const e=await resp.text();throw new Error(e);}
-    const data=await resp.json();
-    const raw=data.content[0].text;
-    const jsonMatch=raw.match(/\{[\s\S]*\}/);
-    if(!jsonMatch) throw new Error('Resposta inválida da API');
-    const parsed=JSON.parse(jsonMatch[0]);
+    // Ler como array de arrays (raw para preservar tipos)
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:true});
+    if(rows.length < 3) throw new Error('Ficheiro vazio ou sem dados suficientes.');
 
-    document.getElementById('import-status-msg').textContent='A organizar semanas…';
+    // ── Detetar formato ──────────────────────────────────────────
+    // Varre todas as linhas para encontrar a linha dos meses, dos dias e das pessoas
+    // (o SheetJS inclui linhas vazias no HTML, por isso não assumimos índices fixos)
 
-    if(importDocType==='diario'){
-      applyImportedDiario(parsed, svc);
-    } else {
-      applyImportedMensal(parsed, svc);
+    const MES_NAMES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro',
+                     'january','february','march','april','may','june','july','august','september','october','november','december'];
+
+    let mes, ano, dayColMap={}, dataRows=[], isPMT=false;
+    let mesRow=-1, anoRow=-1;
+
+    // Procurar linha com mês por extenso na col 0 E dias numéricos a partir da col 3
+    for(let ri=0; ri<rows.length; ri++){
+      const r = rows[ri];
+      const col0 = String(r[0]||'').toLowerCase().trim();
+      const isMes = MES_NAMES.some(m => col0.includes(m));
+      if(!isMes) continue;
+      // Verificar se tem dias 1..28+ nas colunas seguintes
+      const hasDays = r.slice(3).some(c => { const n=parseInt(c); return n>=1&&n<=31; });
+      if(hasDays){ mesRow=ri; break; }
     }
+
+    if(mesRow >= 0){
+      // ── FORMATO PMT ──
+      isPMT = true;
+      const col0mes = String(rows[mesRow][0]||'').toLowerCase();
+      mes = MES_NAMES.findIndex(m => col0mes.includes(m)) % 12 + 1;
+
+      // Linha do ano: procurar linha seguinte com 4 dígitos na col 0
+      for(let ri=mesRow+1; ri<Math.min(mesRow+4, rows.length); ri++){
+        const v = parseInt(String(rows[ri][0]||''));
+        if(v >= 2020 && v <= 2099){ ano=v; anoRow=ri; break; }
+      }
+      if(!ano){ const now=new Date(); ano=now.getFullYear(); }
+
+      // Dias: na mesRow, a partir da coluna onde começam os números
+      rows[mesRow].forEach((cell, ci) => {
+        const n = (typeof cell==='number') ? cell : parseInt(String(cell));
+        if(!isNaN(n) && n>=1 && n<=31) dayColMap[n] = ci;
+      });
+
+      // Pessoas: linhas com formato "NNN NNNNNN Nome" — dois blocos numéricos + nome
+      dataRows = rows.filter(row => /^\d+\s+\d+\s+\S/.test(String(row[0]||'')));
+
+      console.log('[XLS] PMT — mes:', mes, 'ano:', ano, 'dias:', Object.keys(dayColMap).length, 'pessoas:', dataRows.length);
+
+    } else {
+      // ── FORMATO TEMPLATE MANUAL ──
+      // Linha 1: título, Linha 2: [Nome, 1, 2...], Linha 3+: pessoas
+      const titleRow = rows[0];
+      const daysRow  = rows[1];
+      dataRows = rows.slice(2);
+
+      const tryParse = str => {
+        if(!str) return false;
+        const s = String(str);
+        const m = s.match(/(\d{1,2})[-\/](\d{4})/);
+        if(m){ mes=parseInt(m[1]); ano=parseInt(m[2]); return true; }
+        const sl = s.toLowerCase();
+        for(let i=0;i<MES_NAMES.length;i++){
+          if(sl.includes(MES_NAMES[i])){ mes=(i%12)+1; const ym=sl.match(/(\d{4})/); if(ym){ano=parseInt(ym[1]); return true;} }
+        }
+        return false;
+      };
+      if(!tryParse(sheetName)) tryParse(String(titleRow[0]||''));
+      if(!mes||!ano){ const now=new Date(); mes=now.getMonth()+1; ano=now.getFullYear(); }
+
+      daysRow.forEach((cell, ci) => {
+        const n = (typeof cell==='number') ? cell : parseInt(String(cell));
+        if(!isNaN(n) && n>=1 && n<=31) dayColMap[n] = ci;
+      });
+
+      console.log('[XLS] Template — mes:', mes, 'ano:', ano, 'dias:', Object.keys(dayColMap).length);
+    }
+
+    if(Object.keys(dayColMap).length === 0)
+      throw new Error('Não encontrei os dias (1…31). Verifica o formato do ficheiro.');
+
+    // ── Mapear siglas → M/T/N ────────────────────────────────────
+    // PMT usa siglas completas: M1 M2 M30 = Manhã | T1 = Tarde | N2 S1 = Noite
+    // Template usa letras simples: M T N
+    function siglaTurno(raw){
+      const s = String(raw===null||raw===undefined?'':raw).trim();
+      if(!s) return '';
+      const first = s.split(/\s+/)[0].toUpperCase();
+      // Letra simples (template manual)
+      if(first==='M') return 'M';
+      if(first==='T') return 'T';
+      if(first==='N') return 'N';
+      // Siglas PMT
+      if(/^M\d/.test(first)) return 'M';
+      if(/^T\d/.test(first)) return 'T';
+      if(first==='S1') return 'N';
+      if(first==='N2') return ''; // continuação do turno noturno — ignorar
+      return ''; // DS DC Fe Aup etc → ignorar
+    }
+
+    // ── Extrair nome ─────────────────────────────────────────────
+    function extractName(raw){
+      const s = String(raw||'').trim();
+      if(isPMT){
+        // "001 160628 Tiago Nogueira" → "Tiago Nogueira"
+        // Remove qualquer prefixo numérico: "001 160628 " ou "001 " etc.
+        // Formato: "001 160628 Nome Apelido" — dois blocos numéricos + nome
+        const m = s.match(/^\d+\s+\d+\s+(.+)$/);
+        return m ? m[1].trim() : '';
+      }
+      return s;
+    }
+
+    // ── Construir dayMap ─────────────────────────────────────────
+    const dayMap = {};
+    const daysInMonth = new Date(ano, mes, 0).getDate();
+    let totalTurnos = 0;
+
+    for(const row of dataRows){
+      const nome = extractName(row[0]);
+      if(!nome || nome.toLowerCase().startsWith('exemplo')) continue;
+      for(let d=1; d<=daysInMonth; d++){
+        const ci = dayColMap[d];
+        if(ci===undefined || ci>=row.length) continue;
+        const val = siglaTurno(row[ci]);
+        if(!val) continue;
+        const dateStr = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        if(!dayMap[dateStr]) dayMap[dateStr]={M:[],T:[],N:[]};
+        dayMap[dateStr][val].push(nome);
+        totalTurnos++;
+      }
+    }
+
+    console.log('[XLS] totalTurnos:', totalTurnos, '| dayMap keys:', Object.keys(dayMap).length);
+    if(totalTurnos === 0) throw new Error('Nenhum turno encontrado. Verifica se as células têm M/T/N ou siglas M1/T1/N2/S1.');
+
+    // ── Agrupar em semanas ───────────────────────────────────────
+    const weekdays=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+    function getMonWeek(dateStr){
+      const d=new Date(dateStr+'T00:00:00');
+      const day=d.getDay();
+      const mon=new Date(d); mon.setDate(d.getDate()+(day===0?-6:1-day));
+      return mon.toISOString().split('T')[0];
+    }
+    function slotCount(s,c){
+      if(s==='CE') return c==='enfermeiros'?6:0;
+      if(s==='UC'||s==='IMC'||s==='IMP3') return 3;
+      if(s==='ULDM'||s==='UMDR') return 4;
+      if(s==='URG') return c==='enfermeiros'?4:2;
+      return 3;
+    }
+    function padSlots(arr,n){
+      const slots=arr.slice(0,n).map(name=>({name,rooms:''}));
+      while(slots.length<n) slots.push({name:'',rooms:''});
+      return slots;
+    }
+
+    const n = slotCount(svc, cat);
+    const weeksMap={};
+    for(let d=1; d<=daysInMonth; d++){
+      const dateStr=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const wkey=getMonWeek(dateStr);
+      const date=new Date(dateStr+'T00:00:00');
+      const wdIdx=(date.getDay()+6)%7;
+      const wd=weekdays[wdIdx];
+      if(!weeksMap[wkey]) weeksMap[wkey]={published:false, days:[]};
+      const s=dayMap[dateStr]||{M:[],T:[],N:[]};
+      weeksMap[wkey].days.push({
+        date:dateStr, weekday:wd,
+        manha: padSlots(s.M, n),
+        tarde: svc==='CE'?[]:padSlots(s.T, n),
+        noite: svc==='CE'?[]:padSlots(s.N, n),
+        obs:''
+      });
+    }
+    Object.values(weeksMap).forEach(w=>w.days.sort((a,b)=>a.date.localeCompare(b.date)));
+
+    if(!state.schedule[svc]) state.schedule[svc]={enfermeiros:{},auxiliares:{}};
+    Object.assign(state.schedule[svc][cat], weeksMap);
+
+    hideImportModal();
+    // Bloquear sync, guardar na cloud e só depois libertar
+    xlsImporting = true;
+    state.lastImportAt = Date.now();
+    state.unsaved = (state.unsaved||0) + 1;
+    renderAll();
+    saveToStorage().then(()=>{
+      state.unsaved = 0;
+      // Manter bloqueio mais 5s para garantir que qualquer fetch em curso não sobrepõe
+      setTimeout(()=>{ xlsImporting = false; }, 5000);
+    }).catch(()=>{
+      xlsImporting = false;
+    });
+    const nSem = Object.keys(weeksMap).length;
+    showToast(`✅ Importado! ${totalTurnos} turnos · ${dataRows.filter(r=>extractName(r[0])).length} pessoas · ${nSem} semanas`);
 
   } catch(err){
-    console.error(err);
-    document.getElementById('import-status-msg').textContent='❌ Erro: '+err.message;
+    console.error('[XLS] Erro:', err);
+    document.getElementById('xls-status-msg').textContent='❌ '+err.message;
     setTimeout(()=>{
-      document.getElementById('import-status').style.display='none';
-      document.getElementById('import-actions-pre').style.display='flex';
-    },3000);
+      document.getElementById('xls-status').style.display='none';
+      document.getElementById('xls-import-btn').style.display='block';
+    }, 4000);
   }
 }
-
-// ─────────────────────────────────────────────
-// APLICAR PLANO DIÁRIO
-// ─────────────────────────────────────────────
-function applyImportedDiario(parsed, svc){
-  if(!parsed.dias || !parsed.dias.length) throw new Error('Nenhum dia encontrado no documento');
-
-  const cfg = SERVICES[svc];
-  function slotCount(cat){
-    if(svc==='CE') return cat==='enfermeiros'?6:0;
-    if(svc==='UC'||svc==='IMC'||svc==='IMP3') return 3;
-    if(svc==='ULDM'||svc==='UMDR') return 4;
-    if(svc==='URG') return cat==='enfermeiros'?4:2;
-    return 3;
-  }
-  function padSlots(arr, n){
-    const slots = arr.slice(0,n).map(name=>({name,rooms:''}));
-    while(slots.length<n) slots.push({name:'',rooms:''});
-    return slots;
-  }
-
-  // Agrupar dias em semanas (segunda-feira como chave)
-  const weekdays=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-  function getMonWeek(dateStr){
-    const d=new Date(dateStr+'T00:00:00');
-    const day=d.getDay();
-    const diff=day===0?-6:1-day;
-    const mon=new Date(d); mon.setDate(d.getDate()+diff);
-    return mon.toISOString().split('T')[0];
-  }
-
-  // Construir mapa de semanas para AMBAS as categorias
-  const weeksEnf={};
-  const weeksAux={};
-
-  for(const dia of parsed.dias){
-    const {date, weekday} = dia;
-    const wkey = getMonWeek(date);
-    const nEnf = slotCount('enfermeiros');
-    const nAux = slotCount('auxiliares');
-
-    // Enfermeiros
-    if(nEnf>0){
-      if(!weeksEnf[wkey]) weeksEnf[wkey]={published:true, days:[]};
-      const existing = weeksEnf[wkey].days.find(d=>d.date===date);
-      if(!existing){
-        weeksEnf[wkey].days.push({
-          date, weekday: weekday||'',
-          manha: padSlots(dia.manha?.enfermeiros||[], nEnf),
-          tarde: padSlots(dia.tarde?.enfermeiros||[], nEnf),
-          noite: padSlots(dia.noite?.enfermeiros||[], nEnf),
-          obs:''
-        });
-      }
-    }
-
-    // Auxiliares
-    if(nAux>0){
-      if(!weeksAux[wkey]) weeksAux[wkey]={published:true, days:[]};
-      const existing = weeksAux[wkey].days.find(d=>d.date===date);
-      if(!existing){
-        weeksAux[wkey].days.push({
-          date, weekday: weekday||'',
-          manha: padSlots(dia.manha?.auxiliares||[], nAux),
-          tarde: padSlots(dia.tarde?.auxiliares||[], nAux),
-          noite: padSlots(dia.noite?.auxiliares||[], nAux),
-          obs:''
-        });
-      }
-    }
-  }
-
-  // Ordenar dias dentro de cada semana
-  [weeksEnf, weeksAux].forEach(wm=>{
-    Object.values(wm).forEach(w=>w.days.sort((a,b)=>a.date.localeCompare(b.date)));
-  });
-
-  if(!state.schedule[svc]) state.schedule[svc]={enfermeiros:{},auxiliares:{}};
-  Object.assign(state.schedule[svc].enfermeiros, weeksEnf);
-  Object.assign(state.schedule[svc].auxiliares, weeksAux);
-
-  hideImportModal();
-  renderAll();
-  const nSemanas = Math.max(Object.keys(weeksEnf).length, Object.keys(weeksAux).length);
-  showToast(`✅ Plano importado! ${parsed.dias.length} dias / ${nSemanas} semana(s) preenchida(s).`);
-}
-
-// ─────────────────────────────────────────────
-// APLICAR GRELHA MENSAL (lógica anterior)
-// ─────────────────────────────────────────────
-function applyImportedMensal(parsed, svc){
-  const {mes, ano, pessoas} = parsed;
-  const dayMap={};
-  const daysInMonth=new Date(ano, mes, 0).getDate();
-  
-  for(const [nome, turnos] of Object.entries(pessoas)){
-    for(let d=1;d<=daysInMonth;d++){
-      const t=turnos[d-1]||'';
-      if(!t) continue;
-      const dateStr=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if(!dayMap[dateStr]) dayMap[dateStr]={M:[],T:[],N:[]};
-      if(t==='M') dayMap[dateStr].M.push(nome);
-      else if(t==='T') dayMap[dateStr].T.push(nome);
-      else if(t==='N') dayMap[dateStr].N.push(nome);
-    }
-  }
-
-  const weekdays=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-  function getMonWeek(dateStr){
-    const d=new Date(dateStr+'T00:00:00');
-    const day=d.getDay();
-    const diff=day===0?-6:1-day;
-    const mon=new Date(d);mon.setDate(d.getDate()+diff);
-    return mon.toISOString().split('T')[0];
-  }
-
-  const slotCount=(svc==='UC'||svc==='IMC'||svc==='IMP3')?3:(svc==='URG')?4:4;
-  function padSlots(arr,n){
-    const slots=arr.slice(0,n).map(name=>({name,rooms:''}));
-    while(slots.length<n) slots.push({name:'',rooms:''});
-    return slots;
-  }
-
-  const weeksMap={};
-  for(let d=1;d<=daysInMonth;d++){
-    const dateStr=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const wkey=getMonWeek(dateStr);
-    const date=new Date(dateStr+'T00:00:00');
-    const wdIdx=(date.getDay()+6)%7;
-    const wd=weekdays[wdIdx];
-    if(!weeksMap[wkey]) weeksMap[wkey]={published:true, days:[]};
-    const daySlots=dayMap[dateStr]||{M:[],T:[],N:[]};
-    weeksMap[wkey].days.push({
-      date:dateStr, weekday:wd,
-      manha:padSlots(daySlots.M,slotCount),
-      tarde:padSlots(daySlots.T,slotCount),
-      noite:padSlots(daySlots.N,slotCount),
-      obs:''
-    });
-  }
-
-  Object.values(weeksMap).forEach(w=>{
-    w.days.sort((a,b)=>a.date.localeCompare(b.date));
-  });
-
-  const cat=state.activeCat||'enfermeiros';
-  if(!state.schedule[svc]) state.schedule[svc]={enfermeiros:{},auxiliares:{}};
-  Object.assign(state.schedule[svc][cat], weeksMap);
-
-  hideImportModal();
-  renderAll();
-  showToast(`✅ Horário importado! ${Object.keys(weeksMap).length} semanas preenchidas.`);
-}
-
 function showToast(msg){
   document.querySelectorAll('.toast').forEach(t=>t.remove());
   const t=document.createElement('div');
