@@ -2058,9 +2058,10 @@ function renderMultiPanel(){
                         : multiIsDone(svc, cat, mes, ano);
     const isSel = isSlotSelected(svc,cat,merge);
     const isAct = state.activeSvc===svc && state.activeCat===cat;
-    const label = isTL ? 'Team Leader' : merge ? 'Prestadores' : (realCat==='enfermeiros'?'Enfermeiros':'Auxiliares');
-    const icon  = isTL ? '⭐' : merge ? '🔗' : (realCat==='enfermeiros'?'👩‍⚕️':'🧹');
-    const color = isTL ? 'var(--red)' : merge ? 'var(--purple)' : (realCat==='enfermeiros'?'var(--accent)':'var(--orange)');
+    const isDep = (merge==='dependentes');
+    const label = isTL ? 'Team Leader' : isDep ? 'Enfermeiros' : merge ? 'Prestadores' : (realCat==='enfermeiros'?'Enfermeiros':'Auxiliares');
+    const icon  = isTL ? '⭐' : isDep ? '👩‍⚕️' : merge ? '🔗' : (realCat==='enfermeiros'?'👩‍⚕️':'🧹');
+    const color = isTL ? 'var(--red)' : isDep ? 'var(--accent)' : merge ? 'var(--purple)' : (realCat==='enfermeiros'?'var(--accent)':'var(--orange)');
     const border= isSel ? `2px solid ${color}` : isAct&&!merge ? `2px solid ${color}` : '1px solid var(--border)';
     const bg    = isSel ? `rgba(${merge?'167,139,250':cat==='enfermeiros'?'59,130,246':'251,146,60'},.08)` : 'var(--bg3)';
     return `
@@ -2099,7 +2100,7 @@ function renderMultiPanel(){
           <div style="font-size:10px;color:var(--text3)">${SERVICES[svc]?.label||''}</div>
         </div>
       </div>
-      ${slotRow(svc,'enfermeiros',svc==='URG')}
+      ${slotRow(svc,'enfermeiros', svc==='URG' ? 'dependentes' : false)}
       ${slotRow(svc,'enfermeiros',true)}
       ${svc==='URG' ? slotRow(svc,'enfermeiros_tl',false) : ''}
     </div>`;
@@ -2142,13 +2143,15 @@ function multiNavSvc(svc, cat){
 }
 
 function multiSelectSlot(svc, cat, merge){
-  merge=!!merge;
+  const isDep = (merge==='dependentes');
+  if(isDep) merge=true; // dependentes fazem merge mas com label diferente
+  else merge=!!merge;
   const isTL = (cat==='enfermeiros_tl');
   if(multiSelectedSlot && multiSelectedSlot.svc===svc && multiSelectedSlot.cat===cat && !!multiSelectedSlot.merge===merge){
     multiSelectedSlot=null;
     renderMultiPanel();
   } else {
-    multiSelectedSlot={svc, cat, merge, isTL};
+    multiSelectedSlot={svc, cat, merge, isTL, isDep};
     // Navegar para o serviço/categoria SEM chamar renderAll (que reseta multiSelectedSlot via renderMultiPanel)
     state.activeSvc=svc; state.activeCat=cat;
     ensureWeek(svc, state.currentWeek);
@@ -2182,6 +2185,7 @@ function onMultiFileSelected(e){
       // Usar merge do slot selecionado
       // TL (Team Leader): importa como merge=true, marcado especialmente
       const isTL = !!multiSelectedSlot?.isTL;
+      const isDep = !!multiSelectedSlot?.isDep;
       const merge = isTL ? true : !!multiSelectedSlot?.merge;
       const cat   = isTL ? 'enfermeiros' : multiSelectedSlot.cat;
       // Passar flag TL para o coreXlsImport via estado global temporário
@@ -2195,9 +2199,10 @@ function onMultiFileSelected(e){
 
       // Marcar como feito
       const now=new Date();
-      if(isTL)  multiSetDone(svc,'tl',now.getMonth()+1,now.getFullYear());
-      else if(merge) multiSetDone(svc,cat+'_prestadores',now.getMonth()+1,now.getFullYear());
-      else multiSetDone(svc,cat,now.getMonth()+1,now.getFullYear());
+      if(isTL)        multiSetDone(svc,'tl',now.getMonth()+1,now.getFullYear());
+      else if(isDep)  multiSetDone(svc,cat,now.getMonth()+1,now.getFullYear());
+      else if(merge)  multiSetDone(svc,cat+'_prestadores',now.getMonth()+1,now.getFullYear());
+      else            multiSetDone(svc,cat,now.getMonth()+1,now.getFullYear());
 
       xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=(state.unsaved||0)+1;
       saveToStorage().then(()=>{ state.unsaved=0; setTimeout(()=>{xlsImporting=false;},5000); }).catch(()=>{xlsImporting=false;});
