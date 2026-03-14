@@ -1025,6 +1025,36 @@ const state = {
 // Nomes que NUNCA devem aparecer na URG
 // Banidos da URG — comparação por nome completo, não por primeira palavra
 const URG_BANNED = ['Nuno Abreu','Renata Gondar','Marta Cardoso','Ana Catarina Silva','Catarina Silva'];
+// Lista de nomes conhecidos da URG — qualquer nome fora desta lista é removido
+const URG_ALLOWED = [
+  'Adriano Coutinho','Ana Moreira','Ana Ricardo','Cristiana Silva',
+  'Eduardo Bessa','Graciela Abreu','Helena Pinto','Hugo Duque',
+  'Inês Monteiro','Iván Ortega','Ivan Ortega','José Silva',
+  'Liliana Gomes','Márcia Cardoso','Paula Silva','Rita'
+];
+function isAllowedURG(nm){
+  return URG_ALLOWED.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+}
+
+function cleanNumericPrefixes() {
+  // Remove prefixos tipo "001 160628 " dos nomes em todos os serviços
+  const prefixRe = /^\d+\s+\d+\s+/;
+  Object.values(state.schedule||{}).forEach(svc => {
+    Object.values(svc||{}).forEach(cat => {
+      Object.values(cat||{}).forEach(week => {
+        (week.days||[]).forEach(day => {
+          ['manha','tarde','noite'].forEach(sh => {
+            (day[sh]||[]).forEach((slot,i) => {
+              if(slot.name && prefixRe.test(slot.name)){
+                day[sh][i] = {...slot, name: slot.name.replace(prefixRe,'').trim()};
+              }
+            });
+          });
+        });
+      });
+    });
+  });
+}
 
 function cleanURGData() {
   // Elementos fixos de Pediatria
@@ -1052,7 +1082,7 @@ function cleanURGData() {
 
         // 1. Filtrar banidos e duplicados
         let slots = (day[sh] || []).filter(s => s && s.name);
-        slots = slots.filter(s => !URG_BANNED.some(b => s.name.toLowerCase().includes(b.toLowerCase())));
+        slots = slots.filter(s => !URG_BANNED.some(b => s.name.toLowerCase().includes(b.toLowerCase())) && isAllowedURG(s.name));
         const seen = new Set();
         slots = slots.filter(s => {
           const k = s.name.toLowerCase().trim();
@@ -1222,6 +1252,8 @@ function applyPersistedData(persisted, skipIfOlderThanImport) {
   if (persisted.customPasswords) state.customPasswords = persisted.customPasswords;
   if (typeof cleanURGData === 'function') cleanURGData();
   if (typeof cleanCEData === 'function') cleanCEData();
+  // Limpar prefixos numéricos dos nomes em todos os serviços
+  if (typeof cleanNumericPrefixes === 'function') cleanNumericPrefixes();
 }
 
 // Apply cache immediately so app feels instant, then sync cloud in background
