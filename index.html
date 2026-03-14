@@ -2263,15 +2263,27 @@ function coreXlsImport(rows,svc,cat,merge,allowedNames){
   if(!Object.keys(dayColMap).length)throw new Error('Dias não encontrados na linha do mês');
   dataRows=rows.filter(row=>/^\d+\s+\d+\s+\S/.test(String(row[0]||'')));
   const isAux=(cat==='auxiliares');
+  // Mapa completo de turnos URG
+  const URG_TURNOS = {
+    // Manhã
+    'M1':'M','M2':'M','M6':'M','M30':'M','MT15':'M',
+    // Tarde
+    'T1':'T','T5':'T','T14':'T','T27':'T','T34':'T','T114':'T',
+    // Noite
+    'N2':'N','S1':'N',
+    // Genéricos outros serviços
+    'M':'M','T':'T','N':'N',
+  };
   function sig(raw){
     const s=String(raw===null||raw===undefined?'':raw).trim().replace(/^Au/,'');
     if(!s)return'';
     const f=s.split(/\s+/)[0].toUpperCase();
-    if(f==='M'||f==='T'||f==='N')return f;
+    // Verificar mapa exacto primeiro
+    if(URG_TURNOS[f]) return URG_TURNOS[f];
+    // Fallbacks genéricos
     if(/^M\d/.test(f))return'M';
-    if(f==='S1')return'N';
-    if(f==='N2')return isAux?'N':'';
-    if(f==='T5'||/^T\d/.test(f))return'T';
+    if(/^T\d/.test(f))return'T';
+    if(/^N\d/.test(f))return'N';
     return'';
   }
   function sigHora(raw){
@@ -2292,7 +2304,8 @@ function coreXlsImport(rows,svc,cat,merge,allowedNames){
       const ci=dayColMap[d];if(ci===undefined||ci>=row.length)continue;
       const val=sig(row[ci]);if(!val)continue;
       const hora=sigHora(row[ci]); // horário legível para CE
-      const td=(isAux&&val==='N'&&d>1)?d-1:d;
+      // Recuo N2 só para auxiliares (e nunca para URG — enfermeiros não fazem noite tradicional)
+      const td=(isAux && val==='N' && d>1 && svc!=='URG')?d-1:d;
       const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(td).padStart(2,'0')}`;
       if(!dayMap[ds])dayMap[ds]={M:[],T:[],N:[]};
       // Para CE guardar {nome, hora} em vez de só nome
