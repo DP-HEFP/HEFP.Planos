@@ -1008,10 +1008,14 @@ const URG_BANNED = ['Nuno Abreu','Renata Gondar','Marta Cardoso','Ana Catarina S
 function cleanURGData() {
   // Elementos fixos de Pediatria
   const URG_PED   = ['José Silva','Ana Ricardo','Ana Moreira','Graciela Abreu','Liliana','Rita'];
-  // Substitutos (só quando não há nenhum fixo no turno)
-  const URG_SUB   = ['Adriano','Ivan','Hugo Duque'];
-  const isPed = nm => URG_PED.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
-  const isSub = nm => URG_SUB.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+  const URG_SUB   = ['Adriano','Ivan','Hugo Duque']; // substitutos — Adriano só slot 1 (Pediatria)
+  const URG_ADULT_ONLY = ['Cristiana Silva']; // sempre adultos, nunca pediatria
+  const isPed  = nm => !URG_ADULT_ONLY.some(p=>nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]))
+                    && URG_PED.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+  const isSub  = nm => !URG_ADULT_ONLY.some(p=>nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]))
+                    && URG_SUB.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+  // Adriano só vai para Pediatria (slot 1), nunca para Consulta Pediatria (slot 2)
+  const isAdrianoOnly = nm => nm.toLowerCase().includes('adriano');
 
   const urgEnf = state.schedule?.URG?.enfermeiros || {};
   Object.values(urgEnf).forEach(week => {
@@ -1046,7 +1050,9 @@ function cleanURGData() {
 
         // 3. Preencher Pediatria (slot 1) e Consulta Pediatria (slot 2) — só manhã e tarde
         const pedSlot1 = pedFixed[0] || subs[0] || null;
-        const pedSlot2 = pedFixed[1] || (pedFixed[0] ? subs[0] : subs[1]) || null;
+        // Adriano só vai para slot 1 (Pediatria), nunca para slot 2 (Consulta Pediatria)
+        const subsForSlot2 = subs.filter(s => !isAdrianoOnly(s.name));
+        const pedSlot2 = pedFixed[1] || (pedFixed[0] ? subsForSlot2[0] : subsForSlot2[1] || (subs[0]&&!isAdrianoOnly(subs[0].name)?null:subsForSlot2[0])) || null;
         const subsUsed = new Set();
         if(pedSlot1 && !pedFixed.includes(pedSlot1)) subsUsed.add(pedSlot1.name);
         if(pedSlot2 && !pedFixed.includes(pedSlot2)) subsUsed.add(pedSlot2.name);
