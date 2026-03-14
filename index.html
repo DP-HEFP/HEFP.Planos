@@ -491,6 +491,15 @@
             </div>
           </div>
 
+          <!-- Modo de importação -->
+          <div id="xls-merge-row" style="margin-bottom:14px;display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer" onclick="toggleXlsMerge()">
+            <div id="xls-merge-check" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px"></div>
+            <div>
+              <div style="font-size:12px;font-weight:700">Adicionar aos existentes</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:1px">Para prestadores — junta nomes sem apagar os anteriores</div>
+            </div>
+          </div>
+
           <!-- Ficheiro selecionado -->
           <div id="xls-file-info" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;display:none;align-items:center;gap:8px">
             <span style="font-size:18px">📄</span>
@@ -956,14 +965,19 @@ const state = {
 };
 
 // Load persisted data
-function applyPersistedData(persisted) {
+// skipIfOlderThanImport: se true, não sobrepõe dados importados recentemente
+function applyPersistedData(persisted, skipIfOlderThanImport) {
   if (!persisted) return;
+  // Se houve importação recente (60s), não deixar cloud sobrepor
+  if (skipIfOlderThanImport && Date.now() - (state.lastImportAt||0) < 60000) {
+    console.log('[Sync] Ignorado — importação recente');
+    return;
+  }
   if (persisted.schedule) {
     Object.keys(persisted.schedule).forEach(svc => {
       if (!state.schedule[svc]) return;
       const saved = persisted.schedule[svc];
       if (saved.enfermeiros !== undefined || saved.auxiliares !== undefined) {
-        // Only overwrite if cloud has actual week data (not empty)
         if (saved.enfermeiros && Object.keys(saved.enfermeiros).length > 0)
           state.schedule[svc].enfermeiros = saved.enfermeiros;
         if (saved.auxiliares && Object.keys(saved.auxiliares).length > 0)
@@ -995,7 +1009,7 @@ async function syncFromCloud() {
   if (Date.now() - (state.lastImportAt||0) < 60000) return;
 
   cacheLocal(cloud);
-  applyPersistedData(cloud);
+  applyPersistedData(cloud, true); // não sobrepor se importação recente
   if (state.user) {
     const wkey = state.currentWeek;
     if (wkey && !((state.schedule[state.activeSvc][state.activeCat]||{})[wkey])) {
@@ -1127,7 +1141,7 @@ function doLogin(){
   loadFromCloud().then(cloud => {
     if(cloud){
       cacheLocal(cloud);
-      applyPersistedData(cloud);
+      applyPersistedData(cloud, false); // no login sempre aplica
     }
     renderAll();
   }).catch(()=>renderAll());
@@ -1643,6 +1657,7 @@ function saveNewPass(){
 // ══════════════════════════════════════
 let xlsWorkbook      = null;
 let xlsXlsCat        = 'enfermeiros';
+let xlsMerge         = false; // adicionar aos existentes (para prestadores)
 let xlsImporting     = false; // bloqueia syncFromCloud durante importação
 
 function selectXlsCat(cat){
@@ -1658,12 +1673,28 @@ function selectXlsCat(cat){
   }
 }
 
+function toggleXlsMerge(){
+  xlsMerge = !xlsMerge;
+  const chk = document.getElementById('xls-merge-check');
+  chk.style.background   = xlsMerge ? 'var(--accent)' : 'var(--bg)';
+  chk.style.borderColor  = xlsMerge ? 'var(--accent)' : 'var(--border)';
+  chk.textContent        = xlsMerge ? '✓' : '';
+  chk.style.color        = '#fff';
+}
+
+function setXlsMerge(val){
+  if(xlsMerge !== val) toggleXlsMerge();
+}
+
 function triggerImportExcel(){
   document.getElementById('import-modal').style.display='flex';
   document.getElementById('xls-status').style.display='none';
   document.getElementById('xls-import-btn').style.display='none';
   document.getElementById('xls-file-info').style.display='none';
-  xlsWorkbook=null;
+  xlsWorkbook=null; xlsMerge=false;
+  // Reset checkbox
+  const chk = document.getElementById('xls-merge-check');
+  if(chk){ chk.style.background='var(--bg)'; chk.style.borderColor='var(--border)'; chk.textContent=''; }
   selectXlsCat('enfermeiros');
 }
 function hideImportModal(){
@@ -1778,6 +1809,12 @@ function processXlsImport(){
       // Pessoas: linhas com formato "NNN NNNNNN Nome" — dois blocos numéricos + nome
       dataRows = rows.filter(row => /^\d+\s+\d+\s+\S/.test(String(row[0]||'')));
 
+      // Detetar automaticamente se é ficheiro de prestadores
+      const titleText = String(rows[0]?.[2]||rows[0]?.[0]||'').toUpperCase();
+      if(titleText.includes('PRESTADOR')) {
+        setXlsMerge(true);
+        console.log('[XLS] Prestadores detetado — modo merge ativado');
+      }
       console.log('[XLS] PMT — mes:', mes, 'ano:', ano, 'dias:', Object.keys(dayColMap).length, 'pessoas:', dataRows.length);
 
     } else {
@@ -1909,7 +1946,45 @@ function processXlsImport(){
     Object.values(weeksMap).forEach(w=>w.days.sort((a,b)=>a.date.localeCompare(b.date)));
 
     if(!state.schedule[svc]) state.schedule[svc]={enfermeiros:{},auxiliares:{}};
-    Object.assign(state.schedule[svc][cat], weeksMap);
+
+    if(!xlsMerge){
+      // Modo normal: substituir semanas importadas
+      Object.assign(state.schedule[svc][cat], weeksMap);
+    } else {
+      // Modo merge (prestadores): adicionar nomes aos slots existentes sem apagar
+      Object.keys(weeksMap).forEach(wkey => {
+        const newWeek = weeksMap[wkey];
+        const existing = state.schedule[svc][cat][wkey];
+        if(!existing){
+          // Semana não existe ainda — adicionar diretamente
+          state.schedule[svc][cat][wkey] = newWeek;
+        } else {
+          // Semana já existe — fazer merge dia a dia, turno a turno
+          newWeek.days.forEach((newDay, di) => {
+            const exDay = existing.days[di];
+            if(!exDay) return;
+            ['manha','tarde','noite'].forEach(shift => {
+              const newSlots = newDay[shift] || [];
+              const exSlots  = exDay[shift]  || [];
+              // Nomes novos que ainda não estão na semana existente
+              const existingNames = exSlots.map(s=>s.name).filter(Boolean);
+              newSlots.forEach(ns => {
+                if(!ns.name) return;
+                if(existingNames.includes(ns.name)) return; // já existe
+                // Encontrar primeiro slot vazio para inserir
+                const emptyIdx = exSlots.findIndex(s=>!s.name);
+                if(emptyIdx >= 0){
+                  exSlots[emptyIdx] = {name:ns.name, rooms:ns.rooms||''};
+                } else {
+                  // Não há slot vazio — adicionar extra
+                  exSlots.push({name:ns.name, rooms:ns.rooms||''});
+                }
+              });
+            });
+          });
+        }
+      });
+    }
 
     hideImportModal();
     // Bloquear sync, guardar na cloud e só depois libertar
