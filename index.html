@@ -946,17 +946,21 @@ const SERVICES = {
   },
   CE:{
     name:'CE', label:'Consulta Externa',
-    postos:['Balcão D','Balcão A','Balcão F','Balcão G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'],
-    roomsHint:{ manha:['Balcão D','Balcão A','Balcão F','Balcão G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'], tarde:[], noite:[] },
+    postos:['Posto D','Posto A (Pediatria)','Posto F','Posto G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'],
+    roomsHint:{ manha:['Posto D','Posto A','Posto F','Posto G','Apoio 1','Apoio 2'], tarde:[], noite:[] },
     nurses:['Adelina','Conceição','Manuela','Sónia','Estrela','Ana Paula','Sílvia'],
     sample:{
-      manha:[{name:'',rooms:'Balcão D'},{name:'',rooms:'Balcão A'},{name:'',rooms:'Balcão F'},{name:'',rooms:'Balcão G'},{name:'',rooms:'Apoio 1 - Balcão G'},{name:'',rooms:'Apoio 2 - Balcão F'}],
+      manha:[{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''}],
       tarde: [],
       noite: [],
     },
-    auxiliares:[],
-    auxRoomsHint:{ manha:[], tarde:[], noite:[] },
-    auxSample:{ manha:[], tarde:[], noite:[] }
+    auxiliares:['Adelina','Conceição','Manuela','Sónia','Estrela','Ana Paula','Sílvia'],
+    auxRoomsHint:{ manha:['Posto D','Posto A','Posto F','Posto G','Apoio 1','Apoio 2'], tarde:[], noite:[] },
+    auxSample:{
+      manha:[{name:'',rooms:'Posto D',hours:''},{name:'',rooms:'Posto A (Pediatria)',hours:''},{name:'',rooms:'Posto F',hours:''},{name:'',rooms:'Posto G',hours:''},{name:'',rooms:'Apoio 1 - Balcão G',hours:''},{name:'',rooms:'Apoio 2 - Balcão F',hours:''}],
+      tarde: [],
+      noite: [],
+    }
   }
 };
 
@@ -996,6 +1000,32 @@ const state = {
     {id:3,ico:'✅',title:'Stock farmácia',msg:'Contagem agendada para amanhã.',time:'Há 2 dias',read:true},
   ]
 };
+
+// Merge dados da cloud com estado local — cloud só preenche semanas em falta
+function mergeCloudData(cloud) {
+  if (!cloud || !cloud.schedule) return;
+  Object.keys(cloud.schedule).forEach(svc => {
+    if (!state.schedule[svc]) return;
+    const saved = cloud.schedule[svc];
+    ['enfermeiros','auxiliares'].forEach(cat => {
+      const cloudWeeks = saved[cat] || (cat==='enfermeiros' ? saved : {});
+      if (!cloudWeeks || !Object.keys(cloudWeeks).length) return;
+      Object.keys(cloudWeeks).forEach(wkey => {
+        // Só aplicar se não existir localmente ou se local estiver vazio
+        const local = (state.schedule[svc][cat]||{})[wkey];
+        const localHasData = local?.days?.some(d =>
+          ['manha','tarde','noite'].some(sh => (d[sh]||[]).some(s=>s.name))
+        );
+        if (!localHasData) {
+          if (!state.schedule[svc][cat]) state.schedule[svc][cat] = {};
+          state.schedule[svc][cat][wkey] = cloudWeeks[wkey];
+        }
+      });
+    });
+  });
+  if (cloud.notifications) state.notifications = cloud.notifications;
+  if (cloud.customPasswords) state.customPasswords = cloud.customPasswords;
+}
 
 // Load persisted data
 // skipIfOlderThanImport: se true, não sobrepõe dados importados recentemente
@@ -1160,7 +1190,8 @@ function doLogin(){
     setupUI();
     localStorage.removeItem(CACHE_KEY);
     showToast('⏳ A carregar planos…');
-    loadFromCloud().then(cloud=>{if(cloud){cacheLocal(cloud);applyPersistedData(cloud,false);}renderAll();}).catch(()=>renderAll());
+    const localSC=loadCache();if(localSC)applyPersistedData(localSC,false);
+    loadFromCloud().then(cloud=>{if(cloud){mergeCloudData(cloud);cacheLocal({schedule:state.schedule,customPasswords:state.customPasswords,notifications:state.notifications});}renderAll();}).catch(()=>renderAll());
     return;
   }
   if(role==='coordinator'){
@@ -1177,9 +1208,10 @@ function doLogin(){
     state.user={name:'Auxiliar',role:'auxiliar'};
     state.activeCat='auxiliares';
     state.activeSvc=selectedSvc;
+    // CE usa sempre auxiliares
   } else {
     state.user={name:'Enfermeiro',role:'nurse'};
-    state.activeCat='enfermeiros';
+    state.activeCat= selectedSvc==='CE' ? 'auxiliares' : 'enfermeiros';
     state.activeSvc=selectedSvc;
   }
   state.currentWeek=todayKey();
@@ -1188,13 +1220,15 @@ function doLogin(){
   document.getElementById('app').style.display='block';
   setupUI();
 
-  // Always fetch fresh data from cloud on login — ignore local cache
-  localStorage.removeItem(CACHE_KEY);
+  // No login: aplicar cache local primeiro, depois merge com cloud
+  const localData = loadCache();
+  if(localData) applyPersistedData(localData, false);
   showToast('⏳ A carregar planos…');
   loadFromCloud().then(cloud => {
     if(cloud){
-      cacheLocal(cloud);
-      applyPersistedData(cloud, false); // no login sempre aplica
+      // Fazer merge: cloud actualiza semanas que não existem localmente
+      mergeCloudData(cloud);
+      cacheLocal({schedule:state.schedule, customPasswords:state.customPasswords, notifications:state.notifications});
     }
     renderAll();
   }).catch(()=>renderAll());
@@ -1270,6 +1304,8 @@ function setupUI(){
 
 function switchSvc(s){
   state.activeSvc=s;
+  // CE: forçar categoria auxiliares (é onde estão os dados)
+  if(s==='CE') state.activeCat='auxiliares';
   ensureWeek(s,state.currentWeek);
   const svcNameEl=document.getElementById('tb-svc-name');
   if(svcNameEl) svcNameEl.textContent=s||'';
@@ -1418,10 +1454,12 @@ function renderDay(day){
     const cells=slots.map((slot,i)=>{
       const nm=slot.name||'';
       const lbl=postos?postos[i]:`${posPrefix}${i+1}`;
+      const hrs=slot.hours||'';
       return `<div class="nurse-cell">
         <div class="nc-pos" style="${postos?'font-size:8.5px;line-height:1.1':''}">${lbl}</div>
         ${nm?`<div class="nc-name">${nm}</div>`:'<div class="nc-empty">—</div>'}
-        ${slot.rooms&&slot.rooms!=='—'?`<div class="nc-rooms">${slot.rooms}</div>`:''}
+        ${hrs?`<div class="nc-rooms" style="color:var(--accent)">${hrs}</div>`:''}
+        ${slot.rooms&&slot.rooms!=='—'&&!postos?`<div class="nc-rooms">${slot.rooms}</div>`:''}
       </div>`;
     }).join('');
     const obs=sk==='noite'&&day.obs?`<div class="obs-row">⚡ ${day.obs}</div>`:'';
@@ -1977,7 +2015,8 @@ function renderMultiPanel(){
 }
 
 function multiNavSvc(svc, cat){
-  // Navegar para o serviço/categoria para ver o plano
+  // CE usa sempre auxiliares
+  if(svc==='CE') cat='auxiliares';
   state.activeSvc=svc; state.activeCat=cat;
   ensureWeek(svc, state.currentWeek);
   const svcNameEl=document.getElementById('tb-svc-name');
@@ -2076,6 +2115,9 @@ function detectSvcFromTitle(t){
 }
 // Lógica core partilhada
 function coreXlsImport(rows,svc,cat,merge){
+  // Constantes CE — declaradas primeiro para evitar "before initialization"
+  const CE_HORARIOS = {'M2':'08h-14h','M5':'08h-13h','M6':'09h-14h','M12':'09h-20h','M17':'08h-19h','T13':'15h-20h'};
+  const CE_POSTOS   = ['Posto D','Posto A (Pediatria)','Posto F','Posto G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'];
   const MES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro',
              'january','february','march','april','may','june','july','august','september','october','november','december'];
   let mes,ano,dayColMap={},dataRows=[],mesRow=-1;
@@ -2099,7 +2141,8 @@ function coreXlsImport(rows,svc,cat,merge){
   dataRows=rows.filter(row=>/^\d+\s+\d+\s+\S/.test(String(row[0]||'')));
   const isAux=(cat==='auxiliares');
   function sig(raw){
-    const s=String(raw===null||raw===undefined?'':raw).trim();if(!s)return'';
+    const s=String(raw===null||raw===undefined?'':raw).trim().replace(/^Au/,'');
+    if(!s)return'';
     const f=s.split(/\s+/)[0].toUpperCase();
     if(f==='M'||f==='T'||f==='N')return f;
     if(/^M\d/.test(f))return'M';
@@ -2108,6 +2151,12 @@ function coreXlsImport(rows,svc,cat,merge){
     if(f==='T5'||/^T\d/.test(f))return'T';
     return'';
   }
+  function sigHora(raw){
+    // Para CE: devolver o horário legível (ex: "08h-19h") em vez de M/T/N
+    const s=String(raw||'').trim().replace(/^Au/,'');
+    const normalized=s.replace(/\s+/,'');
+    return CE_HORARIOS[normalized]||null;
+  }
   function nom(raw){const s=String(raw||'').trim();const m=s.match(/^\d+\s+\d+\s+(.+)$/);return m?m[1].trim():s;}
   const dayMap={};const dim=new Date(ano,mes,0).getDate();
   for(const row of dataRows){
@@ -2115,15 +2164,17 @@ function coreXlsImport(rows,svc,cat,merge){
     for(let d=1;d<=dim;d++){
       const ci=dayColMap[d];if(ci===undefined||ci>=row.length)continue;
       const val=sig(row[ci]);if(!val)continue;
+      const hora=sigHora(row[ci]); // horário legível para CE
       const td=(isAux&&val==='N'&&d>1)?d-1:d;
       const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(td).padStart(2,'0')}`;
       if(!dayMap[ds])dayMap[ds]={M:[],T:[],N:[]};
-      dayMap[ds][val].push(nome);
+      // Para CE guardar {nome, hora} em vez de só nome
+      dayMap[ds][val].push(svc==='CE' && hora ? {name:nome,hours:hora} : nome);
     }
   }
   const WD=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
   function monWeek(ds){const d=new Date(ds+'T00:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()+(day===0?-6:1-day));return mon.toISOString().split('T')[0];}
-  function sc(s,c){if(s==='CE')return c==='enfermeiros'?6:0;if(['UC','IMC','IMP3'].includes(s))return 3;if(['ULDM','UMDR'].includes(s))return 4;if(s==='URG')return c==='enfermeiros'?4:2;return 3;}
+  function sc(s,c){if(s==='CE')return 6;if(['UC','IMC','IMP3'].includes(s))return 3;if(['ULDM','UMDR'].includes(s))return 4;if(s==='URG')return c==='enfermeiros'?4:2;return 3;}
   // Enfermeiros URG que devem ser alocados à Pediatria/Consulta Ped. (slots 1 e 2)
   // Identificados pelo nome completo (após remoção do prefixo numérico)
   const URG_PED_NAMES = ['Ana Ricardo','Ana Moreira','José Silva','Graciela Abreu'];
@@ -2132,6 +2183,18 @@ function coreXlsImport(rows,svc,cat,merge){
   }
 
   function pad(arr, n){
+    if(svc==='CE'){
+      // CE: 6 postos, cada slot tem name + hours (horário legível)
+      const slots=[];
+      for(let i=0;i<n;i++){
+        const item=arr[i];
+        if(!item) slots.push({name:'',rooms:CE_POSTOS[i]||'',hours:''});
+        else if(typeof item==='object') slots.push({name:item.name||'',rooms:CE_POSTOS[i]||'',hours:item.hours||''});
+        else slots.push({name:item,rooms:CE_POSTOS[i]||'',hours:''});
+      }
+      while(slots.length<n) slots.push({name:'',rooms:CE_POSTOS[slots.length]||'',hours:''});
+      return slots;
+    }
     if(svc==='URG' && cat==='enfermeiros'){
       // Slots URG: 0=Adultos, 1=Pediatria, 2=Consulta Ped., 3=SMIP
       const slots = [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}];
