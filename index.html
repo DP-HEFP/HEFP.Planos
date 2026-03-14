@@ -927,14 +927,14 @@ const SERVICES = {
   },
   URG:{
     name:'URG', label:'Urgência',
-    postos:    ['Adultos','Pediatria','Consulta Ped.','SMIP'],
+    postos:    ['Adultos','Pediatria','Consulta Ped.'],
     auxPostos: ['Adultos','Pediatria'],
     roomsHint:{ manha:['','','',''], tarde:['','','',''], noite:['','','',''] },
     nurses:['Enf. 1','Enf. 2','Enf. 3','Enf. 4'],
     sample:{
-      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
     },
     auxiliares:['Aux. 1','Aux. 2'],
     auxRoomsHint:{ manha:['',''], tarde:['',''], noite:[] },
@@ -1001,6 +1001,78 @@ const state = {
   ]
 };
 
+// Nomes que NUNCA devem aparecer na URG
+// Banidos da URG — comparação por nome completo, não por primeira palavra
+const URG_BANNED = ['Nuno Abreu','Renata Gondar','Marta Cardoso','Ana Catarina Silva','Catarina Silva'];
+
+function cleanURGData() {
+  // Elementos válidos para slots 1 (Pediatria) e 2 (Consulta Ped.)
+  const URG_PED_VALID = ['Ana Ricardo','Ana Moreira','José Silva','Graciela Abreu','Ivan','Hugo Duque','Adriano Coutinho'];
+  const isPedValid = nm => URG_PED_VALID.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+
+  const urgEnf = state.schedule?.URG?.enfermeiros || {};
+  Object.values(urgEnf).forEach(week => {
+    (week.days||[]).forEach(day => {
+      ['manha','tarde','noite'].forEach(sh => {
+        const slots = day[sh] || [];
+        // Remover banidos de todos os slots
+        slots.forEach((slot,i) => {
+          if(slot.name && URG_BANNED.some(b => slot.name.toLowerCase().includes(b.toLowerCase()))) {
+            slots[i] = {name:'',rooms:''};
+          }
+        });
+        // Slots 1 e 2 só podem ter elementos de Pediatria
+        [1,2].forEach(i => {
+          if(slots[i]?.name && !isPedValid(slots[i].name)) {
+            slots[i] = {name:'',rooms:''};
+          }
+        });
+        // Slot 0: só adultos (não pode ter elementos de Pediatria)
+        if(slots[0]?.name && isPedValid(slots[0].name) && !slots[0].name.toLowerCase().includes('adriano')) {
+          slots[0] = {name:'',rooms:''};
+        }
+        // Garantir máx 4 slots
+        if(slots.length > 4) slots.length = 4;
+        while(slots.length < 4) slots.push({name:'',rooms:''});
+      });
+    });
+  });
+}
+
+function cleanCEData() {
+  // Garantir que Adelina está sempre no slot 0 (Posto D) e Conceição no slot 1 (Posto A)
+  const CE_POSTOS_NAMES = ['Posto D','Posto A (Pediatria)','Posto F','Posto G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'];
+  const ceAux = state.schedule?.CE?.auxiliares || {};
+  Object.values(ceAux).forEach(week => {
+    (week.days||[]).forEach(day => {
+      const slots = day.manha || [];
+      if(!slots.length) return;
+      // Garantir 6 slots
+      while(slots.length < 6) slots.push({name:'',rooms:CE_POSTOS_NAMES[slots.length]||'',hours:''});
+
+      // Extrair Adelina e Conceição de onde quer que estejam
+      let adelina = null, conceicao = null;
+      const others = [];
+      slots.forEach(s => {
+        if(!s.name) return;
+        if(s.name.toLowerCase().includes('adelina')) adelina = s;
+        else if(s.name.toLowerCase().includes('conceição') || s.name.toLowerCase().includes('conceicao')) conceicao = s;
+        else others.push(s);
+      });
+
+      // Reconstruir: slot 0=Adelina, slot 1=Conceição, resto por ordem
+      const newSlots = Array.from({length:6}, (_,i) => ({name:'',rooms:CE_POSTOS_NAMES[i]||'',hours:''}));
+      if(adelina)   newSlots[0] = {...adelina,  rooms:CE_POSTOS_NAMES[0]};
+      if(conceicao) newSlots[1] = {...conceicao, rooms:CE_POSTOS_NAMES[1]};
+      let oi = 0;
+      for(let i=2; i<6 && oi<others.length; i++){
+        if(!newSlots[i].name){ newSlots[i] = {...others[oi], rooms:CE_POSTOS_NAMES[i]}; oi++; }
+      }
+      day.manha = newSlots;
+    });
+  });
+}
+
 // Merge dados da cloud com estado local — cloud só preenche semanas em falta
 function mergeCloudData(cloud) {
   if (!cloud || !cloud.schedule) return;
@@ -1025,6 +1097,8 @@ function mergeCloudData(cloud) {
   });
   if (cloud.notifications) state.notifications = cloud.notifications;
   if (cloud.customPasswords) state.customPasswords = cloud.customPasswords;
+  cleanURGData();
+  cleanCEData();
 }
 
 // Load persisted data
@@ -1052,6 +1126,8 @@ function applyPersistedData(persisted, skipIfOlderThanImport) {
   }
   if (persisted.notifications) state.notifications = persisted.notifications;
   if (persisted.customPasswords) state.customPasswords = persisted.customPasswords;
+  if (typeof cleanURGData === 'function') cleanURGData();
+  if (typeof cleanCEData === 'function') cleanCEData();
 }
 
 // Apply cache immediately so app feels instant, then sync cloud in background
@@ -1120,7 +1196,7 @@ function ensureWeek(svc,wkey){
   } else if(svc==='ULDM'||svc==='UMDR'){
     mCount=4; tCount=4; nCount=4;
   } else if(svc==='URG'){
-    if(cat==='enfermeiros') { mCount=4; tCount=4; nCount=4; }
+    if(cat==='enfermeiros') { mCount=3; tCount=3; nCount=3; }
     if(cat==='auxiliares')  { mCount=2; tCount=2; nCount=0; }
   }
   const sampleData = cat==='auxiliares' ? cfg.auxSample : cfg.sample;
@@ -1939,18 +2015,21 @@ function renderMultiPanel(){
            !!multiSelectedSlot.merge===!!merge;
   }
   function slotRow(svc, cat, merge){
-    const key   = merge ? `${svc}|${cat}|prestadores` : `${svc}|${cat}`;
-    const done  = merge ? multiIsDone(svc, cat+'_prestadores', mes, ano)
+    const isTL  = (cat==='enfermeiros_tl');
+    const realCat = isTL ? 'enfermeiros' : cat;
+    const key   = isTL ? `${svc}|tl` : merge ? `${svc}|${cat}|prestadores` : `${svc}|${cat}`;
+    const done  = isTL  ? multiIsDone(svc, 'tl', mes, ano)
+                : merge ? multiIsDone(svc, cat+'_prestadores', mes, ano)
                         : multiIsDone(svc, cat, mes, ano);
     const isSel = isSlotSelected(svc,cat,merge);
     const isAct = state.activeSvc===svc && state.activeCat===cat;
-    const label = merge ? 'Prestadores' : (cat==='enfermeiros'?'Enfermeiros':'Auxiliares');
-    const icon  = merge ? '🔗' : (cat==='enfermeiros'?'👩‍⚕️':'🧹');
-    const color = merge ? 'var(--purple)' : (cat==='enfermeiros'?'var(--accent)':'var(--orange)');
+    const label = isTL ? 'Team Leader' : merge ? 'Prestadores' : (realCat==='enfermeiros'?'Enfermeiros':'Auxiliares');
+    const icon  = isTL ? '⭐' : merge ? '🔗' : (realCat==='enfermeiros'?'👩‍⚕️':'🧹');
+    const color = isTL ? 'var(--red)' : merge ? 'var(--purple)' : (realCat==='enfermeiros'?'var(--accent)':'var(--orange)');
     const border= isSel ? `2px solid ${color}` : isAct&&!merge ? `2px solid ${color}` : '1px solid var(--border)';
     const bg    = isSel ? `rgba(${merge?'167,139,250':cat==='enfermeiros'?'59,130,246':'251,146,60'},.08)` : 'var(--bg3)';
     return `
-      <div onclick="event.stopPropagation();multiSelectSlot('${svc}','${cat}',${merge})"
+      <div onclick="event.stopPropagation();multiSelectSlot('${svc}','${isTL?'enfermeiros_tl':cat}',${merge})"
         style="display:flex;align-items:center;gap:9px;padding:8px 12px;border:${border};background:${bg};border-radius:8px;cursor:pointer;transition:all .15s;margin-bottom:4px">
         <span style="font-size:15px">${icon}</span>
         <span style="flex:1;font-size:12px;font-weight:600;color:${color}">${label}</span>
@@ -1985,8 +2064,9 @@ function renderMultiPanel(){
           <div style="font-size:10px;color:var(--text3)">${SERVICES[svc]?.label||''}</div>
         </div>
       </div>
-      ${slotRow(svc,'enfermeiros',false)}
+      ${slotRow(svc,'enfermeiros',svc==='URG')}
       ${slotRow(svc,'enfermeiros',true)}
+      ${svc==='URG' ? slotRow(svc,'enfermeiros_tl',false) : ''}
     </div>`;
   }
   html += `</div>`;
@@ -2028,11 +2108,12 @@ function multiNavSvc(svc, cat){
 
 function multiSelectSlot(svc, cat, merge){
   merge=!!merge;
+  const isTL = (cat==='enfermeiros_tl');
   if(multiSelectedSlot && multiSelectedSlot.svc===svc && multiSelectedSlot.cat===cat && !!multiSelectedSlot.merge===merge){
     multiSelectedSlot=null;
     renderMultiPanel();
   } else {
-    multiSelectedSlot={svc,cat,merge};
+    multiSelectedSlot={svc, cat, merge, isTL};
     // Navegar para o serviço/categoria SEM chamar renderAll (que reseta multiSelectedSlot via renderMultiPanel)
     state.activeSvc=svc; state.activeCat=cat;
     ensureWeek(svc, state.currentWeek);
@@ -2063,17 +2144,24 @@ function onMultiFileSelected(e){
 
       // Detetar se é prestadores pelo título
       const title=String(rows[0]?.[2]||rows[0]?.[0]||file.name).toUpperCase();
-      // Usar merge do slot selecionado (não depender do título do ficheiro)
-      const merge=!!multiSelectedSlot?.merge;
+      // Usar merge do slot selecionado
+      // TL (Team Leader): importa como merge=true, marcado especialmente
+      const isTL = !!multiSelectedSlot?.isTL;
+      const merge = isTL ? true : !!multiSelectedSlot?.merge;
+      const cat   = isTL ? 'enfermeiros' : multiSelectedSlot.cat;
+      // Passar flag TL para o coreXlsImport via estado global temporário
+      window._isTLImport = isTL;
 
       const _S=state.activeSvc,_C=state.activeCat,_XC=xlsXlsCat,_XM=xlsMerge;
       state.activeSvc=svc; state.activeCat=cat; xlsXlsCat=cat; xlsMerge=merge;
-      coreXlsImport(rows,svc,cat,merge);
+      coreXlsImport(rows,svc,cat,merge, isTL ? ['Adriano'] : null);
       state.activeSvc=_S; state.activeCat=_C; xlsXlsCat=_XC; xlsMerge=_XM;
+      window._isTLImport = false;
 
       // Marcar como feito
       const now=new Date();
-      if(merge) multiSetDone(svc,cat+'_prestadores',now.getMonth()+1,now.getFullYear());
+      if(isTL)  multiSetDone(svc,'tl',now.getMonth()+1,now.getFullYear());
+      else if(merge) multiSetDone(svc,cat+'_prestadores',now.getMonth()+1,now.getFullYear());
       else multiSetDone(svc,cat,now.getMonth()+1,now.getFullYear());
 
       xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=(state.unsaved||0)+1;
@@ -2114,7 +2202,7 @@ function detectSvcFromTitle(t){
   return{svc, cat:isAux?'auxiliares':'enfermeiros', merge};
 }
 // Lógica core partilhada
-function coreXlsImport(rows,svc,cat,merge){
+function coreXlsImport(rows,svc,cat,merge,allowedNames){
   // Constantes CE — declaradas primeiro para evitar "before initialization"
   const CE_HORARIOS = {'M2':'08h-14h','M5':'08h-13h','M6':'09h-14h','M12':'09h-20h','M17':'08h-19h','T13':'15h-20h'};
   const CE_POSTOS   = ['Posto D','Posto A (Pediatria)','Posto F','Posto G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'];
@@ -2161,6 +2249,10 @@ function coreXlsImport(rows,svc,cat,merge){
   const dayMap={};const dim=new Date(ano,mes,0).getDate();
   for(const row of dataRows){
     const nome=nom(row[0]);if(!nome||nome.toLowerCase().startsWith('exemplo'))continue;
+    // Se há lista de nomes permitidos, ignorar os outros
+    if(allowedNames && allowedNames.length && !allowedNames.some(n=>nome.toLowerCase().includes(n.toLowerCase()))) continue;
+    // URG Team Leader: filtro extra de segurança — só Adriano Coutinho
+    if(window._isTLImport && svc==='URG' && !nome.toLowerCase().includes('adriano')) continue;
     for(let d=1;d<=dim;d++){
       const ci=dayColMap[d];if(ci===undefined||ci>=row.length)continue;
       const val=sig(row[ci]);if(!val)continue;
@@ -2174,7 +2266,7 @@ function coreXlsImport(rows,svc,cat,merge){
   }
   const WD=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
   function monWeek(ds){const d=new Date(ds+'T00:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()+(day===0?-6:1-day));return mon.toISOString().split('T')[0];}
-  function sc(s,c){if(s==='CE')return 6;if(['UC','IMC','IMP3'].includes(s))return 3;if(['ULDM','UMDR'].includes(s))return 4;if(s==='URG')return c==='enfermeiros'?4:2;return 3;}
+  function sc(s,c){if(s==='CE')return 6;if(['UC','IMC','IMP3'].includes(s))return 3;if(['ULDM','UMDR'].includes(s))return 4;if(s==='URG')return c==='enfermeiros'?3:2;return 3;}
   // Enfermeiros URG que devem ser alocados à Pediatria/Consulta Ped. (slots 1 e 2)
   // Identificados pelo nome completo (após remoção do prefixo numérico)
   const URG_PED_NAMES = ['Ana Ricardo','Ana Moreira','José Silva','Graciela Abreu'];
@@ -2184,26 +2276,55 @@ function coreXlsImport(rows,svc,cat,merge){
 
   function pad(arr, n){
     if(svc==='CE'){
-      // CE: 6 postos, cada slot tem name + hours (horário legível)
-      const slots=[];
-      for(let i=0;i<n;i++){
-        const item=arr[i];
-        if(!item) slots.push({name:'',rooms:CE_POSTOS[i]||'',hours:''});
-        else if(typeof item==='object') slots.push({name:item.name||'',rooms:CE_POSTOS[i]||'',hours:item.hours||''});
-        else slots.push({name:item,rooms:CE_POSTOS[i]||'',hours:''});
+      // CE: Adelina → slot 0 (Posto D), Conceição → slot 1 (Posto A)
+      // Os restantes preenchem os slots por ordem
+      const CE_FIXED = {'Adelina':0, 'Conceição':1};
+      const slots = Array.from({length:n}, (_,i) => ({name:'',rooms:CE_POSTOS[i]||'',hours:''}));
+      const remaining = [];
+      for(const item of arr){
+        const nm = typeof item==='object' ? item.name : item;
+        const hrs = typeof item==='object' ? item.hours : '';
+        const nm_lower = nm.toLowerCase();
+        let fixedIdx = -1;
+        if(nm_lower.includes('adelina')) fixedIdx=0;
+        else if(nm_lower.includes('conceição')||nm_lower.includes('conceicao')) fixedIdx=1;
+        if(fixedIdx>=0) slots[fixedIdx]={name:nm,rooms:CE_POSTOS[fixedIdx]||'',hours:hrs};
+        else remaining.push({name:nm,rooms:'',hours:hrs});
       }
-      while(slots.length<n) slots.push({name:'',rooms:CE_POSTOS[slots.length]||'',hours:''});
+      // Preencher slots livres com os restantes
+      let ri=0;
+      for(let i=0;i<slots.length&&ri<remaining.length;i++){
+        if(!slots[i].name){ slots[i]={name:remaining[ri].name,rooms:CE_POSTOS[i]||'',hours:remaining[ri].hours}; ri++; }
+      }
       return slots;
     }
     if(svc==='URG' && cat==='enfermeiros'){
-      // Slots URG: 0=Adultos, 1=Pediatria, 2=Consulta Ped., 3=SMIP
-      const slots = [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}];
+      // Slots URG: 0=Adultos/TL, 1=Pediatria, 2=Consulta Ped., 3=SMIP
+      const URG_PED_SUB = ['Ivan','Hugo Duque','Adriano Coutinho','Adriano'];
+      function isUrgPedSub(nm){ return URG_PED_SUB.some(p=>nm.toLowerCase().includes(p.toLowerCase().split(' ')[0])); }
+      const slots = [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}];
+
+      // Upload TL: Adriano comporta-se como substituto da Pediatria
+      // Se não há nenhum elemento de Pediatria nesse dia, vai para slot 1 ou 2
+      // Se há elementos de Pediatria, vai para slot 0 (Adultos)
+      if(isTL || window._isTLImport){
+        // Adriano é tratado como substituto de Pediatria
+        // Não preencher aqui — deixar a lógica normal tratar (isUrgPedSub já inclui Adriano)
+        // Apenas retornar slots vazios para o merge adicionar depois
+        return slots;
+      }
+
       const pedNames   = arr.filter(nm => isUrgPed(nm));
-      const adultNames = arr.filter(nm => !isUrgPed(nm));
+      const subNames   = arr.filter(nm => !isUrgPed(nm) && isUrgPedSub(nm));
+      const adultNames = arr.filter(nm => !isUrgPed(nm) && !isUrgPedSub(nm));
+      // Se não há nenhum elemento de pediatria, os substitutos vão para esses slots
+      const pedSlot = pedNames.length ? pedNames : subNames;
       if(adultNames[0]) slots[0]={name:adultNames[0],rooms:''};
-      if(adultNames[1]) slots[3]={name:adultNames[1],rooms:''};
-      if(pedNames[0])   slots[1]={name:pedNames[0],rooms:''};
-      if(pedNames[1])   slots[2]={name:pedNames[1],rooms:''};
+      // slots[3] (SMIP) nunca é preenchido automaticamente — só pelo Team Leader
+      if(pedSlot[0])    slots[1]={name:pedSlot[0],rooms:''};
+      if(pedSlot[1])    slots[2]={name:pedSlot[1],rooms:''};
+      // Adultos extra vão para slot 2 se vazio (nunca slot 3)
+      if(!slots[2].name && adultNames[1]) slots[2]={name:adultNames[1],rooms:''};
       return slots;
     }
     const sl=arr.slice(0,n).map(nm=>({name:nm,rooms:''}));
@@ -2223,17 +2344,90 @@ function coreXlsImport(rows,svc,cat,merge){
   if(!merge){
     Object.assign(state.schedule[svc][cat],wm);
   }else{
+    // URG TL: nomes válidos para a URG (só estes podem estar nos slots)
+    // Lista EXCLUSIVA de nomes válidos para a URG — qualquer outro é removido
+    const URG_VALID = [
+      'Ana Ricardo','Ana Moreira','José Silva','Graciela Abreu',
+      'Ivan','Hugo Duque','Adriano Coutinho',
+      'Liliana','Inês Monteiro','Ana Catarina','Márcia','Helena',
+      'Iván','Ivan Ortega'
+    ];
+    function isValidURG(nm){
+      const nl=nm.toLowerCase().trim();
+      return URG_VALID.some(p=>nl.includes(p.toLowerCase()));
+    }
+
     Object.keys(wm).forEach(wkey=>{
       const nw=wm[wkey],ex=state.schedule[svc][cat][wkey];
-      if(!ex){state.schedule[svc][cat][wkey]=nw;return;}
+      if(!ex){
+        // Criar semana nova se não é TL (TL não cria sozinho)
+        if(!window._isTLImport) state.schedule[svc][cat][wkey]=nw;
+        return;
+      }
+      // Semana existe — para Enfermeiros URG (merge=true mas não prestadores nem TL):
+      // substituir slots com nomes do ficheiro actual, preservar prestadores/TL
+      if(svc==='URG' && merge && !window._isTLImport){
+        const URG_PED_NAMES=['Ana Ricardo','Ana Moreira','José Silva','Graciela Abreu'];
+        const URG_SUB_NAMES=['Ivan','Hugo','Adriano'];
+        const isFixedURG = nm => [...URG_PED_NAMES,...URG_SUB_NAMES].some(p=>nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+        nw.days.forEach((nd,di)=>{
+          const ed=ex.days[di];if(!ed)return;
+          ['manha','tarde','noite'].forEach(sh=>{
+            const newNames=(nd[sh]||[]).map(s=>s.name).filter(Boolean);
+            if(!newNames.length) return;
+            // Preservar slots com nomes fixos (ped/sub/TL) e substituir os outros
+            const preserved=(ed[sh]||[]).filter(s=>s.name && isFixedURG(s.name));
+            while(ed[sh].length<3) ed[sh].push({name:'',rooms:''});
+            // Colocar nomes novos nos slots, preservando os fixos
+            let ni=0;
+            for(let i=0;i<ed[sh].length&&ni<newNames.length;i++){
+              if(!isFixedURG(ed[sh][i].name||'')){
+                ed[sh][i]={name:newNames[ni],rooms:''};ni++;
+              }
+            }
+          });
+        });
+        return;
+      }
       nw.days.forEach((nd,di)=>{
         const ed=ex.days[di];if(!ed)return;
         ['manha','tarde','noite'].forEach(sh=>{
-          const es=ed[sh]||[],en=es.map(s=>s.name).filter(Boolean);
+          const es=ed[sh]||[];
+
+          if(window._isTLImport && svc==='URG'){
+            // TL URG: limpar inválidos e adicionar Adriano
+            // Adriano vai para Pediatria (slot 1 ou 2) se não houver elementos fixos,
+            // caso contrário vai para Adultos (slot 0)
+            const URG_VALID_ALL = ['Ana Ricardo','Ana Moreira','José Silva','Graciela Abreu','Ivan','Hugo','Adriano'];
+            const isValidU = nm => URG_VALID_ALL.some(p=>nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+            // Garantir 4 slots e limpar inválidos
+            while(es.length<3) es.push({name:'',rooms:''});
+            while(es.length>3) es.pop();
+            for(let i=0;i<4;i++){
+              if(es[i]?.name && !isValidU(es[i].name)) es[i]={name:'',rooms:''};
+            }
+            // Encontrar o Adriano nos slots do novo turno
+            const adNome=(nd[sh]||[]).find(s=>s?.name?.toLowerCase().includes('adriano'))?.name;
+            if(adNome){
+              const jaEsta=es.some(s=>s.name===adNome);
+              if(!jaEsta){
+                // Se slots de pediatria (1,2) estão ambos vazios → vai para slot 1
+                // Se só um vazio → vai para esse
+                // Se ambos ocupados → vai para slot 0 (adultos)
+                if(!es[1].name)      es[1]={name:adNome,rooms:''};
+                else if(!es[2].name) es[2]={name:adNome,rooms:''};
+                else if(!es[0].name) es[0]={name:adNome,rooms:''};
+              }
+            }
+            ed[sh]=es;
+            return;
+          }
+
+          const en=es.map(s=>s.name).filter(Boolean);
           (nd[sh]||[]).forEach(ns=>{
             if(!ns.name||en.includes(ns.name))return;
             const ei=es.findIndex(s=>!s.name);
-            if(ei>=0)es[ei]={name:ns.name,rooms:''};else es.push({name:ns.name,rooms:''});
+            if(ei>=0) es[ei]={name:ns.name,rooms:''};
           });
         });
       });
