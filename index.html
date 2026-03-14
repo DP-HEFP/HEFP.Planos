@@ -1006,23 +1006,69 @@ const state = {
 const URG_BANNED = ['Nuno Abreu','Renata Gondar','Marta Cardoso','Ana Catarina Silva','Catarina Silva'];
 
 function cleanURGData() {
+  // Elementos fixos de Pediatria
+  const URG_PED   = ['José Silva','Ana Ricardo','Ana Moreira','Graciela Abreu','Liliana','Rita'];
+  // Substitutos (só quando não há nenhum fixo no turno)
+  const URG_SUB   = ['Adriano','Ivan','Hugo Duque'];
+  const isPed = nm => URG_PED.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+  const isSub = nm => URG_SUB.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+
   const urgEnf = state.schedule?.URG?.enfermeiros || {};
   Object.values(urgEnf).forEach(week => {
     (week.days||[]).forEach(day => {
       ['manha','tarde','noite'].forEach(sh => {
-        // Remover banidos e duplicados, garantir 4 slots
-        let slots = (day[sh] || []);
-        slots = slots.filter(s => s.name && !URG_BANNED.some(b=>s.name.toLowerCase().includes(b.toLowerCase())));
+        // Pediatria não existe: à noite, sábado à tarde, domingo o dia todo
+        const isNight = (sh === 'noite');
+        const dayDate = new Date((day.date||'')+'T00:00:00');
+        const weekday = day.weekday || '';
+        const isSat   = weekday==='Sábado'  || dayDate.getDay()===6;
+        const isSun   = weekday==='Domingo' || dayDate.getDay()===0;
+        const noPed   = isNight || isSun || (isSat && sh==='tarde');
+
+        // 1. Filtrar banidos e duplicados
+        let slots = (day[sh] || []).filter(s => s && s.name);
+        slots = slots.filter(s => !URG_BANNED.some(b => s.name.toLowerCase().includes(b.toLowerCase())));
         const seen = new Set();
         slots = slots.filter(s => {
           const k = s.name.toLowerCase().trim();
           if(seen.has(k)) return false;
           seen.add(k); return true;
         });
-        // Garantir exactamente 4 slots
-        while(slots.length < 4) slots.push({name:'',rooms:''});
-        slots.length = 4;
-        day[sh] = slots;
+
+        if(!slots.length){ day[sh]=[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}]; return; }
+
+        // 2. Separar por categoria
+        const pedFixed = noPed ? [] : slots.filter(s => isPed(s.name));
+        const subs     = noPed ? [] : slots.filter(s => !isPed(s.name) && isSub(s.name));
+        const adults   = noPed
+          ? slots  // sem pediatria — todos são adultos
+          : slots.filter(s => !isPed(s.name) && !isSub(s.name));
+
+        // 3. Preencher Pediatria (slot 1) e Consulta Pediatria (slot 2) — só manhã e tarde
+        const pedSlot1 = pedFixed[0] || subs[0] || null;
+        const pedSlot2 = pedFixed[1] || (pedFixed[0] ? subs[0] : subs[1]) || null;
+        const subsUsed = new Set();
+        if(pedSlot1 && !pedFixed.includes(pedSlot1)) subsUsed.add(pedSlot1.name);
+        if(pedSlot2 && !pedFixed.includes(pedSlot2)) subsUsed.add(pedSlot2.name);
+        const subsRemaining = subs.filter(s => !subsUsed.has(s.name));
+        const allAdults = [...adults, ...subsRemaining];
+
+        // 4. Reforço só com 4+ pessoas
+        const total = slots.length;
+        const result = noPed ? [
+          // Sem pediatria — distribuir pelos 4 slots linearmente
+          allAdults[0] || {name:'',rooms:''},
+          allAdults[1] || {name:'',rooms:''},
+          allAdults[2] || {name:'',rooms:''},
+          total >= 4 ? (allAdults[3] || {name:'',rooms:''}) : {name:'',rooms:''},
+        ] : [
+          allAdults[0]  || {name:'',rooms:''},
+          pedSlot1      || {name:'',rooms:''},
+          pedSlot2      || {name:'',rooms:''},
+          total >= 4 ? (allAdults[1] || pedFixed[2] || {name:'',rooms:''}) : {name:'',rooms:''},
+        ];
+
+        day[sh] = result;
       });
     });
   });
@@ -1551,7 +1597,13 @@ function renderDay(day){
     if(!slots.length) return '';
     const posPrefix=sk==='manha'?'M':sk==='tarde'?'T':'N';
     const isN5=slots.length>=5;
+    const dayDate2 = new Date((day.date||'')+'T00:00:00');
+    const isSunURG = svc==='URG' && (day.weekday==='Domingo' || dayDate2.getDay()===0);
+    const isSatURG = svc==='URG' && (day.weekday==='Sábado'  || dayDate2.getDay()===6);
+    // Sem Pediatria: domingo (dia todo), noite (sempre), sábado tarde
+    const urgNoPed = svc==='URG' && (isSunURG || sk==='noite' || (isSatURG && sk==='tarde'));
     const cells=slots.map((slot,i)=>{
+      if(urgNoPed && (i===1||i===2)) return '';
       const nm=slot.name||'';
       const lbl=postos?(postos[i]||`${posPrefix}${i+1}`):`${posPrefix}${i+1}`;
       const hrs=slot.hours||'';
