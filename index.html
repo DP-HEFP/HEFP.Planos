@@ -1864,7 +1864,8 @@ function processXlsImport(){
       if(/^M\d/.test(first)) return 'M';
       if(/^T\d/.test(first)) return 'T';
       if(first==='S1') return 'N';
-      if(first==='N2') return ''; // continuação do turno noturno — ignorar
+      // N2: para auxiliares = turno de noite; para enfermeiros = continuação (ignorar)
+      if(first==='N2') return (xlsXlsCat==='auxiliares') ? 'N' : '';
       return ''; // DS DC Fe Aup etc → ignorar
     }
 
