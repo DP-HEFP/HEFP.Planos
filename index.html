@@ -2412,8 +2412,10 @@ function coreXlsImport(rows,svc,cat,merge,allowedNames,isDependentes){
   const isAux=(cat==='auxiliares');
   // Mapa completo de turnos URG
   const URG_TURNOS = {
+    // Manhã+Tarde (M30 = turno duplo)
+    'M30':'MT','MT15':'MT',
     // Manhã
-    'M1':'M','M2':'M','M6':'M','M30':'M','MT15':'M',
+    'M1':'M','M2':'M','M6':'M',
     // Tarde
     'T1':'T','T5':'T','T14':'T','T27':'T','T34':'T','T114':'T',
     // Noite
@@ -2451,12 +2453,16 @@ function coreXlsImport(rows,svc,cat,merge,allowedNames,isDependentes){
       const ci=dayColMap[d];if(ci===undefined||ci>=row.length)continue;
       const val=sig(row[ci]);if(!val)continue;
       const hora=sigHora(row[ci]); // horário legível para CE
-      // Recuo N2 só para auxiliares (e nunca para URG — enfermeiros não fazem noite tradicional)
-      const td=(isAux && val==='N' && d>1 && svc!=='URG')?d-1:d;
-      const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(td).padStart(2,'0')}`;
-      if(!dayMap[ds])dayMap[ds]={M:[],T:[],N:[]};
-      // Para CE guardar {nome, hora} em vez de só nome
-      dayMap[ds][val].push(svc==='CE' && hora ? {name:nome,hours:hora} : nome);
+      // M30/MT15: turno duplo — adicionar a M e T
+      const shifts = val==='MT' ? ['M','T'] : [val];
+      for(const sh of shifts){
+        // Recuo N2 só para auxiliares (e nunca para URG)
+        const td=(isAux && sh==='N' && d>1 && svc!=='URG')?d-1:d;
+        const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(td).padStart(2,'0')}`;
+        if(!dayMap[ds])dayMap[ds]={M:[],T:[],N:[]};
+        // Para CE guardar {nome, hora} em vez de só nome
+        dayMap[ds][sh].push(svc==='CE' && hora ? {name:nome,hours:hora} : nome);
+      }
     }
   }
   const WD=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
