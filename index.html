@@ -331,7 +331,8 @@
       <select id="login-role" onchange="onRoleChange()">
         <option value="nurse">Enfermeiro(a)</option>
         <option value="auxiliar">Auxiliar de Saúde</option>
-        <option value="coordinator">Enfermeiro(a) Coordenador(a)</option>
+        <option value="coordinator">Enfermeiro(a) Team Leader</option>
+        <option value="supercoord">Enfermeiro(a) Coordenador(a)</option>
       </select>
     </div>
 
@@ -341,31 +342,31 @@
         <div class="coord-grid">
           <div class="coord-card" data-coord="Renata Gondar" onclick="selectCoord('Renata Gondar')">
             <div class="coord-av" style="background:var(--accent)">RG</div>
-            <div class="coord-info"><strong>Renata Gondar</strong><span>Enf.ª Coordenadora</span></div>
+            <div class="coord-info"><strong>Renata Gondar</strong><span>Enf.ª Team Leader</span></div>
           </div>
           <div class="coord-card" data-coord="Marta Cardoso" onclick="selectCoord('Marta Cardoso')">
             <div class="coord-av" style="background:var(--purple)">MC</div>
-            <div class="coord-info"><strong>Marta Cardoso</strong><span>Enf.ª Coordenadora</span></div>
+            <div class="coord-info"><strong>Marta Cardoso</strong><span>Enf.ª Team Leader</span></div>
           </div>
           <div class="coord-card" data-coord="Nuno Abreu" onclick="selectCoord('Nuno Abreu')">
             <div class="coord-av" style="background:var(--green)">NA</div>
-            <div class="coord-info"><strong>Nuno Abreu</strong><span>Enf.º Coordenador</span></div>
+            <div class="coord-info"><strong>Nuno Abreu</strong><span>Enf.º Team Leader</span></div>
           </div>
           <div class="coord-card" data-coord="Adriano Coutinho" onclick="selectCoord('Adriano Coutinho')">
             <div class="coord-av" style="background:var(--red)">AC</div>
-            <div class="coord-info"><strong>Adriano Coutinho</strong><span>Enf.º Coordenador</span></div>
+            <div class="coord-info"><strong>Adriano Coutinho</strong><span>Enf.º Team Leader</span></div>
           </div>
           <div class="coord-card" data-coord="Coordenador IMC" onclick="selectCoord('Coordenador IMC')">
             <div class="coord-av" style="background:var(--orange)">CI</div>
-            <div class="coord-info"><strong>Coordenador IMC</strong><span>Enf.º Coordenador</span></div>
+            <div class="coord-info"><strong>Coordenador IMC</strong><span>Enf.º Team Leader</span></div>
           </div>
           <div class="coord-card" data-coord="Coordenador IMP3" onclick="selectCoord('Coordenador IMP3')">
             <div class="coord-av" style="background:var(--purple)">IP</div>
-            <div class="coord-info"><strong>Coordenador IMP3</strong><span>Enf.º Coordenador</span></div>
+            <div class="coord-info"><strong>Coordenador IMP3</strong><span>Enf.º Team Leader</span></div>
           </div>
           <div class="coord-card" data-coord="Coordenador CE" onclick="selectCoord('Coordenador CE')">
             <div class="coord-av" style="background:#0ea5e9">CC</div>
-            <div class="coord-info"><strong>Coordenador CE</strong><span>Enf.º Coordenador</span></div>
+            <div class="coord-info"><strong>Coordenador CE</strong><span>Enf.º Team Leader</span></div>
           </div>
         </div>
       </div>
@@ -378,6 +379,15 @@
       </div>
     </div>
 
+    <div id="supercoord-grp" style="display:none">
+      <div class="fg">
+        <label>Código de acesso</label>
+        <div class="pass-wrap">
+          <input type="password" id="supercoord-pass" placeholder="••••••" autocomplete="off" inputmode="text">
+          <span class="pass-eye" onclick="toggleSuperPass()">👁</span>
+        </div>
+      </div>
+    </div>
     <button class="btn btn-primary btn-block" onclick="doLogin()" style="margin-top:10px">Entrar →</button>
     <p style="text-align:center;font-size:11px;color:var(--text3);margin-top:16px">Desenvolvido por Diogo Pecegueiro 2026</p>
   </div>
@@ -509,7 +519,6 @@
           <input type="file" id="xls-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsFileSelected(event)">
 
           <div style="display:flex;gap:8px;margin-bottom:8px">
-            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="downloadXlsTemplate()">📥 Template</button>
             <button class="btn btn-ghost btn-sm" style="flex:1" onclick="document.getElementById('xls-file-input').click()">📂 Abrir ficheiro</button>
           </div>
 
@@ -521,6 +530,34 @@
           <div style="display:flex;gap:8px;margin-top:4px">
             <button class="btn btn-ghost btn-sm" style="flex:1" onclick="hideImportModal()">Cancelar</button>
             <button class="btn btn-success btn-sm" id="xls-import-btn" style="flex:1;display:none" onclick="processXlsImport()">✅ Importar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel Upload Múltiplo (só Enfermeiro Coordenador) -->
+      <div id="multi-upload-panel" style="display:none;margin-bottom:14px">
+        <div class="section-card">
+          <div class="section-head">
+            <h3>📊 Upload de Escalas</h3>
+            <p>Carrega vários ficheiros Excel — distribuídos automaticamente pelos serviços</p>
+          </div>
+          <div class="section-body">
+            <div onclick="document.getElementById('multi-file-input').click()"
+              style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin-bottom:12px"
+              ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+              ondragleave="this.style.borderColor='var(--border)'"
+              ondrop="onMultiDrop(event)">
+              <div style="font-size:32px;margin-bottom:8px">📂</div>
+              <div style="font-size:13px;font-weight:600">Clica ou arrasta os ficheiros aqui</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:4px">Aceita vários .xls ao mesmo tempo</div>
+            </div>
+            <input type="file" id="multi-file-input" accept=".xls,.xlsx" multiple style="display:none" onchange="onMultiFileSelected(event)">
+            <div id="multi-file-list" style="display:none;margin-bottom:12px"></div>
+            <div id="multi-status" style="display:none;font-size:12px;color:var(--text2);padding:10px;background:var(--bg3);border-radius:8px;margin-bottom:12px"></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" style="flex:1" onclick="multiClear()">🗑️ Limpar</button>
+              <button class="btn btn-success btn-sm" style="flex:1" id="multi-import-btn" style="display:none" onclick="processMultiImport()">✅ Importar todos</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1088,8 +1125,9 @@ function selectSvc(s){
 selectSvc('ULDM');
 
 function onRoleChange(){
-  const isCoord=document.getElementById('login-role').value==='coordinator';
-  document.getElementById('coord-grp').style.display=isCoord?'block':'none';
+  const role=document.getElementById('login-role').value;
+  document.getElementById('coord-grp').style.display=(role==='coordinator')?'block':'none';
+  document.getElementById('supercoord-grp').style.display=(role==='supercoord')?'block':'none';
 }
 
 function selectCoord(name){
@@ -1101,6 +1139,10 @@ function togglePass(){
   const inp=document.getElementById('login-pass');
   inp.type=inp.type==='password'?'text':'password';
 }
+function toggleSuperPass(){
+  const inp=document.getElementById('supercoord-pass');
+  inp.type=inp.type==='password'?'text':'password';
+}
 
 const ADMIN_PASS = 'Diogo2026';
 
@@ -1110,6 +1152,21 @@ const ADMIN_PASS = 'Diogo2026';
 function doLogin(){
   if(!selectedSvc){alert('Selecione um serviço.');return;}
   const role=document.getElementById('login-role').value;
+  if(role==='supercoord'){
+    const enteredPass=document.getElementById('supercoord-pass').value;
+    if(enteredPass!==ADMIN_PASS){alert('Código incorreto.');return;}
+    state.user={name:'Enfermeiro Coordenador',role:'supercoord',ownSvc:null,isAdmin:true};
+    state.activeSvc=selectedSvc; state.activeCat='enfermeiros';
+    state.currentWeek=todayKey();
+    Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    setupUI();
+    localStorage.removeItem(CACHE_KEY);
+    showToast('⏳ A carregar planos…');
+    loadFromCloud().then(cloud=>{if(cloud){cacheLocal(cloud);applyPersistedData(cloud,false);}renderAll();}).catch(()=>renderAll());
+    return;
+  }
   if(role==='coordinator'){
     if(!selectedCoord){alert('Selecione o coordenador.');return;}
     const coordCfg=COORDINATORS[selectedCoord];
@@ -1153,9 +1210,14 @@ function doLogout(){
   document.getElementById('app').style.display='none';
   document.getElementById('tb-pass-btn').style.display='none';
   document.getElementById('topbar-row2').classList.remove('visible');
+  document.getElementById('multi-upload-panel').style.display='none';
+  document.getElementById('supercoord-grp').style.display='none';
   state.user=null; state.unsaved=0; selectedCoord=null;
   document.getElementById('save-bar').style.display='none';
   document.querySelectorAll('.coord-card').forEach(c=>c.classList.remove('active'));
+  // Reset select perfil
+  document.getElementById('login-role').value='nurse';
+  onRoleChange();
 }
 
 // ══════════════════════════════════════
@@ -1168,7 +1230,17 @@ function setupUI(){
   // Set service name in topbar for all roles
   const svcNameEl=document.getElementById('tb-svc-name');
   if(svcNameEl) svcNameEl.textContent=state.activeSvc||'';
-  if(role==='coordinator'){
+  if(role==='supercoord'){
+    av.textContent='EC';
+    av.style.background='linear-gradient(135deg,var(--accent),var(--purple))';
+    document.getElementById('topbar-row2').classList.add('visible');
+    document.getElementById('storage-bar').style.display='flex';
+    document.getElementById('multi-upload-panel').style.display='block';
+    document.getElementById('coord-panel').style.display='none';
+    document.getElementById('cat-toggle').style.display='none';
+    document.getElementById('tb-pass-btn').style.display='none';
+    updateSvcIcons();
+  } else if(role==='coordinator'){
     av.textContent=initials(name);
     if(name==='Marta Cardoso') av.style.background='var(--purple)';
     else if(name==='Nuno Abreu') av.style.background='var(--green)';
@@ -1750,270 +1822,199 @@ function onXlsFileSelected(e){
 }
 
 function processXlsImport(){
-  if(!xlsWorkbook){ showToast('⚠️ Nenhum ficheiro carregado.'); return; }
-
+  if(!xlsWorkbook){showToast('⚠️ Nenhum ficheiro carregado.');return;}
   document.getElementById('xls-status').style.display='block';
   document.getElementById('xls-status-msg').textContent='A processar…';
   document.getElementById('xls-import-btn').style.display='none';
-
-  try {
-    const svc = state.activeSvc;
-    const cat = xlsXlsCat;
-    const sheetName = xlsWorkbook.SheetNames[0];
-    const ws = xlsWorkbook.Sheets[sheetName];
-
-    // Ler como array de arrays (raw para preservar tipos)
-    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:true});
-    if(rows.length < 3) throw new Error('Ficheiro vazio ou sem dados suficientes.');
-
-    // ── Detetar formato ──────────────────────────────────────────
-    // Varre todas as linhas para encontrar a linha dos meses, dos dias e das pessoas
-    // (o SheetJS inclui linhas vazias no HTML, por isso não assumimos índices fixos)
-
-    const MES_NAMES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro',
-                     'january','february','march','april','may','june','july','august','september','october','november','december'];
-
-    let mes, ano, dayColMap={}, dataRows=[], isPMT=false;
-    let mesRow=-1, anoRow=-1;
-
-    // Procurar linha com mês por extenso na col 0 E dias numéricos a partir da col 3
-    for(let ri=0; ri<rows.length; ri++){
-      const r = rows[ri];
-      const col0 = String(r[0]||'').toLowerCase().trim();
-      const isMes = MES_NAMES.some(m => col0.includes(m));
-      if(!isMes) continue;
-      // Verificar se tem dias 1..28+ nas colunas seguintes
-      const hasDays = r.slice(3).some(c => { const n=parseInt(c); return n>=1&&n<=31; });
-      if(hasDays){ mesRow=ri; break; }
-    }
-
-    if(mesRow >= 0){
-      // ── FORMATO PMT ──
-      isPMT = true;
-      const col0mes = String(rows[mesRow][0]||'').toLowerCase();
-      mes = MES_NAMES.findIndex(m => col0mes.includes(m)) % 12 + 1;
-
-      // Linha do ano: procurar linha seguinte com 4 dígitos na col 0
-      for(let ri=mesRow+1; ri<Math.min(mesRow+4, rows.length); ri++){
-        const v = parseInt(String(rows[ri][0]||''));
-        if(v >= 2020 && v <= 2099){ ano=v; anoRow=ri; break; }
-      }
-      if(!ano){ const now=new Date(); ano=now.getFullYear(); }
-
-      // Dias: na mesRow, a partir da coluna onde começam os números
-      rows[mesRow].forEach((cell, ci) => {
-        const n = (typeof cell==='number') ? cell : parseInt(String(cell));
-        if(!isNaN(n) && n>=1 && n<=31) dayColMap[n] = ci;
-      });
-
-      // Pessoas: linhas com formato "NNN NNNNNN Nome" — dois blocos numéricos + nome
-      dataRows = rows.filter(row => /^\d+\s+\d+\s+\S/.test(String(row[0]||'')));
-
-      // Detetar automaticamente se é ficheiro de prestadores
-      const titleText = String(rows[0]?.[2]||rows[0]?.[0]||'').toUpperCase();
-      if(titleText.includes('PRESTADOR')) {
-        setXlsMerge(true);
-        console.log('[XLS] Prestadores detetado — modo merge ativado');
-      }
-      console.log('[XLS] PMT — mes:', mes, 'ano:', ano, 'dias:', Object.keys(dayColMap).length, 'pessoas:', dataRows.length);
-
-    } else {
-      // ── FORMATO TEMPLATE MANUAL ──
-      // Linha 1: título, Linha 2: [Nome, 1, 2...], Linha 3+: pessoas
-      const titleRow = rows[0];
-      const daysRow  = rows[1];
-      dataRows = rows.slice(2);
-
-      const tryParse = str => {
-        if(!str) return false;
-        const s = String(str);
-        const m = s.match(/(\d{1,2})[-\/](\d{4})/);
-        if(m){ mes=parseInt(m[1]); ano=parseInt(m[2]); return true; }
-        const sl = s.toLowerCase();
-        for(let i=0;i<MES_NAMES.length;i++){
-          if(sl.includes(MES_NAMES[i])){ mes=(i%12)+1; const ym=sl.match(/(\d{4})/); if(ym){ano=parseInt(ym[1]); return true;} }
-        }
-        return false;
-      };
-      if(!tryParse(sheetName)) tryParse(String(titleRow[0]||''));
-      if(!mes||!ano){ const now=new Date(); mes=now.getMonth()+1; ano=now.getFullYear(); }
-
-      daysRow.forEach((cell, ci) => {
-        const n = (typeof cell==='number') ? cell : parseInt(String(cell));
-        if(!isNaN(n) && n>=1 && n<=31) dayColMap[n] = ci;
-      });
-
-      console.log('[XLS] Template — mes:', mes, 'ano:', ano, 'dias:', Object.keys(dayColMap).length);
-    }
-
-    if(Object.keys(dayColMap).length === 0)
-      throw new Error('Não encontrei os dias (1…31). Verifica o formato do ficheiro.');
-
-    // ── Mapear siglas → M/T/N ────────────────────────────────────
-    // PMT usa siglas completas: M1 M2 M30 = Manhã | T1 = Tarde | N2 S1 = Noite
-    // Template usa letras simples: M T N
-    function siglaTurno(raw){
-      const s = String(raw===null||raw===undefined?'':raw).trim();
-      if(!s) return '';
-      const first = s.split(/\s+/)[0].toUpperCase();
-      // Letra simples (template manual)
-      if(first==='M') return 'M';
-      if(first==='T') return 'T';
-      if(first==='N') return 'N';
-      // Siglas PMT — enfermeiros
-      if(/^M\d/.test(first)) return 'M';          // M1 M2 M30 = Manhã
-      if(first==='S1') return 'N';                // enfermeiros: S1 (20h-24h) = Noite
-      if(first==='N2' && xlsXlsCat==='auxiliares') return 'N'; // auxiliares: N2 = Noite (recua 1 dia)
-      if(first==='N2') return '';                 // enfermeiros: N2 (00h-08h) = continuação — ignorar
-      // Siglas PMT — auxiliares
-      if(first==='T5') return 'T';                // auxiliares: T5 = Tarde
-      if(/^T\d/.test(first)) return 'T';          // T1, T2... = Tarde
-      return ''; // DS DC Fe Aup etc → ignorar
-    }
-
-    // ── Extrair nome ─────────────────────────────────────────────
-    function extractName(raw){
-      const s = String(raw||'').trim();
-      if(isPMT){
-        // "001 160628 Tiago Nogueira" → "Tiago Nogueira"
-        // Remove qualquer prefixo numérico: "001 160628 " ou "001 " etc.
-        // Formato: "001 160628 Nome Apelido" — dois blocos numéricos + nome
-        const m = s.match(/^\d+\s+\d+\s+(.+)$/);
-        return m ? m[1].trim() : '';
-      }
-      return s;
-    }
-
-    // ── Construir dayMap ─────────────────────────────────────────
-    const dayMap = {};
-    const daysInMonth = new Date(ano, mes, 0).getDate();
-    let totalTurnos = 0;
-
-    for(const row of dataRows){
-      const nome = extractName(row[0]);
-      if(!nome || nome.toLowerCase().startsWith('exemplo')) continue;
-      for(let d=1; d<=daysInMonth; d++){
-        const ci = dayColMap[d];
-        if(ci===undefined || ci>=row.length) continue;
-        const val = siglaTurno(row[ci]);
-        if(!val) continue;
-        const dateStr = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        if(!dayMap[dateStr]) dayMap[dateStr]={M:[],T:[],N:[]};
-        dayMap[dateStr][val].push(nome);
-        totalTurnos++;
-      }
-    }
-
-    console.log('[XLS] totalTurnos:', totalTurnos, '| dayMap keys:', Object.keys(dayMap).length);
-    if(totalTurnos === 0) throw new Error('Nenhum turno encontrado. Verifica se as células têm M/T/N ou siglas M1/T1/N2/S1.');
-
-    // ── Agrupar em semanas ───────────────────────────────────────
-    const weekdays=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-    function getMonWeek(dateStr){
-      const d=new Date(dateStr+'T00:00:00');
-      const day=d.getDay();
-      const mon=new Date(d); mon.setDate(d.getDate()+(day===0?-6:1-day));
-      return mon.toISOString().split('T')[0];
-    }
-    function slotCount(s,c){
-      if(s==='CE') return c==='enfermeiros'?6:0;
-      if(s==='UC'||s==='IMC'||s==='IMP3') return 3;
-      if(s==='ULDM'||s==='UMDR') return 4;
-      if(s==='URG') return c==='enfermeiros'?4:2;
-      return 3;
-    }
-    function padSlots(arr,n){
-      const slots=arr.slice(0,n).map(name=>({name,rooms:''}));
-      while(slots.length<n) slots.push({name:'',rooms:''});
-      return slots;
-    }
-
-    const n = slotCount(svc, cat);
-    const weeksMap={};
-    for(let d=1; d<=daysInMonth; d++){
-      const dateStr=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const wkey=getMonWeek(dateStr);
-      const date=new Date(dateStr+'T00:00:00');
-      const wdIdx=(date.getDay()+6)%7;
-      const wd=weekdays[wdIdx];
-      if(!weeksMap[wkey]) weeksMap[wkey]={published:false, days:[]};
-      const s=dayMap[dateStr]||{M:[],T:[],N:[]};
-      weeksMap[wkey].days.push({
-        date:dateStr, weekday:wd,
-        manha: padSlots(s.M, n),
-        tarde: svc==='CE'?[]:padSlots(s.T, n),
-        noite: svc==='CE'?[]:padSlots(s.N, n),
-        obs:''
-      });
-    }
-    Object.values(weeksMap).forEach(w=>w.days.sort((a,b)=>a.date.localeCompare(b.date)));
-
-    if(!state.schedule[svc]) state.schedule[svc]={enfermeiros:{},auxiliares:{}};
-
-    if(!xlsMerge){
-      // Modo normal: substituir semanas importadas
-      Object.assign(state.schedule[svc][cat], weeksMap);
-    } else {
-      // Modo merge (prestadores): adicionar nomes aos slots existentes sem apagar
-      Object.keys(weeksMap).forEach(wkey => {
-        const newWeek = weeksMap[wkey];
-        const existing = state.schedule[svc][cat][wkey];
-        if(!existing){
-          // Semana não existe ainda — adicionar diretamente
-          state.schedule[svc][cat][wkey] = newWeek;
-        } else {
-          // Semana já existe — fazer merge dia a dia, turno a turno
-          newWeek.days.forEach((newDay, di) => {
-            const exDay = existing.days[di];
-            if(!exDay) return;
-            ['manha','tarde','noite'].forEach(shift => {
-              const newSlots = newDay[shift] || [];
-              const exSlots  = exDay[shift]  || [];
-              // Nomes novos que ainda não estão na semana existente
-              const existingNames = exSlots.map(s=>s.name).filter(Boolean);
-              newSlots.forEach(ns => {
-                if(!ns.name) return;
-                if(existingNames.includes(ns.name)) return; // já existe
-                // Encontrar primeiro slot vazio para inserir
-                const emptyIdx = exSlots.findIndex(s=>!s.name);
-                if(emptyIdx >= 0){
-                  exSlots[emptyIdx] = {name:ns.name, rooms:ns.rooms||''};
-                } else {
-                  // Não há slot vazio — adicionar extra
-                  exSlots.push({name:ns.name, rooms:ns.rooms||''});
-                }
-              });
-            });
-          });
-        }
-      });
-    }
-
+  try{
+    const svc=state.activeSvc, cat=xlsXlsCat, merge=xlsMerge;
+    const rows=XLSX.utils.sheet_to_json(xlsWorkbook.Sheets[xlsWorkbook.SheetNames[0]],{header:1,defval:'',raw:true});
+    coreXlsImport(rows,svc,cat,merge);
     hideImportModal();
-    // Bloquear sync, guardar na cloud e só depois libertar
-    xlsImporting = true;
-    state.lastImportAt = Date.now();
-    state.unsaved = (state.unsaved||0) + 1;
+    xlsImporting=true;state.lastImportAt=Date.now();state.unsaved=(state.unsaved||0)+1;
     renderAll();
-    saveToStorage().then(()=>{
-      state.unsaved = 0;
-      // Manter bloqueio mais 5s para garantir que qualquer fetch em curso não sobrepõe
-      setTimeout(()=>{ xlsImporting = false; }, 5000);
-    }).catch(()=>{
-      xlsImporting = false;
-    });
-    const nSem = Object.keys(weeksMap).length;
-    showToast(`✅ Importado! ${totalTurnos} turnos · ${dataRows.filter(r=>extractName(r[0])).length} pessoas · ${nSem} semanas`);
-
-  } catch(err){
-    console.error('[XLS] Erro:', err);
+    saveToStorage().then(()=>{state.unsaved=0;setTimeout(()=>{xlsImporting=false;},5000);}).catch(()=>{xlsImporting=false;});
+    showToast(`✅ Importado! ${svc} · ${cat}`);
+  }catch(err){
+    console.error('[XLS]',err);
     document.getElementById('xls-status-msg').textContent='❌ '+err.message;
-    setTimeout(()=>{
-      document.getElementById('xls-status').style.display='none';
-      document.getElementById('xls-import-btn').style.display='block';
-    }, 4000);
+    setTimeout(()=>{document.getElementById('xls-status').style.display='none';document.getElementById('xls-import-btn').style.display='block';},4000);
   }
 }
+
+// ══════════════════════════════════════
+// UPLOAD MÚLTIPLO (Enfermeiro Coordenador)
+// ══════════════════════════════════════
+let multiFiles=[];
+
+function detectSvcFromTitle(t){
+  t=t.toUpperCase();
+  const isAux=t.includes('AUXILIAR');
+  const merge=t.includes('PRESTADOR');
+  let svc=null;
+  if(t.includes('LONGA')||t.includes('ULDM'))                           svc='ULDM';
+  else if(t.includes('MÉDIA')||t.includes('MEDIA')||t.includes('UMDR')) svc='UMDR';
+  else if(t.includes('IMP3'))                                            svc='IMP3';
+  else if(t.includes('URG'))                                             svc='URG';
+  else if(t.includes('CONSUL'))                                          svc='CE';
+  else if(t.includes('CUIDADOS'))                                        svc='UC';
+  else if(t.includes('INTERNAMENTO')||t.includes('IMC'))                 svc='IMC';
+  return{svc, cat:isAux?'auxiliares':'enfermeiros', merge};
+}
+
+function multiClear(){
+  multiFiles=[];
+  document.getElementById('multi-file-list').style.display='none';
+  document.getElementById('multi-file-list').innerHTML='';
+  document.getElementById('multi-import-btn').style.display='none';
+  document.getElementById('multi-status').style.display='none';
+}
+function onMultiDrop(e){
+  e.preventDefault();
+  addMultiFiles(Array.from(e.dataTransfer.files).filter(f=>f.name.match(/\.xls/i)));
+}
+function onMultiFileSelected(e){addMultiFiles(Array.from(e.target.files));e.target.value='';}
+function addMultiFiles(files){
+  files.forEach(f=>{if(!multiFiles.find(x=>x.name===f.name))multiFiles.push(f);});
+  renderMultiFileList();
+}
+function renderMultiFileList(){
+  const list=document.getElementById('multi-file-list');
+  list.style.display=multiFiles.length?'block':'none';
+  list.innerHTML=multiFiles.map((f,i)=>{
+    const{svc,cat,merge}=detectSvcFromTitle(f.name);
+    const label=svc?`${svc} · ${cat}${merge?' (merge)':''}`:'⚠️ não detetado';
+    const color=svc?'var(--green)':'var(--orange)';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px;font-size:12px">
+      <span style="font-size:16px">📄</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+      <span style="color:${color};font-weight:700;flex-shrink:0">${label}</span>
+      <span onclick="multiFiles.splice(${i},1);renderMultiFileList()" style="cursor:pointer;color:var(--text3);font-size:18px;line-height:1">×</span>
+    </div>`;
+  }).join('');
+  document.getElementById('multi-import-btn').style.display=multiFiles.length?'block':'none';
+}
+
+async function processMultiImport(){
+  if(!multiFiles.length)return;
+  const st=document.getElementById('multi-status');
+  st.style.display='block';
+  document.getElementById('multi-import-btn').style.display='none';
+  let ok=0,skip=0,errs=[];
+  for(const file of multiFiles){
+    st.textContent=`A processar ${file.name}…`;
+    try{
+      const wb=await new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onload=ev=>{try{res(XLSX.read(new Uint8Array(ev.target.result),{type:'array'}));}catch(e){rej(e);}};
+        r.onerror=rej; r.readAsArrayBuffer(file);
+      });
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:true});
+      const title=String(rows[0]?.[2]||rows[0]?.[0]||file.name);
+      let{svc,cat,merge}=detectSvcFromTitle(title);
+      if(!svc){
+        const bn=detectSvcFromTitle(file.name);
+        if(bn.svc){svc=bn.svc;cat=bn.cat;merge=bn.merge;}
+        else{skip++;errs.push(`${file.name}: serviço não detetado`);continue;}
+      }
+      const _S=state.activeSvc,_C=state.activeCat,_XC=xlsXlsCat,_XM=xlsMerge;
+      state.activeSvc=svc;state.activeCat=cat;xlsXlsCat=cat;xlsMerge=merge;
+      coreXlsImport(rows,svc,cat,merge);
+      state.activeSvc=_S;state.activeCat=_C;xlsXlsCat=_XC;xlsMerge=_XM;
+      ok++;
+    }catch(e){errs.push(`${file.name}: ${e.message}`);}
+  }
+  xlsImporting=true;state.lastImportAt=Date.now();state.unsaved=(state.unsaved||0)+1;
+  renderAll();
+  saveToStorage().then(()=>{state.unsaved=0;setTimeout(()=>{xlsImporting=false;},5000);}).catch(()=>{xlsImporting=false;});
+  const msg=`✅ ${ok} importado(s)`+(skip?` · ⚠️ ${skip} ignorado(s)`:'');
+  st.innerHTML=msg+(errs.length?'<br><small style="color:var(--orange)">'+errs.join('<br>')+'</small>':'');
+  showToast(msg);renderMultiFileList();
+  document.getElementById('multi-import-btn').style.display='block';
+}
+
+// Lógica core partilhada
+function coreXlsImport(rows,svc,cat,merge){
+  const MES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro',
+             'january','february','march','april','may','june','july','august','september','october','november','december'];
+  let mes,ano,dayColMap={},dataRows=[],mesRow=-1;
+  for(let ri=0;ri<rows.length;ri++){
+    const c0=String(rows[ri][0]||'').toLowerCase().trim();
+    if(!MES.some(m=>c0.includes(m)))continue;
+    if(rows[ri].slice(3).some(c=>{const n=parseInt(c);return n>=1&&n<=31;})){mesRow=ri;break;}
+  }
+  if(mesRow<0)throw new Error('Formato não reconhecido — mês não encontrado');
+  mes=MES.findIndex(m=>String(rows[mesRow][0]||'').toLowerCase().includes(m))%12+1;
+  for(let ri=mesRow+1;ri<Math.min(mesRow+4,rows.length);ri++){
+    const v=parseInt(String(rows[ri][0]||''));
+    if(v>=2020&&v<=2099){ano=v;break;}
+  }
+  if(!ano){const now=new Date();ano=now.getFullYear();}
+  rows[mesRow].forEach((cell,ci)=>{
+    const n=(typeof cell==='number')?cell:parseInt(String(cell));
+    if(!isNaN(n)&&n>=1&&n<=31)dayColMap[n]=ci;
+  });
+  if(!Object.keys(dayColMap).length)throw new Error('Dias não encontrados na linha do mês');
+  dataRows=rows.filter(row=>/^\d+\s+\d+\s+\S/.test(String(row[0]||'')));
+  const isAux=(cat==='auxiliares');
+  function sig(raw){
+    const s=String(raw===null||raw===undefined?'':raw).trim();if(!s)return'';
+    const f=s.split(/\s+/)[0].toUpperCase();
+    if(f==='M'||f==='T'||f==='N')return f;
+    if(/^M\d/.test(f))return'M';
+    if(f==='S1')return'N';
+    if(f==='N2')return isAux?'N':'';
+    if(f==='T5'||/^T\d/.test(f))return'T';
+    return'';
+  }
+  function nom(raw){const s=String(raw||'').trim();const m=s.match(/^\d+\s+\d+\s+(.+)$/);return m?m[1].trim():s;}
+  const dayMap={};const dim=new Date(ano,mes,0).getDate();
+  for(const row of dataRows){
+    const nome=nom(row[0]);if(!nome||nome.toLowerCase().startsWith('exemplo'))continue;
+    for(let d=1;d<=dim;d++){
+      const ci=dayColMap[d];if(ci===undefined||ci>=row.length)continue;
+      const val=sig(row[ci]);if(!val)continue;
+      const td=(isAux&&val==='N'&&d>1)?d-1:d;
+      const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(td).padStart(2,'0')}`;
+      if(!dayMap[ds])dayMap[ds]={M:[],T:[],N:[]};
+      dayMap[ds][val].push(nome);
+    }
+  }
+  const WD=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  function monWeek(ds){const d=new Date(ds+'T00:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()+(day===0?-6:1-day));return mon.toISOString().split('T')[0];}
+  function sc(s,c){if(s==='CE')return c==='enfermeiros'?6:0;if(['UC','IMC','IMP3'].includes(s))return 3;if(['ULDM','UMDR'].includes(s))return 4;if(s==='URG')return c==='enfermeiros'?4:2;return 3;}
+  function pad(arr,n){const sl=arr.slice(0,n).map(nm=>({name:nm,rooms:''}));while(sl.length<n)sl.push({name:'',rooms:''});return sl;}
+  const n=sc(svc,cat),wm={};
+  for(let d=1;d<=dim;d++){
+    const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const wk=monWeek(ds);const dt=new Date(ds+'T00:00:00');const wd=WD[(dt.getDay()+6)%7];
+    if(!wm[wk])wm[wk]={published:false,days:[]};
+    const s=dayMap[ds]||{M:[],T:[],N:[]};
+    wm[wk].days.push({date:ds,weekday:wd,manha:pad(s.M,n),tarde:svc==='CE'?[]:pad(s.T,n),noite:svc==='CE'?[]:pad(s.N,n),obs:''});
+  }
+  Object.values(wm).forEach(w=>w.days.sort((a,b)=>a.date.localeCompare(b.date)));
+  if(!state.schedule[svc])state.schedule[svc]={enfermeiros:{},auxiliares:{}};
+  if(!merge){
+    Object.assign(state.schedule[svc][cat],wm);
+  }else{
+    Object.keys(wm).forEach(wkey=>{
+      const nw=wm[wkey],ex=state.schedule[svc][cat][wkey];
+      if(!ex){state.schedule[svc][cat][wkey]=nw;return;}
+      nw.days.forEach((nd,di)=>{
+        const ed=ex.days[di];if(!ed)return;
+        ['manha','tarde','noite'].forEach(sh=>{
+          const es=ed[sh]||[],en=es.map(s=>s.name).filter(Boolean);
+          (nd[sh]||[]).forEach(ns=>{
+            if(!ns.name||en.includes(ns.name))return;
+            const ei=es.findIndex(s=>!s.name);
+            if(ei>=0)es[ei]={name:ns.name,rooms:''};else es.push({name:ns.name,rooms:''});
+          });
+        });
+      });
+    });
+  }
+}
+
 function showToast(msg){
   document.querySelectorAll('.toast').forEach(t=>t.remove());
   const t=document.createElement('div');
