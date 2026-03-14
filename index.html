@@ -365,8 +365,6 @@
             <div class="coord-av" style="background:var(--purple)">IP</div>
             <div class="coord-info"><strong>Enf.º Team Leader IMP3</strong><span>Enf.º Team Leader</span></div>
           </div>
-          <div class="coord-card" data-coord="Enf.º Team Leader CE" onclick="selectCoord('Enf.º Team Leader CE')">
-            <div class="coord-av" style="background:#0ea5e9">CC</div>
             <div class="coord-info"><strong>Enf.º Team Leader CE</strong><span>Enf.º Team Leader</span></div>
           </div>
         </div>
@@ -412,7 +410,6 @@
     </div>
     <div class="topbar-row2" id="topbar-row2">
       <div class="tb-svc-icon" data-svc="URG"  onclick="switchSvc('URG')"  title="URG">🚨</div>
-      <div class="tb-svc-icon" data-svc="CE"   onclick="switchSvc('CE')"   title="CE">🩹</div>
       <div class="tb-svc-icon" data-svc="IMP3" onclick="switchSvc('IMP3')" title="IMP3">🏨</div>
       <div class="tb-svc-icon" data-svc="UMDR" onclick="switchSvc('UMDR')" title="UMDR">🩺</div>
       <div class="tb-svc-icon" data-svc="ULDM" onclick="switchSvc('ULDM')" title="ULDM">🛏</div>
@@ -603,7 +600,7 @@
 
   <div class="bottom-nav" id="bottom-nav" style="display:none">
     <div class="bn-tab" data-tab="URG"  onclick="switchSvc('URG')"><span class="bn-icon">🚨</span>URG</div>
-    <div class="bn-tab" data-tab="CE"   onclick="switchSvc('CE')"><span class="bn-icon">🩹</span>CE</div>
+    
     <div class="bn-tab" data-tab="IMP3" onclick="switchSvc('IMP3')"><span class="bn-icon">🏨</span>IMP3</div>
     <div class="bn-tab" data-tab="UMDR" onclick="switchSvc('UMDR')"><span class="bn-icon">🩺</span>UMDR</div>
     <div class="bn-tab" data-tab="ULDM" onclick="switchSvc('ULDM')"><span class="bn-icon">🛏</span>ULDM</div>
@@ -825,7 +822,6 @@ const COORDINATORS = {
   'Adriano Coutinho': { pass:'adriano',svc:'URG',  color:'var(--red)',    initials:'AC' },
   'Enf.º Team Leader IMC':  { pass:'IMC',    svc:'IMC',  color:'var(--orange)', initials:'TI' },
   'Enf.º Team Leader IMP3': { pass:'IMP3',   svc:'IMP3', color:'var(--purple)', initials:'TP' },
-  'Enf.º Team Leader CE':   { pass:'CE',     svc:'CE',   color:'#0ea5e9',       initials:'TC' },
 };
 
 const SERVICES = {
@@ -965,24 +961,7 @@ const SERVICES = {
       noite: [],
     },
   },
-  CE:{
-    name:'CE', label:'Consulta Externa',
-    postos:['Posto D','Posto A (Pediatria)','Posto F','Posto G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'],
-    roomsHint:{ manha:['Posto D','Posto A','Posto F','Posto G','Apoio 1','Apoio 2'], tarde:[], noite:[] },
-    nurses:['Adelina','Conceição','Manuela','Sónia','Estrela','Ana Paula','Sílvia'],
-    sample:{
-      manha:[{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''}],
-      tarde: [],
-      noite: [],
-    },
-    auxiliares:['Adelina','Conceição','Manuela','Sónia','Estrela','Ana Paula','Sílvia'],
-    auxRoomsHint:{ manha:['Posto D','Posto A','Posto F','Posto G','Apoio 1','Apoio 2'], tarde:[], noite:[] },
-    auxSample:{
-      manha:[{name:'',rooms:'Posto D',hours:''},{name:'',rooms:'Posto A (Pediatria)',hours:''},{name:'',rooms:'Posto F',hours:''},{name:'',rooms:'Posto G',hours:''},{name:'',rooms:'Apoio 1 - Balcão G',hours:''},{name:'',rooms:'Apoio 2 - Balcão F',hours:''}],
-      tarde: [],
-      noite: [],
-    }
-  }
+
 };
 
 const SHIFTS = {
@@ -1009,7 +988,6 @@ const state = {
     IMP3:{ enfermeiros:{}, auxiliares:{} },
     UMDR:{ enfermeiros:{}, auxiliares:{} },
     URG: { enfermeiros:{}, auxiliares:{} },
-    CE:  { enfermeiros:{}, auxiliares:{} }
   },
   unsaved: 0,
   parsedData: null,
@@ -1131,76 +1109,7 @@ function cleanURGData() {
   });
 }
 
-function cleanCEData() {
-  const CE_POSTOS_NAMES = ['Posto D','Posto A (Pediatria)','Posto F','Posto G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'];
-  // Postos principais que nunca podem ficar vazios se há alguém de apoio disponível
-  // Apoio 1 (slot 4) cobre: G (3), D (0)
-  // Apoio 2 (slot 5) cobre: F (2), A (1)
-  const CE_APOIO_MAP = {4:[3,0], 5:[2,1]};
 
-  const ceAux = state.schedule?.CE?.auxiliares || {};
-  Object.values(ceAux).forEach(week => {
-    (week.days||[]).forEach(day => {
-      const slots = day.manha || [];
-      if(!slots.length) return;
-      while(slots.length < 6) slots.push({name:'',rooms:CE_POSTOS_NAMES[slots.length]||'',hours:''});
-
-      // Passo 1: fixar Adelina→slot0, Conceição→slot1 (excepto sábado)
-      const isSaturday = day.weekday==='Sábado' || new Date((day.date||'')+'T00:00:00').getDay()===6;
-      let adelina = null, conceicao = null, anapaula = null;
-      const others = [];
-      slots.forEach(s => {
-        if(!s.name) return;
-        if(s.name.toLowerCase().includes('adelina')) adelina = s;
-        else if(s.name.toLowerCase().includes('conceição')||s.name.toLowerCase().includes('conceicao')) conceicao = s;
-        else others.push(s);
-      });
-      const newSlots = Array.from({length:6}, (_,i) => ({name:'',rooms:CE_POSTOS_NAMES[i]||'',hours:''}));
-      if(isSaturday){
-        // Sábado: só postos D(0), F(2), G(3) — sem Posto A
-        // Adelina → D(0), os outros 2 → F(2) e G(3)
-        // Sábado: Adelina→D(0), Ana Paula→F(2), outros→G(3) e seguintes
-        // Conceição entra nos outros (sem Posto A ao sábado)
-        const satFixed = [adelina, anapaula].filter(Boolean);
-        const satFixedSlots = [0, 3];
-        satFixed.forEach((p, i) => {
-          newSlots[satFixedSlots[i]] = {...p, rooms:CE_POSTOS_NAMES[satFixedSlots[i]]};
-        });
-        const satOthers = [conceicao, ...others].filter(Boolean);
-        const satFreeSlots = [1, 3, 4, 5].filter(i => !newSlots[i].name);
-        satOthers.forEach((p, i) => {
-          if(i < satFreeSlots.length) newSlots[satFreeSlots[i]] = {...p, rooms:CE_POSTOS_NAMES[satFreeSlots[i]]};
-        });
-      } else {
-        if(adelina)   newSlots[0] = {...adelina,  rooms:CE_POSTOS_NAMES[0]};
-        if(conceicao) newSlots[1] = {...conceicao, rooms:CE_POSTOS_NAMES[1]};
-        if(anapaula)  newSlots[3] = {...anapaula,  rooms:CE_POSTOS_NAMES[3]};
-        let oi = 0;
-        for(let i=2; i<6 && oi<others.length; i++){
-          if(!newSlots[i].name){ newSlots[i] = {...others[oi], rooms:CE_POSTOS_NAMES[i]}; oi++; }
-        }
-      }
-
-      // Passo 2: se posto principal vazio, usar apoio para cobrir
-      // Apoio 1 (slot 4) → cobre G (3) primeiro, depois D (0)
-      // Apoio 2 (slot 5) → cobre F (2) primeiro, depois A (1)
-      for(const [apoioIdx, postosCobertos] of Object.entries(CE_APOIO_MAP)){
-        const ai = parseInt(apoioIdx);
-        if(!newSlots[ai].name) continue; // apoio está vazio, nada a fazer
-        for(const pi of postosCobertos){
-          if(!newSlots[pi].name){
-            // Mover apoio para o posto vazio
-            newSlots[pi] = {...newSlots[ai], rooms:CE_POSTOS_NAMES[pi]};
-            newSlots[ai] = {name:'',rooms:CE_POSTOS_NAMES[ai],hours:''};
-            break; // apoio só cobre um posto por dia
-          }
-        }
-      }
-
-      day.manha = newSlots;
-    });
-  });
-}
 
 // Merge dados da cloud com estado local — cloud só preenche semanas em falta
 function mergeCloudData(cloud) {
@@ -1227,7 +1136,6 @@ function mergeCloudData(cloud) {
   if (cloud.notifications) state.notifications = cloud.notifications;
   if (cloud.customPasswords) state.customPasswords = cloud.customPasswords;
   cleanURGData();
-  cleanCEData();
 }
 
 // Load persisted data
@@ -1256,7 +1164,6 @@ function applyPersistedData(persisted, skipIfOlderThanImport) {
   if (persisted.notifications) state.notifications = persisted.notifications;
   if (persisted.customPasswords) state.customPasswords = persisted.customPasswords;
   if (typeof cleanURGData === 'function') cleanURGData();
-  if (typeof cleanCEData === 'function') cleanCEData();
   // Limpar prefixos numéricos dos nomes em todos os serviços
   if (typeof cleanNumericPrefixes === 'function') cleanNumericPrefixes();
 }
@@ -2128,9 +2035,9 @@ function multiGetDone(){ try{ return JSON.parse(localStorage.getItem(MULTI_DONE_
 function multiSetDone(svc,cat,mes,ano){ const d=multiGetDone(); d[`${svc}|${cat}|${ano}-${String(mes).padStart(2,'0')}`]=true; localStorage.setItem(MULTI_DONE_KEY,JSON.stringify(d)); }
 function multiIsDone(svc,cat,mes,ano){ return !!multiGetDone()[`${svc}|${cat}|${ano}-${String(mes).padStart(2,'0')}`]; }
 
-const MULTI_SVCS = ['URG','CE','IMP3','UMDR','ULDM','UC','IMC'];
+const MULTI_SVCS = ['URG','IMP3','UMDR','ULDM','UC','IMC'];
 const MULTI_CATS = ['enfermeiros','auxiliares'];
-const SVC_ICONS  = {URG:'🚨',CE:'🩹',IMP3:'🏨',UMDR:'🩺',ULDM:'🛏️',UC:'💊',IMC:'🏥'};
+const SVC_ICONS  = {URG:'🚨',IMP3:'🏨',UMDR:'🩺',ULDM:'🛏️',UC:'💊',IMC:'🏥'};
 const MONTHS_PT  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 function renderMultiPanel(){
