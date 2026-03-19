@@ -1189,7 +1189,8 @@ async function syncFromCloud() {
     if (wkey && !((state.schedule[state.activeSvc][state.activeCat]||{})[wkey])) {
       ensureWeek(state.activeSvc, wkey);
     }
-    renderAll();
+    // Não re-renderizar se há edições não guardadas
+    if(state.unsaved === 0) renderAll();
   }
 }
 syncFromCloud();
@@ -1504,7 +1505,8 @@ function renderAll(){
   }
 
   renderSchedule(week);
-  if(state.user?.role==='coordinator'&&svc===state.user.ownSvc) renderEditor(week);
+  // Não re-renderizar o editor se há edições não guardadas (evita perder texto)
+  if(state.user?.role==='coordinator'&&svc===state.user.ownSvc&&state.unsaved===0) renderEditor(week);
 }
 
 function renderSchedule(week){
@@ -1729,10 +1731,16 @@ function updObs(di,val){
   markUnsaved();
 }
 
+let _autoSaveTimer=null;
 function markUnsaved(){
   state.unsaved++;
   document.getElementById('unsaved-n').textContent=state.unsaved;
   document.getElementById('save-bar').style.display='flex';
+  // Auto-save após 2 segundos sem digitar
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer=setTimeout(()=>{
+    if(state.unsaved>0) saveToStorage();
+  }, 2000);
 }
 
 function savePlan(){
