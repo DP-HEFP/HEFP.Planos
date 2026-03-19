@@ -1581,7 +1581,7 @@ function renderDay(day){
         <div class="nc-pos" style="${postos?'font-size:8.5px;line-height:1.1':''}">${lbl}</div>
         ${nm?`<div class="nc-name">${nm}</div>`:'<div class="nc-empty">—</div>'}
         ${hrs?`<div class="nc-rooms" style="color:var(--accent)">${hrs}</div>`:''}
-        ${slot.rooms&&slot.rooms!=='—'&&!postos?`<div class="nc-rooms">${slot.rooms}</div>`:''}
+        ${slot.rooms&&slot.rooms!=='—'?`<div class="nc-rooms">${slot.rooms}</div>`:''}
       </div>`;
     }).join('');
     const obs=sk==='noite'&&day.obs?`<div class="obs-row">⚡ ${day.obs}</div>`:'';
