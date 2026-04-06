@@ -69,6 +69,12 @@
   .svc-card[data-svc="URG"]{--sc:var(--red);}
   .svc-IMC{background:rgba(249,115,22,.2);color:var(--orange);border:1px solid rgba(249,115,22,.35);}
   .svc-card[data-svc="IMC"]{--sc:var(--orange);}
+  .svc-card[data-svc="CE"]{--sc:#0ea5e9;}
+  .bn-tab[data-tab="CE"].active{color:#0ea5e9;}
+  .svc-card[data-svc="BO"]{--sc:#ef4444;}
+  .bn-tab[data-tab="BO"].active{color:#ef4444;}
+  .svc-card[data-svc="GASTRO"]{--sc:#10b981;}
+  .bn-tab[data-tab="GASTRO"].active{color:#10b981;}
 
   .svc-card.active{border-color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent);}
   .svc-card.active .svc-name{color:var(--sc);}
@@ -93,6 +99,7 @@
   .btn-block{width:100%;}
   .btn-primary{background:var(--accent);color:#fff;}
   .btn-success{background:var(--green);color:#fff;}
+  .btn-danger{background:var(--red);color:#fff;}
   .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text2);}
   .btn-ghost:active{background:rgba(255,255,255,.04);}
   .btn-purple{background:var(--purple);color:#fff;}
@@ -131,6 +138,7 @@
   .bn-tab .bn-icon{font-size:20px;line-height:1;}
   .bn-tab.active{color:var(--accent);}
   .bn-tab[data-tab="UC"].active{color:var(--uc);}
+  .bn-tab[data-tab="CE"].active{color:#0ea5e9;}
   .bn-tab[data-tab="UMDR"].active{color:var(--umdr);}
   .bn-tab:active{background:rgba(255,255,255,.04);}
 
@@ -290,6 +298,7 @@
     .stats{grid-template-columns:repeat(2,1fr);}
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -316,12 +325,14 @@
       <label>Serviço</label>
       <div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
         <div class="svc-card" data-svc="URG"  onclick="selectSvc('URG')"><div class="svc-icon">🚨</div><div class="svc-name">URG</div><div class="svc-desc">Urgência</div></div>
-        <div class="svc-card" data-svc="CE"   onclick="selectSvc('CE')"><div class="svc-icon">🩹</div><div class="svc-name">CE</div><div class="svc-desc">Consulta Externa</div></div>
         <div class="svc-card" data-svc="IMP3" onclick="selectSvc('IMP3')"><div class="svc-icon">🏨</div><div class="svc-name">IMP3</div><div class="svc-desc">Int. Médico · Piso 3</div></div>
         <div class="svc-card" data-svc="UMDR" onclick="selectSvc('UMDR')"><div class="svc-icon">🩺</div><div class="svc-name">UMDR</div><div class="svc-desc">Média Duração · Piso 3</div></div>
         <div class="svc-card" data-svc="ULDM" onclick="selectSvc('ULDM')"><div class="svc-icon">🛏️</div><div class="svc-name">ULDM</div><div class="svc-desc">Longa Duração · Piso 4</div></div>
         <div class="svc-card" data-svc="UC"   onclick="selectSvc('UC')"><div class="svc-icon">💊</div><div class="svc-name">UC</div><div class="svc-desc">Convalescença · Piso 4</div></div>
         <div class="svc-card" data-svc="IMC"  onclick="selectSvc('IMC')"><div class="svc-icon">🏥</div><div class="svc-name">IMC</div><div class="svc-desc">IMC · Piso 5</div></div>
+        <div class="svc-card" data-svc="CE"   onclick="selectSvc('CE')"><div class="svc-icon">💉</div><div class="svc-name">CE</div><div class="svc-desc">Consulta Externa</div></div>
+        <div class="svc-card" data-svc="BO"     onclick="selectSvc('BO')"><div class="svc-icon">🔪</div><div class="svc-name">BO</div><div class="svc-desc">Bloco Operatório</div></div>
+        <div class="svc-card" data-svc="GASTRO" onclick="selectSvc('GASTRO')"><div class="svc-icon">🔭</div><div class="svc-name">GASTRO</div><div class="svc-desc">Gastroenterologia</div></div>
       </div>
     </div>
 
@@ -330,7 +341,8 @@
       <select id="login-role" onchange="onRoleChange()">
         <option value="nurse">Enfermeiro(a)</option>
         <option value="auxiliar">Auxiliar de Saúde</option>
-        <option value="coordinator">Enfermeiro(a) Coordenador(a)</option>
+        <option value="coordinator">Enfermeiro(a) Team Leader</option>
+        <option value="supercoord">Enfermeiro(a) Coordenador(a)</option>
       </select>
     </div>
 
@@ -340,31 +352,39 @@
         <div class="coord-grid">
           <div class="coord-card" data-coord="Renata Gondar" onclick="selectCoord('Renata Gondar')">
             <div class="coord-av" style="background:var(--accent)">RG</div>
-            <div class="coord-info"><strong>Renata Gondar</strong><span>Enf.ª Coordenadora</span></div>
+            <div class="coord-info"><strong>Renata Gondar</strong><span>Enf.ª Team Leader</span></div>
           </div>
           <div class="coord-card" data-coord="Marta Cardoso" onclick="selectCoord('Marta Cardoso')">
             <div class="coord-av" style="background:var(--purple)">MC</div>
-            <div class="coord-info"><strong>Marta Cardoso</strong><span>Enf.ª Coordenadora</span></div>
+            <div class="coord-info"><strong>Marta Cardoso</strong><span>Enf.ª Team Leader</span></div>
           </div>
           <div class="coord-card" data-coord="Nuno Abreu" onclick="selectCoord('Nuno Abreu')">
             <div class="coord-av" style="background:var(--green)">NA</div>
-            <div class="coord-info"><strong>Nuno Abreu</strong><span>Enf.º Coordenador</span></div>
+            <div class="coord-info"><strong>Nuno Abreu</strong><span>Enf.º Team Leader</span></div>
           </div>
           <div class="coord-card" data-coord="Adriano Coutinho" onclick="selectCoord('Adriano Coutinho')">
             <div class="coord-av" style="background:var(--red)">AC</div>
-            <div class="coord-info"><strong>Adriano Coutinho</strong><span>Enf.º Coordenador</span></div>
+            <div class="coord-info"><strong>Adriano Coutinho</strong><span>Enf.º Team Leader</span></div>
           </div>
-          <div class="coord-card" data-coord="Coordenador IMC" onclick="selectCoord('Coordenador IMC')">
+          <div class="coord-card" data-coord="Enf.º Team Leader IMC" onclick="selectCoord('Enf.º Team Leader IMC')">
             <div class="coord-av" style="background:var(--orange)">CI</div>
-            <div class="coord-info"><strong>Coordenador IMC</strong><span>Enf.º Coordenador</span></div>
+            <div class="coord-info"><strong>Enf.º Team Leader IMC</strong><span>Enf.º Team Leader</span></div>
           </div>
-          <div class="coord-card" data-coord="Coordenador IMP3" onclick="selectCoord('Coordenador IMP3')">
+          <div class="coord-card" data-coord="Enf.º Team Leader IMP3" onclick="selectCoord('Enf.º Team Leader IMP3')">
             <div class="coord-av" style="background:var(--purple)">IP</div>
-            <div class="coord-info"><strong>Coordenador IMP3</strong><span>Enf.º Coordenador</span></div>
+            <div class="coord-info"><strong>Enf.º Team Leader IMP3</strong><span>Enf.º Team Leader</span></div>
           </div>
-          <div class="coord-card" data-coord="Coordenador CE" onclick="selectCoord('Coordenador CE')">
-            <div class="coord-av" style="background:#0ea5e9">CC</div>
-            <div class="coord-info"><strong>Coordenador CE</strong><span>Enf.º Coordenador</span></div>
+          <div class="coord-card" data-coord="Enf.º Team Leader CE" onclick="selectCoord('Enf.º Team Leader CE')">
+            <div class="coord-av" style="background:#0ea5e9">TC</div>
+            <div class="coord-info"><strong>Enf.º Team Leader CE</strong><span>Enf.º Team Leader</span></div>
+          </div>
+          <div class="coord-card" data-coord="Enf.º Team Leader BO" onclick="selectCoord('Enf.º Team Leader BO')">
+            <div class="coord-av" style="background:#ef4444">TB</div>
+            <div class="coord-info"><strong>Enf.º Team Leader BO</strong><span>Enf.º Team Leader</span></div>
+          </div>
+          <div class="coord-card" data-coord="Enf.º Team Leader GASTRO" onclick="selectCoord('Enf.º Team Leader GASTRO')">
+            <div class="coord-av" style="background:#10b981">TG</div>
+            <div class="coord-info"><strong>Enf.º Team Leader GASTRO</strong><span>Enf.º Team Leader</span></div>
           </div>
         </div>
       </div>
@@ -377,6 +397,15 @@
       </div>
     </div>
 
+    <div id="supercoord-grp" style="display:none">
+      <div class="fg">
+        <label>Código de acesso</label>
+        <div class="pass-wrap">
+          <input type="password" id="supercoord-pass" placeholder="••••••" autocomplete="off" inputmode="text">
+          <span class="pass-eye" onclick="toggleSuperPass()">👁</span>
+        </div>
+      </div>
+    </div>
     <button class="btn btn-primary btn-block" onclick="doLogin()" style="margin-top:10px">Entrar →</button>
     <p style="text-align:center;font-size:11px;color:var(--text3);margin-top:16px">Desenvolvido por Diogo Pecegueiro 2026</p>
   </div>
@@ -400,12 +429,14 @@
     </div>
     <div class="topbar-row2" id="topbar-row2">
       <div class="tb-svc-icon" data-svc="URG"  onclick="switchSvc('URG')"  title="URG">🚨</div>
-      <div class="tb-svc-icon" data-svc="CE"   onclick="switchSvc('CE')"   title="CE">🩹</div>
       <div class="tb-svc-icon" data-svc="IMP3" onclick="switchSvc('IMP3')" title="IMP3">🏨</div>
       <div class="tb-svc-icon" data-svc="UMDR" onclick="switchSvc('UMDR')" title="UMDR">🩺</div>
       <div class="tb-svc-icon" data-svc="ULDM" onclick="switchSvc('ULDM')" title="ULDM">🛏</div>
       <div class="tb-svc-icon" data-svc="UC"   onclick="switchSvc('UC')"   title="UC">💊</div>
       <div class="tb-svc-icon" data-svc="IMC"  onclick="switchSvc('IMC')"  title="IMC">🏥</div>
+      <div class="tb-svc-icon" data-svc="CE"     onclick="switchSvc('CE')"     title="CE">💉</div>
+      <div class="tb-svc-icon" data-svc="BO"     onclick="switchSvc('BO')"     title="BO">🔪</div>
+      <div class="tb-svc-icon" data-svc="GASTRO" onclick="switchSvc('GASTRO')" title="GASTRO">🔭</div>
     </div>
   </div>
 
@@ -420,7 +451,7 @@
     <div class="storage-bar" id="storage-bar" style="display:none">
       <div class="s-dot" id="s-dot"></div>
       <span id="s-msg">☁️ Pronto</span>
-      <button class="btn btn-ghost btn-sm" style="margin-left:auto;padding:4px 10px;font-size:11px" onclick="exportData()">📤 Exportar</button>
+      <button id="btn-racios" class="btn btn-ghost btn-sm" style="display:none;padding:4px 10px;font-size:11px;color:var(--green)" onclick="exportRaciosExcel()">📊 Rácios</button>
     </div>
 
     <div class="my-banner" id="my-banner" style="display:none">
@@ -452,64 +483,164 @@
 
     <div class="sched-wrap"><div id="sched-body"></div></div>
 
+    <!-- Painel Upload de Escalas (só Enfermeiro Coordenador) -->
+    <div id="multi-upload-panel" style="display:none;margin-top:14px">
+      <div class="section-card">
+        <div class="section-head">
+          <h3>📊 Upload de Escalas</h3>
+          <p id="multi-month-label" style="font-size:12px;color:var(--text2)">Seleciona um serviço e categoria para importar</p>
+        </div>
+        <div class="section-body" style="padding:10px">
+          <!-- Checklist de serviços -->
+          <div id="multi-svc-list"></div>
+          <!-- Input escondido -->
+          <input type="file" id="multi-file-input" accept=".xls,.xlsx" style="display:none" onchange="onMultiFileSelected(event)">
+          <!-- Status -->
+          <div id="multi-status" style="display:none;font-size:12px;color:var(--text2);padding:10px;background:var(--bg3);border-radius:8px;margin-top:10px;text-align:center"></div>
+          <!-- Botões Guardar / Publicar -->
+          <div id="supercoord-actions" style="display:none;margin-top:12px;gap:8px;flex-direction:column">
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" style="flex:1" onclick="superSave()">💾 Guardar</button>
+              <button class="btn btn-success btn-sm" style="flex:1" onclick="superPublishAll()">📢 Publicar todas as escalas</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Coordinator panel -->
     <div class="coord-panel" id="coord-panel">
       <div class="sep"></div>
+
 
       <div class="editor-section" id="editor-section">
         <div class="ed-hdr">
           <h3>✏️ Editar Plano</h3>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" onclick="triggerImportPhoto()">📷 Importar</button>
+            <button class="btn btn-ghost btn-sm" onclick="triggerImportExcel()">📊 Excel</button>
             <button class="btn btn-ghost btn-sm" onclick="downloadPDF()">📄 PDF</button>
             <button class="btn btn-ghost btn-sm" onclick="publishPlan()">📢 Publicar</button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="clearWeekPrompt()" title="Limpar semana">🗑️</button>
             <button class="btn btn-success btn-sm" onclick="savePlan()">💾 Guardar</button>
           </div>
         </div>
         <div class="ed-card" id="ed-body"></div>
       </div>
 
-      <!-- Import photo modal -->
+      <!-- Import Excel modal -->
       <div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px">
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:420px">
-          <h3 style="margin-bottom:8px">📷 Importar Horário</h3>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Tira uma foto ou carrega uma imagem do horário.</p>
+          <h3 style="margin-bottom:6px">📊 Importar Excel</h3>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Grelha mensal: primeira coluna = nomes, colunas seguintes = dias 1…31, células = M / T / N</p>
 
-          <!-- Tipo de documento -->
+          <!-- Categoria -->
           <div style="margin-bottom:14px">
-            <p style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Tipo de documento</p>
+            <p style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Categoria a importar</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-              <div id="itype-diario" onclick="selectImportType('diario')" style="border:2px solid var(--accent);background:rgba(59,130,246,.1);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center">
-                <div style="font-size:18px;margin-bottom:3px">📋</div>
-                <div style="font-size:12px;font-weight:700">Plano Diario</div>
-                <div style="font-size:10px;color:var(--text2);margin-top:2px">Dias/turnos com nomes<br>ex: ICP5, IMC...</div>
+              <div id="xcat-enf" onclick="selectXlsCat('enfermeiros')" style="border:2px solid var(--accent);background:rgba(59,130,246,.1);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center">
+                <div style="font-size:18px;margin-bottom:3px">👩‍⚕️</div>
+                <div style="font-size:12px;font-weight:700">Enfermeiros</div>
               </div>
-              <div id="itype-mensal" onclick="selectImportType('mensal')" style="border:2px solid var(--border);background:var(--bg3);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center">
-                <div style="font-size:18px;margin-bottom:3px">📅</div>
-                <div style="font-size:12px;font-weight:700">Grelha Mensal</div>
-                <div style="font-size:10px;color:var(--text2);margin-top:2px">Pessoas x dias do mes<br>com codigos M/T/N</div>
+              <div id="xcat-aux" onclick="selectXlsCat('auxiliares')" style="border:2px solid var(--border);background:var(--bg3);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center">
+                <div style="font-size:18px;margin-bottom:3px">🧹</div>
+                <div style="font-size:12px;font-weight:700">Auxiliares</div>
               </div>
             </div>
           </div>
 
-          <div id="import-preview" style="display:none;margin-bottom:12px;text-align:center">
-            <img id="import-img" style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid var(--border)">
+          <!-- Modo de importação -->
+          <div id="xls-merge-row" style="margin-bottom:14px;display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer" onclick="toggleXlsMerge()">
+            <div id="xls-merge-check" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px"></div>
+            <div>
+              <div style="font-size:12px;font-weight:700">Adicionar aos existentes</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:1px">Para prestadores — junta nomes sem apagar os anteriores</div>
+            </div>
           </div>
 
-          <input type="file" id="import-file-input" accept="image/*" capture="environment" style="display:none" onchange="onImportFileSelected(event)">
-          
-          <div id="import-actions-pre" style="display:flex;gap:8px;margin-bottom:12px">
-            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="document.getElementById('import-file-input').click()">🖼️ Galeria / Camara</button>
+          <!-- Ficheiro selecionado -->
+          <div id="xls-file-info" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;display:none;align-items:center;gap:8px">
+            <span style="font-size:18px">📄</span>
+            <span id="xls-file-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
           </div>
 
-          <div id="import-status" style="display:none;text-align:center;padding:16px;color:var(--text2);font-size:13px">
-            <div style="font-size:24px;margin-bottom:8px">⏳</div>
-            <div id="import-status-msg">A analisar imagem...</div>
+          <input type="file" id="xls-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsFileSelected(event)">
+
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="document.getElementById('xls-file-input').click()">📂 Abrir ficheiro</button>
+          </div>
+
+          <div id="xls-status" style="display:none;text-align:center;padding:12px;color:var(--text2);font-size:13px">
+            <div style="font-size:22px;margin-bottom:6px">⏳</div>
+            <div id="xls-status-msg">A processar...</div>
           </div>
 
           <div style="display:flex;gap:8px;margin-top:4px">
             <button class="btn btn-ghost btn-sm" style="flex:1" onclick="hideImportModal()">Cancelar</button>
-            <button class="btn btn-success btn-sm" style="flex:1" id="import-send-btn" style="display:none" onclick="sendImageToClaude()">🔍 Analisar</button>
+            <button class="btn btn-success btn-sm" id="xls-import-btn" style="flex:1;display:none" onclick="processXlsImport()">✅ Importar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Rácios Export -->
+      <div id="racios-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:400px">
+          <h3 style="margin-bottom:6px">📊 Exportar Rácios</h3>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Seleciona o intervalo de datas a exportar.</p>
+          <div style="display:flex;gap:10px;margin-bottom:12px">
+            <div style="flex:1">
+              <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">De</label>
+              <input type="date" id="racios-date-from" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-size:14px;font-family:inherit;outline:none">
+            </div>
+            <div style="flex:1">
+              <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Até</label>
+              <input type="date" id="racios-date-to" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-size:14px;font-family:inherit;outline:none">
+            </div>
+          </div>
+          <div style="margin-bottom:14px">
+            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:6px">Serviços</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px" id="racios-svcs">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="URG" checked> URG</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="UC" checked> UC</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="UMDR" checked> UMDR</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="ULDM" checked> ULDM</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="IMP3" checked> IMP3</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="IMC" checked> IMC</label>
+            </div>
+          </div>
+          <div style="margin-bottom:16px">
+            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:6px">Categorias</label>
+            <div style="display:flex;gap:10px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+                <input type="checkbox" id="racios-enf" checked style="accent-color:var(--accent)"> Enfermeiros
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+                <input type="checkbox" id="racios-aux" checked style="accent-color:var(--accent)"> Auxiliares
+              </label>
+            </div>
+          </div>
+          <div id="racios-modal-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="document.getElementById('racios-modal').style.display='none'">Cancelar</button>
+            <button class="btn btn-success btn-sm" style="flex:1" onclick="confirmExportRacios()">📥 Exportar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clear week modal -->
+      <div id="clear-week-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:360px">
+          <h3 style="margin-bottom:6px">🗑️ Limpar Semana</h3>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Confirma a tua password para limpar todos os dados da semana <strong id="clear-week-label"></strong>.</p>
+          <div class="fg" style="margin-bottom:16px">
+            <label>Password</label>
+            <input type="password" id="clear-week-pass" placeholder="A tua password"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 13px;font-size:15px;font-family:inherit;outline:none"
+              onkeydown="if(event.key==='Enter')confirmClearWeek()">
+          </div>
+          <div id="clear-week-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="hideClearWeekModal()">Cancelar</button>
+            <button class="btn btn-danger btn-sm" style="flex:1" onclick="confirmClearWeek()">🗑️ Limpar</button>
           </div>
         </div>
       </div>
@@ -538,12 +669,15 @@
 
   <div class="bottom-nav" id="bottom-nav" style="display:none">
     <div class="bn-tab" data-tab="URG"  onclick="switchSvc('URG')"><span class="bn-icon">🚨</span>URG</div>
-    <div class="bn-tab" data-tab="CE"   onclick="switchSvc('CE')"><span class="bn-icon">🩹</span>CE</div>
+    
     <div class="bn-tab" data-tab="IMP3" onclick="switchSvc('IMP3')"><span class="bn-icon">🏨</span>IMP3</div>
     <div class="bn-tab" data-tab="UMDR" onclick="switchSvc('UMDR')"><span class="bn-icon">🩺</span>UMDR</div>
     <div class="bn-tab" data-tab="ULDM" onclick="switchSvc('ULDM')"><span class="bn-icon">🛏</span>ULDM</div>
     <div class="bn-tab" data-tab="UC"   onclick="switchSvc('UC')"><span class="bn-icon">💊</span>UC</div>
     <div class="bn-tab" data-tab="IMC"  onclick="switchSvc('IMC')"><span class="bn-icon">🏥</span>IMC</div>
+    <div class="bn-tab" data-tab="CE"   onclick="switchSvc('CE')"><span class="bn-icon">💉</span>CE</div>
+    <div class="bn-tab" data-tab="BO"   onclick="switchSvc('BO')"><span class="bn-icon">🔪</span>BO</div>
+    <div class="bn-tab" data-tab="GASTRO" onclick="switchSvc('GASTRO')"><span class="bn-icon">🔭</span>GASTRO</div>
   </div>
 
   <div class="save-bar" id="save-bar" style="display:none">
@@ -626,10 +760,20 @@ async function getMetaBinId() {
 }
 
 // Retorna apenas 1 semana anterior + 8 semanas futuras — payload < 50KB
+function weekHasData(week) {
+  // Retorna true se a semana tiver pelo menos um slot com nome preenchido
+  if (!week || !week.days) return false;
+  return week.days.some(day =>
+    ['manha','tarde','noite'].some(shift =>
+      (day[shift]||[]).some(slot => slot.name && slot.name.trim())
+    )
+  );
+}
+
 function buildTrimmedSchedule() {
   const now = new Date();
-  const past = new Date(now); past.setDate(past.getDate() - 7);
-  const future = new Date(now); future.setDate(future.getDate() + 56);
+  const past = new Date(now); past.setDate(past.getDate() - 28); // 4 semanas para trás
+  const future = new Date(now); future.setDate(future.getDate() + 14); // 2 semanas para a frente
   const pastStr   = past.toISOString().split('T')[0];
   const futureStr = future.toISOString().split('T')[0];
 
@@ -639,12 +783,16 @@ function buildTrimmedSchedule() {
     ['enfermeiros','auxiliares'].forEach(cat => {
       const weeks = state.schedule[svc][cat] || {};
       Object.keys(weeks).forEach(wkey => {
-        if (wkey >= pastStr && wkey <= futureStr) {
+        if (wkey >= pastStr && wkey <= futureStr && weekHasData(weeks[wkey])) {
           trimmed[svc][cat][wkey] = weeks[wkey];
         }
       });
     });
   });
+
+  // Log do tamanho para debug
+  const j = JSON.stringify(trimmed);
+  console.log('[Cloud] Payload schedule:', Math.round(j.length/1024) + 'KB');
   return trimmed;
 }
 
@@ -685,8 +833,8 @@ async function saveToStorage() {
 
 async function loadFromCloud() {
   try {
-    // Load schedule
-    const r1 = await fetch(JB(JSONBIN_BIN_SCHED) + '/latest');
+    // Load schedule (X-Master-Key obrigatório mesmo em GET)
+    const r1 = await fetch(JB(JSONBIN_BIN_SCHED) + '/latest', { headers: JBHDR });
     if (!r1.ok) throw new Error('HTTP ' + r1.status);
     const j1 = await r1.json();
     const sched = j1.record || {};
@@ -696,7 +844,7 @@ async function loadFromCloud() {
     const metaId = localStorage.getItem(JSONBIN_META_KEY);
     if (metaId) {
       try {
-        const r2 = await fetch(JB(metaId) + '/latest');
+        const r2 = await fetch(JB(metaId) + '/latest', { headers: JBHDR });
         if (r2.ok) { const j2 = await r2.json(); meta = j2.record || {}; }
       } catch(e) { console.warn('Meta bin load error:', e); }
     }
@@ -744,9 +892,11 @@ const COORDINATORS = {
   'Marta Cardoso':    { pass:'marta',  svc:'UMDR', color:'var(--purple)', initials:'MC' },
   'Nuno Abreu':       { pass:'nuno',   svc:'ULDM', color:'var(--green)',  initials:'NA' },
   'Adriano Coutinho': { pass:'adriano',svc:'URG',  color:'var(--red)',    initials:'AC' },
-  'Coordenador IMC':  { pass:'IMC',    svc:'IMC',  color:'var(--orange)', initials:'CI' },
-  'Coordenador IMP3': { pass:'IMP3',   svc:'IMP3', color:'var(--purple)', initials:'IP' },
-  'Coordenador CE':   { pass:'CE',     svc:'CE',   color:'#0ea5e9',       initials:'CC' },
+  'Enf.º Team Leader IMC':  { pass:'IMC',    svc:'IMC',  color:'var(--orange)', initials:'TI' },
+  'Enf.º Team Leader IMP3':   { pass:'IMP3',      svc:'IMP3',   color:'var(--purple)', initials:'TP' },
+  'Enf.º Team Leader CE':    { pass:'CE2026',   svc:'CE',     color:'#0ea5e9',       initials:'TC' },
+  'Enf.º Team Leader BO':    { pass:'BO2026',   svc:'BO',     color:'#ef4444',       initials:'TB' },
+  'Enf.º Team Leader GASTRO':{ pass:'GASTRO2026',svc:'GASTRO',color:'#10b981',       initials:'TG' },
 };
 
 const SERVICES = {
@@ -784,9 +934,9 @@ const SERVICES = {
     },
     nurses:['Ana S.','Helema','Daniela R.','Sílvia','Adriana','Diana Coelho','Beatriz C.','Rafaela','Margarida','Neuza','Beatriz R.','Afonso','Pamelo','Fátima','Daniela P.'],
     sample:{
-      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
     },
     auxiliares:['Bruno Alves','Carla Neves','Dora Ramos','Eduardo Lima','Filipa Sousa','Graça Mendes','Hugo Correia'],
     auxRoomsHint:{
@@ -869,14 +1019,14 @@ const SERVICES = {
   },
   URG:{
     name:'URG', label:'Urgência',
-    postos:    ['Adultos','Pediatria','Consulta Ped.','SMIP'],
+    postos:    ['Adultos','Pediatria','Consulta Pediatria','Reforço'],
     auxPostos: ['Adultos','Pediatria'],
     roomsHint:{ manha:['','','',''], tarde:['','','',''], noite:['','','',''] },
     nurses:['Enf. 1','Enf. 2','Enf. 3','Enf. 4'],
     sample:{
-      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
-      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
     },
     auxiliares:['Aux. 1','Aux. 2'],
     auxRoomsHint:{ manha:['',''], tarde:['',''], noite:[] },
@@ -884,21 +1034,89 @@ const SERVICES = {
       manha:[{name:'',rooms:''},{name:'',rooms:''}],
       tarde: [{name:'',rooms:''},{name:'',rooms:''}],
       noite: [],
+    }
+  }
+,
+  CE:{
+    name:'CE', label:'Consulta Externa',
+    // Enfermeiros: 3 postos, 2ª-6ª manhã e tarde; sábado só 1 posto manhã
+    postos:['Sala Tratamentos Piso 2','Apoio Ginecologia/Urologia Piso 2','Peq. Cirurgia/Laser Piso 1'],
+    postosSab:['Sala Tratamentos Piso 2'],
+    roomsHint:{manha:[],tarde:[],noite:[]},
+    nurses:[],
+    sample:{
+      manha:[{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''}],
+      tarde:[{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''}],
+      noite:[]
     },
+    // Auxiliares: 6 postos, 2ª-6ª manhã e tarde; sábado só manhã
+    auxPostos:['Balcão F','Balcão G','Balcão D','Balcão A','Apoio 1','Apoio 2'],
+    auxiliares:[],
+    auxRoomsHint:{manha:[],tarde:[],noite:[]},
+    auxSample:{
+      manha:[{name:'',rooms:'Balcão F',hours:''},{name:'',rooms:'Balcão G',hours:''},{name:'',rooms:'Balcão D',hours:''},{name:'',rooms:'Balcão A',hours:''},{name:'',rooms:'Apoio 1',hours:''},{name:'',rooms:'Apoio 2',hours:''}],
+      tarde:[{name:'',rooms:'Balcão F',hours:''},{name:'',rooms:'Balcão G',hours:''},{name:'',rooms:'Balcão D',hours:''},{name:'',rooms:'Balcão A',hours:''},{name:'',rooms:'Apoio 1',hours:''},{name:'',rooms:'Apoio 2',hours:''}],
+      noite:[]
+    }
   },
   CE:{
     name:'CE', label:'Consulta Externa',
-    postos:['Balcão D','Balcão A','Balcão F','Balcão G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'],
-    roomsHint:{ manha:['Balcão D','Balcão A','Balcão F','Balcão G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'], tarde:[], noite:[] },
-    nurses:['Adelina','Conceição','Manuela','Sónia','Estrela','Ana Paula','Sílvia'],
+    postos:['Sala Tratamentos Piso 2','Apoio Ginecologia/Urologia Piso 2','Peq. Cirurgia/Laser Piso 1'],
+    postosSab:['Sala Tratamentos Piso 2'],
+    roomsHint:{manha:[],tarde:[],noite:[]},
+    nurses:[],
     sample:{
-      manha:[{name:'',rooms:'Balcão D'},{name:'',rooms:'Balcão A'},{name:'',rooms:'Balcão F'},{name:'',rooms:'Balcão G'},{name:'',rooms:'Apoio 1 - Balcão G'},{name:'',rooms:'Apoio 2 - Balcão F'}],
-      tarde: [],
-      noite: [],
+      manha:[{name:'',rooms:'Sala Tratamentos Piso 2'},{name:'',rooms:'Apoio Ginecologia/Urologia Piso 2'},{name:'',rooms:'Peq. Cirurgia/Laser Piso 1'}],
+      tarde:[{name:'',rooms:'Sala Tratamentos Piso 2'},{name:'',rooms:'Apoio Ginecologia/Urologia Piso 2'},{name:'',rooms:'Peq. Cirurgia/Laser Piso 1'}],
+      noite:[],
     },
     auxiliares:[],
-    auxRoomsHint:{ manha:[], tarde:[], noite:[] },
-    auxSample:{ manha:[], tarde:[], noite:[] }
+    auxPostos:['Balcão F','Balcão G','Balcão D','Balcão A','Apoio 1','Apoio 2'],
+    auxRoomsHint:{manha:[],tarde:[],noite:[]},
+    auxSample:{
+      manha:[{name:'',rooms:'Balcão F'},{name:'',rooms:'Balcão G'},{name:'',rooms:'Balcão D'},{name:'',rooms:'Balcão A'},{name:'',rooms:'Apoio 1'},{name:'',rooms:'Apoio 2'}],
+      tarde:[{name:'',rooms:'Balcão F'},{name:'',rooms:'Balcão G'},{name:'',rooms:'Balcão D'},{name:'',rooms:'Balcão A'},{name:'',rooms:'Apoio 1'},{name:'',rooms:'Apoio 2'}],
+      noite:[],
+    }
+  },
+  BO:{
+    name:'BO', label:'Bloco Operatório',
+    postos:['Sala 1 – Enf. 1','Sala 1 – Enf. 2','Sala 1 – Enf. 3','Sala 2 – Enf. 1','Sala 2 – Enf. 2','Sala 2 – Enf. 3','Recobro'],
+    roomsHint:{manha:[],tarde:[],noite:[]},
+    nurses:[],
+    sample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite:[],
+    },
+    auxPostos:['Auxiliar'],
+    auxiliares:[],
+    auxRoomsHint:{manha:[],tarde:[],noite:[]},
+    auxSample:{
+      manha:[{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''}],
+      noite:[],
+    }
+  },
+  GASTRO:{
+    name:'GASTRO', label:'Gastroenterologia',
+    postos:['Sala de Técnicas','Recobro'],
+    postosSab:['Sala de Técnicas','Recobro'],
+    roomsHint:{manha:[],tarde:[],noite:[]},
+    nurses:[],
+    sample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''}],
+      noite:[],
+    },
+    auxPostos:['Desinfecção','Recobro'],
+    auxiliares:[],
+    auxRoomsHint:{manha:[],tarde:[],noite:[]},
+    auxSample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''}],
+      noite:[],
+    }
   }
 };
 
@@ -926,10 +1144,13 @@ const state = {
     IMP3:{ enfermeiros:{}, auxiliares:{} },
     UMDR:{ enfermeiros:{}, auxiliares:{} },
     URG: { enfermeiros:{}, auxiliares:{} },
-    CE:  { enfermeiros:{}, auxiliares:{} }
+    CE:  { enfermeiros:{}, auxiliares:{} },
+    BO:  { enfermeiros:{}, auxiliares:{} },
+    GASTRO:{ enfermeiros:{}, auxiliares:{} },
   },
   unsaved: 0,
   parsedData: null,
+  lastImportAt: 0, // timestamp da última importação Excel
   customPasswords: {},
   notifications: [
     {id:1,ico:'📋',title:'Plano ULDM publicado',msg:'Plano da semana atual publicado.',time:'Há 2h',read:false},
@@ -938,15 +1159,159 @@ const state = {
   ]
 };
 
+// Nomes que NUNCA devem aparecer na URG
+// Banidos da URG — comparação por nome completo, não por primeira palavra
+const URG_BANNED = ['Nuno Abreu','Renata Gondar','Marta Cardoso','Ana Catarina Silva','Catarina Silva'];
+// Lista de nomes conhecidos da URG — qualquer nome fora desta lista é removido
+const URG_ALLOWED = [
+  'Adriano Coutinho','Ana Moreira','Ana Ricardo','Cristiana Silva',
+  'Eduardo Bessa','Graciela Abreu','Helena Pinto','Hugo Duque',
+  'Inês Monteiro','Iván Ortega','Ivan Ortega','José Silva',
+  'Liliana Gomes','Márcia Cardoso','Paula Silva','Rita'
+];
+function isAllowedURG(nm){
+  return URG_ALLOWED.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+}
+
+function cleanNumericPrefixes() {
+  // Remove prefixos tipo "001 160628 " dos nomes em todos os serviços
+  const prefixRe = /^\d+\s+\d+\s+/;
+  Object.values(state.schedule||{}).forEach(svc => {
+    Object.values(svc||{}).forEach(cat => {
+      Object.values(cat||{}).forEach(week => {
+        (week.days||[]).forEach(day => {
+          ['manha','tarde','noite'].forEach(sh => {
+            (day[sh]||[]).forEach((slot,i) => {
+              if(slot.name && prefixRe.test(slot.name)){
+                day[sh][i] = {...slot, name: slot.name.replace(prefixRe,'').trim()};
+              }
+            });
+          });
+        });
+      });
+    });
+  });
+}
+
+
+function cleanURGData() {
+  // Elementos fixos de Pediatria
+  const URG_PED   = ['José Silva','Ana Ricardo','Ana Moreira','Graciela Abreu','Liliana','Rita'];
+  const URG_SUB   = ['Adriano','Ivan','Hugo Duque']; // substitutos — Adriano só slot 1 (Pediatria)
+  const URG_ADULT_ONLY = ['Cristiana Silva']; // sempre adultos, nunca pediatria
+  const isPed  = nm => !URG_ADULT_ONLY.some(p=>nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]))
+                    && URG_PED.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+  const isSub  = nm => !URG_ADULT_ONLY.some(p=>nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]))
+                    && URG_SUB.some(p => nm.toLowerCase().includes(p.toLowerCase().split(' ')[0]));
+  // Adriano só vai para Pediatria (slot 1), nunca para Consulta Pediatria (slot 2)
+  const isAdrianoOnly = nm => nm.toLowerCase().includes('adriano');
+
+  const urgEnf = state.schedule?.URG?.enfermeiros || {};
+  Object.values(urgEnf).forEach(week => {
+    (week.days||[]).forEach(day => {
+      ['manha','tarde','noite'].forEach(sh => {
+        // Pediatria não existe: à noite, sábado à tarde, domingo o dia todo
+        const isNight = (sh === 'noite');
+        const dayDate = new Date((day.date||'')+'T00:00:00');
+        const weekday = day.weekday || '';
+        const isSat   = weekday==='Sábado'  || dayDate.getDay()===6;
+        const isSun   = weekday==='Domingo' || dayDate.getDay()===0;
+        const noPed   = isNight || isSun || (isSat && sh==='tarde');
+
+        // 1. Filtrar banidos e duplicados
+        let slots = (day[sh] || []).filter(s => s && s.name);
+        slots = slots.filter(s => !URG_BANNED.some(b => s.name.toLowerCase().includes(b.toLowerCase())) && isAllowedURG(s.name));
+        const seen = new Set();
+        slots = slots.filter(s => {
+          const k = s.name.toLowerCase().trim();
+          if(seen.has(k)) return false;
+          seen.add(k); return true;
+        });
+
+        if(!slots.length){ day[sh]=[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}]; return; }
+
+        // 2. Separar por categoria
+        const pedFixed = noPed ? [] : slots.filter(s => isPed(s.name));
+        const subs     = noPed ? [] : slots.filter(s => !isPed(s.name) && isSub(s.name));
+        const adults   = noPed
+          ? slots  // sem pediatria — todos são adultos
+          : slots.filter(s => !isPed(s.name) && !isSub(s.name));
+
+        // 3. Preencher Pediatria (slot 1) e Consulta Pediatria (slot 2) — só manhã e tarde
+        const pedSlot1 = pedFixed[0] || subs[0] || null;
+        // Adriano só vai para slot 1 (Pediatria), nunca para slot 2 (Consulta Pediatria)
+        const subsForSlot2 = subs.filter(s => !isAdrianoOnly(s.name));
+        const pedSlot2 = pedFixed[1] || (pedFixed[0] ? subsForSlot2[0] : subsForSlot2[1] || (subs[0]&&!isAdrianoOnly(subs[0].name)?null:subsForSlot2[0])) || null;
+        const subsUsed = new Set();
+        if(pedSlot1 && !pedFixed.includes(pedSlot1)) subsUsed.add(pedSlot1.name);
+        if(pedSlot2 && !pedFixed.includes(pedSlot2)) subsUsed.add(pedSlot2.name);
+        const subsRemaining = subs.filter(s => !subsUsed.has(s.name));
+        const allAdults = [...adults, ...subsRemaining];
+
+        // 4. Reforço só com 4+ pessoas
+        const total = slots.length;
+        const result = noPed ? [
+          // Sem pediatria — distribuir pelos 4 slots linearmente
+          allAdults[0] || {name:'',rooms:''},
+          allAdults[1] || {name:'',rooms:''},
+          allAdults[2] || {name:'',rooms:''},
+          total >= 4 ? (allAdults[3] || {name:'',rooms:''}) : {name:'',rooms:''},
+        ] : [
+          allAdults[0]  || {name:'',rooms:''},
+          pedSlot1      || {name:'',rooms:''},
+          pedSlot2      || {name:'',rooms:''},
+          total >= 4 ? (allAdults[1] || pedFixed[2] || {name:'',rooms:''}) : {name:'',rooms:''},
+        ];
+
+        day[sh] = result;
+      });
+    });
+  });
+}
+
+
+
+// Merge dados da cloud com estado local — cloud só preenche semanas em falta
+function mergeCloudData(cloud) {
+  if (!cloud || !cloud.schedule) return;
+  Object.keys(cloud.schedule).forEach(svc => {
+    if (!state.schedule[svc]) return;
+    const saved = cloud.schedule[svc];
+    ['enfermeiros','auxiliares'].forEach(cat => {
+      const cloudWeeks = saved[cat] || (cat==='enfermeiros' ? saved : {});
+      if (!cloudWeeks || !Object.keys(cloudWeeks).length) return;
+      Object.keys(cloudWeeks).forEach(wkey => {
+        // Só aplicar se não existir localmente ou se local estiver vazio
+        const local = (state.schedule[svc][cat]||{})[wkey];
+        const localHasData = local?.days?.some(d =>
+          ['manha','tarde','noite'].some(sh => (d[sh]||[]).some(s=>s.name))
+        );
+        if (!localHasData) {
+          if (!state.schedule[svc][cat]) state.schedule[svc][cat] = {};
+          state.schedule[svc][cat][wkey] = cloudWeeks[wkey];
+        }
+      });
+    });
+  });
+  if (cloud.notifications) state.notifications = cloud.notifications;
+  if (cloud.customPasswords) state.customPasswords = cloud.customPasswords;
+  cleanURGData();
+}
+
 // Load persisted data
-function applyPersistedData(persisted) {
+// skipIfOlderThanImport: se true, não sobrepõe dados importados recentemente
+function applyPersistedData(persisted, skipIfOlderThanImport) {
   if (!persisted) return;
+  // Se houve importação recente (60s), não deixar cloud sobrepor
+  if (skipIfOlderThanImport && Date.now() - (state.lastImportAt||0) < 60000) {
+    console.log('[Sync] Ignorado — importação recente');
+    return;
+  }
   if (persisted.schedule) {
     Object.keys(persisted.schedule).forEach(svc => {
       if (!state.schedule[svc]) return;
       const saved = persisted.schedule[svc];
       if (saved.enfermeiros !== undefined || saved.auxiliares !== undefined) {
-        // Only overwrite if cloud has actual week data (not empty)
         if (saved.enfermeiros && Object.keys(saved.enfermeiros).length > 0)
           state.schedule[svc].enfermeiros = saved.enfermeiros;
         if (saved.auxiliares && Object.keys(saved.auxiliares).length > 0)
@@ -958,24 +1323,37 @@ function applyPersistedData(persisted) {
   }
   if (persisted.notifications) state.notifications = persisted.notifications;
   if (persisted.customPasswords) state.customPasswords = persisted.customPasswords;
+  if (typeof cleanURGData === 'function') cleanURGData();
+  // Limpar prefixos numéricos dos nomes em todos os serviços
+  if (typeof cleanNumericPrefixes === 'function') cleanNumericPrefixes();
 }
 
 // Apply cache immediately so app feels instant, then sync cloud in background
 applyPersistedData(loadCache());
 
 async function syncFromCloud() {
+  // Não sincronizar se importação recente (60s) ou alterações não guardadas
+  if (xlsImporting) return;
+  if (state.unsaved > 0) return;
+  if (Date.now() - (state.lastImportAt||0) < 60000) return;
+
   const cloud = await loadFromCloud();
   if (!cloud) return;
+
+  // Verificar novamente após o fetch (pode ter mudado entretanto)
+  if (xlsImporting) return;
+  if (state.unsaved > 0) return;
+  if (Date.now() - (state.lastImportAt||0) < 60000) return;
+
   cacheLocal(cloud);
-  applyPersistedData(cloud);
+  applyPersistedData(cloud, true); // não sobrepor se importação recente
   if (state.user) {
-    // Don't re-render if coordinator has unsaved changes — would reset inputs
-    if (state.user.role === 'coordinator' && state.unsaved > 0) return;
     const wkey = state.currentWeek;
     if (wkey && !((state.schedule[state.activeSvc][state.activeCat]||{})[wkey])) {
       ensureWeek(state.activeSvc, wkey);
     }
-    renderAll();
+    // Não re-renderizar se há edições não guardadas
+    if(state.unsaved === 0) renderAll();
   }
 }
 syncFromCloud();
@@ -993,7 +1371,7 @@ document.addEventListener('visibilitychange', ()=>{
 // UTILS
 // ══════════════════════════════════════
 function getMonday(d){const dt=new Date(d);const day=dt.getDay();dt.setDate(dt.getDate()+(day===0?-6:1-day));dt.setHours(0,0,0,0);return dt;}
-function isoDate(d){return d.toISOString().split('T')[0];}
+function isoDate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${dd}`;}
 function isToday(s){return s===isoDate(new Date());}
 function todayKey(){return isoDate(getMonday(new Date()));}
 function weekLabel(mon){const m=new Date(mon+'T00:00:00'),s=new Date(m);s.setDate(s.getDate()+6);return `${m.getDate()} ${MONTHS[m.getMonth()]} – ${s.getDate()} ${MONTHS[s.getMonth()]} ${s.getFullYear()}`;}
@@ -1012,13 +1390,22 @@ function ensureWeek(svc,wkey){
   const cfg=SERVICES[svc];
   // Slot counts per service and category
   let mCount=3, tCount=3, nCount=3;
-  if(svc==='CE'){ mCount=6; tCount=0; nCount=0; } else if(svc==='UC'||svc==='IMC'||svc==='IMP3'){
+  if(svc==='CE'){
+    // 2ª-6ª: manhã e tarde; Sábado: só manhã (gerido no render)
+    mCount = cat==='auxiliares' ? 6 : 3;
+    tCount = cat==='auxiliares' ? 6 : 3;
+    nCount = 0;
+  } else if(svc==='UC'||svc==='IMC'||svc==='IMP3'){
     mCount=3; tCount=3; nCount=3;
   } else if(svc==='ULDM'||svc==='UMDR'){
     mCount=4; tCount=4; nCount=4;
   } else if(svc==='URG'){
     if(cat==='enfermeiros') { mCount=4; tCount=4; nCount=4; }
     if(cat==='auxiliares')  { mCount=2; tCount=2; nCount=0; }
+  } else if(svc==='BO'){
+    mCount=cat==='auxiliares'?1:7; tCount=cat==='auxiliares'?1:7; nCount=0;
+  } else if(svc==='GASTRO'){
+    mCount=2; tCount=2; nCount=0;
   }
   const sampleData = cat==='auxiliares' ? cfg.auxSample : cfg.sample;
   state.schedule[svc][cat][wkey]={
@@ -1048,8 +1435,9 @@ function selectSvc(s){
 selectSvc('ULDM');
 
 function onRoleChange(){
-  const isCoord=document.getElementById('login-role').value==='coordinator';
-  document.getElementById('coord-grp').style.display=isCoord?'block':'none';
+  const role=document.getElementById('login-role').value;
+  document.getElementById('coord-grp').style.display=(role==='coordinator')?'block':'none';
+  document.getElementById('supercoord-grp').style.display=(role==='supercoord')?'block':'none';
 }
 
 function selectCoord(name){
@@ -1061,6 +1449,10 @@ function togglePass(){
   const inp=document.getElementById('login-pass');
   inp.type=inp.type==='password'?'text':'password';
 }
+function toggleSuperPass(){
+  const inp=document.getElementById('supercoord-pass');
+  inp.type=inp.type==='password'?'text':'password';
+}
 
 const ADMIN_PASS = 'Diogo2026';
 
@@ -1070,6 +1462,22 @@ const ADMIN_PASS = 'Diogo2026';
 function doLogin(){
   if(!selectedSvc){alert('Selecione um serviço.');return;}
   const role=document.getElementById('login-role').value;
+  if(role==='supercoord'){
+    const enteredPass=document.getElementById('supercoord-pass').value;
+    if(enteredPass!==ADMIN_PASS){alert('Código incorreto.');return;}
+    state.user={name:'Enfermeiro Coordenador',role:'supercoord',ownSvc:null,isAdmin:true};
+    state.activeSvc=selectedSvc; state.activeCat='enfermeiros';
+    state.currentWeek=todayKey();
+    Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    setupUI();
+    localStorage.removeItem(CACHE_KEY);
+    showToast('⏳ A carregar planos…');
+    const localSC=loadCache();if(localSC)applyPersistedData(localSC,false);
+    loadFromCloud().then(cloud=>{if(cloud){mergeCloudData(cloud);cacheLocal({schedule:state.schedule,customPasswords:state.customPasswords,notifications:state.notifications});}renderAll();}).catch(()=>renderAll());
+    return;
+  }
   if(role==='coordinator'){
     if(!selectedCoord){alert('Selecione o coordenador.');return;}
     const coordCfg=COORDINATORS[selectedCoord];
@@ -1079,29 +1487,33 @@ function doLogin(){
     if(!isAdmin && enteredPass!==currentPass){alert('Código incorreto.');return;}
     state.user={name:selectedCoord,role:'coordinator',ownSvc:coordCfg.svc,isAdmin};
     state.activeSvc=coordCfg.svc;
-    state.activeCat=coordCfg.svc==='CE'?'auxiliares':'enfermeiros';
+    state.activeCat='enfermeiros';
   } else if(role==='auxiliar'){
     state.user={name:'Auxiliar',role:'auxiliar'};
     state.activeCat='auxiliares';
     state.activeSvc=selectedSvc;
   } else {
     state.user={name:'Enfermeiro',role:'nurse'};
-    state.activeCat='enfermeiros';
+    state.activeCat= 'enfermeiros';
     state.activeSvc=selectedSvc;
   }
   state.currentWeek=todayKey();
-  Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));
+  const savedLoginCat=state.activeCat;
+  ['enfermeiros','auxiliares'].forEach(c=>{state.activeCat=c;Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));});
+  state.activeCat=savedLoginCat;
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   setupUI();
 
-  // Always fetch fresh data from cloud on login — ignore local cache
-  localStorage.removeItem(CACHE_KEY);
+  // No login: aplicar cache local primeiro, depois merge com cloud
+  const localData = loadCache();
+  if(localData) applyPersistedData(localData, false);
   showToast('⏳ A carregar planos…');
   loadFromCloud().then(cloud => {
     if(cloud){
-      cacheLocal(cloud);
-      applyPersistedData(cloud);
+      // Fazer merge: cloud actualiza semanas que não existem localmente
+      mergeCloudData(cloud);
+      cacheLocal({schedule:state.schedule, customPasswords:state.customPasswords, notifications:state.notifications});
     }
     renderAll();
   }).catch(()=>renderAll());
@@ -1113,9 +1525,15 @@ function doLogout(){
   document.getElementById('app').style.display='none';
   document.getElementById('tb-pass-btn').style.display='none';
   document.getElementById('topbar-row2').classList.remove('visible');
+  document.getElementById('multi-upload-panel').style.display='none';
+  document.getElementById('supercoord-actions').style.display='none';
+  document.getElementById('supercoord-grp').style.display='none';
   state.user=null; state.unsaved=0; selectedCoord=null;
   document.getElementById('save-bar').style.display='none';
   document.querySelectorAll('.coord-card').forEach(c=>c.classList.remove('active'));
+  // Reset select perfil
+  document.getElementById('login-role').value='nurse';
+  onRoleChange();
 }
 
 // ══════════════════════════════════════
@@ -1128,7 +1546,10 @@ function setupUI(){
   // Set service name in topbar for all roles
   const svcNameEl=document.getElementById('tb-svc-name');
   if(svcNameEl) svcNameEl.textContent=state.activeSvc||'';
-  if(role==='coordinator'){
+  if(role==='supercoord'){
+    av.textContent='EC';
+    av.style.background='linear-gradient(135deg,var(--accent),var(--purple))';
+  } else if(role==='coordinator'){
     av.textContent=initials(name);
     if(name==='Marta Cardoso') av.style.background='var(--purple)';
     else if(name==='Nuno Abreu') av.style.background='var(--green)';
@@ -1136,32 +1557,54 @@ function setupUI(){
   } else if(role==='auxiliar'){
     av.textContent='AS';
     av.style.background='var(--orange)';
+    // Auxiliar: esconder toggle, mostrar só label
+    document.getElementById('cat-toggle').style.display='none';
   } else {
     av.textContent='ENF';
     av.style.background='var(--accent)';
+    // Enfermeiro: esconder toggle, mostrar só label
+    document.getElementById('cat-toggle').style.display='none';
   }
 
-  if(role==='coordinator'){
+  if(role==='coordinator' || role==='supercoord'){
+    const svc=state.activeSvc;
     document.getElementById('coord-panel').style.display='block';
     document.getElementById('editor-section').style.display='block';
     document.getElementById('bottom-nav').style.display='none';
     document.getElementById('storage-bar').style.display='flex';
-    document.getElementById('cat-toggle').style.display=(svc==='CE')?'none':'flex';
+  const _rb=document.getElementById('btn-racios');if(_rb)_rb.style.display=state.user?.role==='supercoord'?'inline-flex':'none';
+    document.getElementById('cat-toggle').style.display='flex';
     document.getElementById('topbar-row2').classList.add('visible');
-    // Show password button only for real coordinators (not admin)
-    document.getElementById('tb-pass-btn').style.display=state.user.isAdmin?'none':'block';
+    document.getElementById('tb-pass-btn').style.display='none';
     updateStorageBar(!!loadCache());
+    updateSvcIcons();
+    // Painel de upload e botões só para supercoord
+    if(role==='supercoord'){
+      document.getElementById('multi-upload-panel').style.display='block';
+      document.getElementById('supercoord-actions').style.display='flex';
+      setTimeout(renderMultiPanel, 50);
+    }
   }
   renderNotifs();
 }
 
 function switchSvc(s){
   state.activeSvc=s;
-  ensureWeek(s,state.currentWeek);
+  ensureWeek(s, state.currentWeek);
+  if(s==='CE'||s==='BO'||s==='GASTRO'){
+    const _savedCatSw=state.activeCat;
+    state.activeCat=_savedCatSw==='auxiliares'?'enfermeiros':'auxiliares';
+    ensureWeek(s,state.currentWeek);
+    state.activeCat=_savedCatSw;
+  }
   const svcNameEl=document.getElementById('tb-svc-name');
   if(svcNameEl) svcNameEl.textContent=s||'';
-  if(state.user?.role!=='coordinator') {
+  if(state.user?.role!=='coordinator' && state.user?.role!=='supercoord') {
     document.querySelectorAll('.bn-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===s));
+  }
+  // Atualizar cat-toggle para coordinator e supercoord
+  if(state.user?.role==='coordinator' || state.user?.role==='supercoord'){
+    const ct=document.getElementById('cat-toggle');
   }
   renderAll();
 }
@@ -1177,8 +1620,30 @@ function switchCat(cat){
 // ══════════════════════════════════════
 function prevWeek(){shiftWeek(-7);}
 function nextWeek(){shiftWeek(7);}
-function goToday(){state.currentWeek=todayKey();Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));renderAll();}
-function shiftWeek(d){const dt=new Date(state.currentWeek+'T00:00:00');dt.setDate(dt.getDate()+d);state.currentWeek=isoDate(dt);Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));renderAll();}
+function goToday(){
+  state.currentWeek=todayKey();
+  Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));
+  if(['CE','BO','GASTRO'].includes(state.activeSvc)){
+    const outraCat2=state.activeCat==='auxiliares'?'enfermeiros':'auxiliares';
+    const savedCat2=state.activeCat;
+    state.activeCat=outraCat2; ensureWeek(state.activeSvc,state.currentWeek);
+    state.activeCat=savedCat2;
+  }
+  renderAll();
+}
+function shiftWeek(d){
+  const dt=new Date(state.currentWeek+'T00:00:00');
+  dt.setDate(dt.getDate()+d);
+  state.currentWeek=isoDate(dt);
+  Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));
+  if(['CE','BO','GASTRO'].includes(state.activeSvc)){
+    const outraCat3=state.activeCat==='auxiliares'?'enfermeiros':'auxiliares';
+    const savedCat3=state.activeCat;
+    state.activeCat=outraCat3; ensureWeek(state.activeSvc,state.currentWeek);
+    state.activeCat=savedCat3;
+  }
+  renderAll();
+}
 
 // ══════════════════════════════════════
 // RENDER
@@ -1186,6 +1651,7 @@ function shiftWeek(d){const dt=new Date(state.currentWeek+'T00:00:00');dt.setDat
 function renderAll(){
   const svc=state.activeSvc;
   const cat=state.activeCat;
+  if(!state.schedule[svc]||!state.schedule[svc][cat]){console.error('[renderAll] schedule missing for',svc,cat);return;}
   const week=(state.schedule[svc][cat]||{})[state.currentWeek]||{published:false,days:[]};
   const lbl=weekLabel(state.currentWeek);
   const cfg=SERVICES[svc];
@@ -1207,13 +1673,13 @@ function renderAll(){
 
   // Render dynamic cat toggle
   const catToggle=document.getElementById('cat-toggle');
-  if(catToggle && state.user?.role==='coordinator'){
+  if(catToggle && (state.user?.role==='coordinator' || state.user?.role==='supercoord')){
     catToggle.innerHTML=`
       <button class="cat-btn${cat==='enfermeiros'?' active-enf':''}" onclick="switchCat('enfermeiros')">👩‍⚕️ Enfermeiros</button>
       <button class="cat-btn${cat==='auxiliares'?' active-aux':''}" onclick="switchCat('auxiliares')">🏥 Auxiliares de Saúde</button>`;
   }
 
-  // Update topbar svc icons (coordinator only)
+  // Update topbar svc icons (coordinator / supercoord)
   if(state.user?.role==='coordinator'){
     const ownSvc=state.user.ownSvc;
     const isOwn=svc===ownSvc;
@@ -1223,12 +1689,24 @@ function renderAll(){
     });
     document.getElementById('editor-section').style.display=isOwn?'block':'none';
     document.getElementById('coord-panel').style.display=isOwn?'block':'none';
-    document.getElementById('cat-toggle').style.display=(isOwn&&svc!=='CE')?'flex':'none';
+    document.getElementById('cat-toggle').style.display=isOwn?'flex':'none';
     document.getElementById('readonly-banner').style.display=isOwn?'none':'flex';
+  } else if(state.user?.role==='supercoord'){
+    document.querySelectorAll('.tb-svc-icon').forEach(el=>{
+      el.className='tb-svc-icon'+(el.dataset.svc===svc?' active':'');
+    });
+    document.getElementById('editor-section').style.display='none';
+    document.getElementById('coord-panel').style.display='block';
+    document.getElementById('cat-toggle').style.display='flex';
+    document.getElementById('readonly-banner').style.display='none';
+    document.getElementById('multi-upload-panel').style.display='block';
+    document.getElementById('supercoord-actions').style.display='flex';
+    renderMultiPanel();
   }
 
   renderSchedule(week);
-  if(state.user?.role==='coordinator'&&svc===state.user.ownSvc) renderEditor(week);
+  // Não re-renderizar o editor se há edições não guardadas (evita perder texto)
+  if(state.user?.role==='coordinator'&&svc===state.user.ownSvc&&state.unsaved===0) renderEditor(week);
 }
 
 function renderSchedule(week){
@@ -1238,34 +1716,42 @@ function renderSchedule(week){
 }
 
 function renderDay(day){
-  const d=new Date(day.date+'T00:00:00');
-  const tc=isToday(day.date)?'today':'';
-  const svc=state.activeSvc;
-  const cat=state.activeCat;
-  const cfg=SERVICES[svc];
-  const postos=svc==='URG'?(cat==='auxiliares'?cfg.auxPostos:cfg.postos):null;
+  // ── CE: renderização especial ──────────────────────────────────────────
+  if(state.activeSvc==='CE'){
+    const cfg=SERVICES['CE'];
+    const cat=state.activeCat;
+    const d=new Date(day.date+'T00:00:00');
+    const dow=d.getDay(); // 0=Dom,6=Sáb
+    if(dow===0) return ''; // sem domingo
+    const isSat=dow===6;
+    const tc=isToday(day.date)?'today':'';
 
-  // CE: special rendering — no shifts, just postos for the day
-  if(svc==='CE'){
-    const postos=cfg.postos||[];
-    const slots=day.manha||[];
-    const cells=postos.map((posto,i)=>{
-      const nm=slots[i]?.name||'';
-      const hrs=slots[i]?.hours||'';
-      const sp=slots[i]?.rooms||'';
-      const sp2=slots[i]?.rooms2||'';
-      const isApoio=posto.startsWith('Apoio');
-      const subLine=sp
-        ? isApoio
-          ? `<div style="font-style:italic;font-size:9px;color:var(--accent);margin-top:2px;line-height:1.3">📍 ${sp}</div>`
-          : `<div style="font-style:italic;font-size:10px;color:var(--text2);margin-top:1px">${sp}${sp2?' <span style="color:var(--text3);font-size:9px">('+sp2+')</span>':''}</div>`
-        : '';
-      return `<div class="nurse-cell">
-        <div class="nc-pos" style="font-size:8.5px;line-height:1.1">${posto}</div>
-        ${nm?`<div class="nc-name">${nm}</div><div style="font-size:9px;color:var(--text3);margin-top:1px">${hrs}</div>`:'<div class="nc-empty">—</div>'}
-        ${subLine}
+    // Postos por categoria e dia
+    const posEnf = isSat
+      ? ['Sala Tratamentos Piso 2']  // sáb: 1 posto enf, só manhã
+      : cfg.postos;                  // 2ª-6ª: 3 postos enf
+    const posAux = cfg.auxPostos;   // 6 postos aux, sempre
+
+    const cePostos = cat==='auxiliares' ? posAux : posEnf;
+
+    const ceShift=(sk)=>{
+      if(isSat && sk==='tarde') return '';           // sáb sem tarde
+      if(isSat && cat==='enfermeiros' && sk==='tarde') return '';
+      const slots=day[sk]||[];
+      const lbl=sk==='manha'?'M':'T';
+      const cells=cePostos.map((posto,i)=>{
+        const s=slots[i]; const nm=s?.name||'';
+        return `<div class="nurse-cell">
+          <div class="nc-pos" style="font-size:8px;line-height:1.2">${posto}</div>
+          ${nm?`<div class="nc-name">${nm}</div>`:'<div class="nc-empty">—</div>'}
+        </div>`;
+      }).join('');
+      return `<div class="shift-block ${sk}">
+        <div class="shift-sub-header"><div class="sh-dot ${sk}"></div><span class="sh-lbl">${lbl}</span></div>
+        <div class="nurses-grid">${cells}</div>
       </div>`;
-    }).join('');
+    };
+
     const obs=day.obs?`<div class="obs-row">⚡ ${day.obs}</div>`:'';
     return `<div class="day-section ${tc}">
       <div class="day-header-row">
@@ -1274,24 +1760,120 @@ function renderDay(day){
         <span class="dh-week">${day.weekday}</span>
         ${isToday(day.date)?'<span style="font-size:10px;color:var(--accent);background:rgba(59,130,246,.12);padding:2px 7px;border-radius:10px;margin-left:auto">Hoje</span>':''}
       </div>
-      <div class="shift-block manha">
-        <div class="nurses-grid">${cells}</div>
-        ${obs}
-      </div>
+      ${ceShift('manha')}
+      ${!isSat ? ceShift('tarde') : ''}
+      ${obs}
     </div>`;
   }
+  // ── fim CE ─────────────────────────────────────────────────────────────
 
+  const d=new Date(day.date+'T00:00:00');
+  const tc=isToday(day.date)?'today':'';
+  const svc=state.activeSvc;
+  const cat=state.activeCat;
+  const cfg=SERVICES[svc];
+  const postos=svc==='URG'?(cat==='auxiliares'?(cfg.auxPostos||cfg.postos):cfg.postos):null;
+
+
+  // ── CE: renderização própria ────────────────────────────
+  if(svc==='CE'){
+    const dow = new Date((day.date||'')+'T00:00:00').getDay();
+    if(dow===0) return ''; // sem domingo
+    const isSat = dow===6;
+    // Postos por categoria e dia
+    const isAux = cat==='auxiliares';
+    const cePosM = isAux ? cfg.auxPostos : (isSat ? cfg.postosSab : cfg.postos);
+    const cePosT = isAux ? cfg.auxPostos : cfg.postos; // tarde só 2ª-6ª
+    const ceSlot=(pos,slot)=>`<div class="nurse-cell">
+      <div class="nc-pos" style="font-size:8px;line-height:1.2">${pos}</div>
+      ${slot?.name
+        ?`<div class="nc-name">${slot.name}</div>${slot.hours?`<div style="font-size:9px;color:var(--text3)">${slot.hours}</div>`:''}`
+        :`<div class="nc-empty">—</div>`}
+    </div>`;
+    const ceTurno=(sk,posList)=>{
+      const sl=day[sk]||[];
+      const cells=posList.map((p,i)=>ceSlot(p,sl[i])).join('');
+      return `<div class="shift-block ${sk}">
+        <div class="shift-sub-header"><div class="sh-dot ${sk}"></div><span class="sh-lbl">${sk==='manha'?'M':'T'}</span></div>
+        <div class="nurses-grid">${cells}</div>
+      </div>`;
+    };
+    const obs=day.obs?`<div class="obs-row">⚡ ${day.obs}</div>`:'';
+    return `<div class="day-section ${tc}">
+      <div class="day-header-row">
+        <span class="dh-date">${d.getDate()}</span>
+        <span class="dh-month">${MONTHS[d.getMonth()]}</span>
+        <span class="dh-week">${day.weekday}</span>
+        ${isToday(day.date)?'<span style="font-size:10px;color:var(--accent);background:rgba(59,130,246,.12);padding:2px 7px;border-radius:10px;margin-left:auto">Hoje</span>':''}
+      </div>
+      ${ceTurno('manha',cePosM)}
+      ${!isSat?ceTurno('tarde',cePosT):''}
+      ${obs}
+    </div>`;
+  }
+  // ── Fim CE ──────────────────────────────────────────────
+
+  // ── BLOCO OPERATÓRIO / GASTROENTEROLOGIA ─────────────────────────────
+  if(state.activeSvc==='BO'||state.activeSvc==='GASTRO'){
+    const _svcK=state.activeSvc;
+    const _cfgK=SERVICES[_svcK];
+    const _d=new Date(day.date+'T00:00:00');
+    const _dow=_d.getDay(); // 0=Dom,6=Sáb
+    if(_dow===0) return '';
+    const _isSat=_dow===6;
+    if(_svcK==='BO'&&_isSat) return ''; // BO sem sábado
+    const _cat=state.activeCat;
+    const _pos=_cat==='auxiliares'?(_cfgK.auxPostos||[]):(_cfgK.postos||[]);
+    const _posSab=_svcK==='GASTRO'?(_cfgK.postos||[]):_pos;
+    const _renderSh=(sk)=>{
+      if(_isSat&&sk==='tarde') return '';
+      const _sl=day[sk]||[];
+      const _pList=_isSat?_posSab:_pos;
+      const _cells=_pList.map((p,i)=>{
+        const _s=_sl[i];const _nm=_s?.name||'';
+        return `<div class="nurse-cell">
+          <div class="nc-pos" style="font-size:8px;line-height:1.2">${p}</div>
+          ${_nm?`<div class="nc-name">${_nm}</div>`:'<div class="nc-empty">—</div>'}
+        </div>`;
+      }).join('');
+      return `<div class="shift-block ${sk}">
+        <div class="shift-sub-header"><div class="sh-dot ${sk}"></div><span class="sh-lbl">${sk==='manha'?'M':'T'}</span></div>
+        <div class="nurses-grid">${_cells}</div>
+      </div>`;
+    };
+    const _obs=day.obs?`<div class="obs-row">⚡ ${day.obs}</div>`:'';
+    return `<div class="day-section ${isToday(day.date)?'today':''}">
+      <div class="day-header-row">
+        <span class="dh-date">${_d.getDate()}</span>
+        <span class="dh-month">${MONTHS[_d.getMonth()]}</span>
+        <span class="dh-week">${day.weekday}</span>
+        ${isToday(day.date)?'<span style="font-size:10px;color:var(--accent);background:rgba(59,130,246,.12);padding:2px 7px;border-radius:10px;margin-left:auto">Hoje</span>':''}
+      </div>
+      ${_renderSh('manha')}
+      ${!_isSat?_renderSh('tarde'):''}
+      ${_obs}
+    </div>`;
+  }
+  // ── fim BO/GASTRO ──────────────────────────────────────────────────────
   const shiftHtml=sk=>{
     const slots=day[sk]||[];
     if(!slots.length) return '';
     const posPrefix=sk==='manha'?'M':sk==='tarde'?'T':'N';
     const isN5=slots.length>=5;
+    const dayDate2 = new Date((day.date||'')+'T00:00:00');
+    const isSunURG = svc==='URG' && (day.weekday==='Domingo' || dayDate2.getDay()===0);
+    const isSatURG = svc==='URG' && (day.weekday==='Sábado'  || dayDate2.getDay()===6);
+    // Sem Pediatria: domingo (dia todo), noite (sempre), sábado tarde
+    const urgNoPed = svc==='URG' && (isSunURG || sk==='noite' || (isSatURG && sk==='tarde'));
     const cells=slots.map((slot,i)=>{
+      if(urgNoPed && (i===1||i===2)) return '';
       const nm=slot.name||'';
-      const lbl=postos?postos[i]:`${posPrefix}${i+1}`;
+      const lbl=postos?(postos[i]||`${posPrefix}${i+1}`):`${posPrefix}${i+1}`;
+      const hrs=slot.hours||'';
       return `<div class="nurse-cell">
         <div class="nc-pos" style="${postos?'font-size:8.5px;line-height:1.1':''}">${lbl}</div>
         ${nm?`<div class="nc-name">${nm}</div>`:'<div class="nc-empty">—</div>'}
+        ${hrs?`<div class="nc-rooms" style="color:var(--accent)">${hrs}</div>`:''}
         ${slot.rooms&&slot.rooms!=='—'?`<div class="nc-rooms">${slot.rooms}</div>`:''}
       </div>`;
     }).join('');
@@ -1356,38 +1938,31 @@ function renderEditor(week){
     const d=new Date(day.date+'T00:00:00');
     const tm=isToday(day.date)?' 📍':'';
 
-    // CE: special editor — no shifts, just posto inputs
-    if(svc==='CE'){
-      const postos=cfg.postos||[];
-      const slots=day.manha||[];
-      const inputs=postos.map((posto,si)=>`<div class="ef">
-        <label>${posto}</label>
-        <input type="text" value="${slots[si]?.name||''}" placeholder="Nome" oninput="updSlot(${di},'manha',${si},'name',this.value)" autocomplete="off" autocorrect="off">
-      </div>`).join('');
-      return `<div class="ed-day">
-        <div class="ed-day-hdr">${day.weekday} <strong>${d.getDate()} ${MONTHS[d.getMonth()]}${tm}</strong></div>
-        <div class="ef-grid g3">${inputs}</div>
-      </div>`;
-    }
-
+    const noNight=(svc==='CE'||svc==='BO'||svc==='GASTRO');
     const shifts=['manha','tarde','noite'].map(sk=>{
+      if(noNight&&sk==='noite') return '';
+      const dayOfWeek2=new Date((day.date||'')+'T00:00:00').getDay();
+      if(svc==='BO'&&dayOfWeek2===6) return '';
+      if(svc==='GASTRO'&&dayOfWeek2===6&&sk==='tarde') return '';
       const slots=day[sk]||[];
       if(!slots.length) return '';
       const c=cm[sk];
       const hints_sk=hints[sk]||[];
       const posPrefix=sk==='manha'?'M':sk==='tarde'?'T':'N';
       const g=slots.length===3?'g3':'';
-      const postos=svc==='URG'?(cat==='auxiliares'?cfg.auxPostos:cfg.postos):null;
+      const isPostoSvc=(svc==='URG'||svc==='CE'||svc==='BO'||svc==='GASTRO');
+      const postos=isPostoSvc?(cat==='auxiliares'?(cfg.auxPostos||cfg.postos):cfg.postos):null;
 
       const nameInputs=slots.map((slot,si)=>`<div class="ef">
         <label>${postos?postos[si]:`${posPrefix}${si+1}`}</label>
         <input type="text" value="${slot.name||''}" placeholder="Nome" oninput="updSlot(${di},'${sk}',${si},'name',this.value)" autocomplete="off" autocorrect="off">
       </div>`).join('');
 
-      const roomInputs=slots.map((slot,si)=>`<div class="ef">
+      const showRooms=!(svc==='CE'||svc==='BO'||svc==='GASTRO');
+      const roomInputs=showRooms?slots.map((slot,si)=>`<div class="ef">
         <label>🚪 ${postos?postos[si]:`${posPrefix}${si+1}`}</label>
         <input type="text" value="${slot.rooms||''}" placeholder="${hints_sk[si]||''}" oninput="updSlot(${di},'${sk}',${si},'rooms',this.value)" autocomplete="off">
-      </div>`).join('');
+      </div>`).join(''):'';
 
       return `<div class="ed-shift">
         <div class="ed-shift-title" style="color:${c}">
@@ -1398,10 +1973,10 @@ function renderEditor(week){
           <div class="pos-group-lbl">👤 Nomes</div>
           <div class="pos-inputs ${g}">${nameInputs}</div>
         </div>
-        <div class="pos-group">
+        ${showRooms?`<div class="pos-group">
           <div class="pos-group-lbl">🚪 Quartos</div>
           <div class="pos-inputs ${g}">${roomInputs}</div>
-        </div>
+        </div>`:''}
       </div>`;
     }).join('');
 
@@ -1442,10 +2017,16 @@ function updObs(di,val){
   markUnsaved();
 }
 
+let _autoSaveTimer=null;
 function markUnsaved(){
   state.unsaved++;
   document.getElementById('unsaved-n').textContent=state.unsaved;
   document.getElementById('save-bar').style.display='flex';
+  // Auto-save após 2 segundos sem digitar
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer=setTimeout(()=>{
+    if(state.unsaved>0) saveToStorage();
+  }, 2000);
 }
 
 function savePlan(){
@@ -1502,16 +2083,24 @@ async function downloadPDF(){
   let daysHtml = week.days.map(day => {
     const d = new Date(day.date+'T00:00:00');
     const isHoje = day.date === isoDate(new Date());
+    const pdfCfg=SERVICES[svc]; const pdfPostos=(cat==='auxiliares'?(pdfCfg.auxPostos||[]):(pdfCfg.postos||[]));
+    const isPostoSvcPDF=(svc==='CE'||svc==='BO'||svc==='GASTRO');
     const shifts = ['manha','tarde','noite'].map(sk => {
-      const slots = (day[sk]||[]).filter(s=>s.name);
-      if(!slots.length) return '';
-      const cells = slots.map(s=>`
-        <td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;vertical-align:top">
+      if(isPostoSvcPDF&&sk==='noite') return '';
+      const slots = isPostoSvcPDF?(day[sk]||[]):(day[sk]||[]).filter(s=>s.name);
+      const namedSlots = slots.filter(s=>s.name);
+      if(!namedSlots.length) return '';
+      const cells = isPostoSvcPDF
+        ? slots.map((s,i)=>`<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;vertical-align:top">
+          <div style="font-size:9px;color:#6b7280;margin-bottom:2px">${pdfPostos[i]||''}</div>
+          <div style="font-weight:600;color:#111">${s.name||'—'}</div>
+          </td>`).join('')
+        : namedSlots.map(s=>`<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;vertical-align:top">
           <div style="font-weight:600;color:#111">${s.name}</div>
           ${s.rooms&&s.rooms!=='—'?`<div style="font-size:9px;color:#6b7280;background:#f3f4f6;padding:1px 4px;border-radius:3px;margin-top:2px;display:inline-block">${s.rooms}</div>`:''}
-        </td>`).join('');
-      const emptyCount = (sk==='noite'?3:5) - slots.length;
-      const emptyCells = Array(emptyCount).fill(`<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;color:#d1d5db">—</td>`).join('');
+          </td>`).join('');
+      const emptyCount = isPostoSvcPDF?0:(sk==='noite'?3:5)-namedSlots.length;
+      const emptyCells = Array(Math.max(0,emptyCount)).fill(`<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;color:#d1d5db">—</td>`).join('');
       return `<tr>
         <td style="padding:6px 10px;border:1px solid #e5e7eb;white-space:nowrap;font-size:11px;font-weight:700;background:${SHIFT_BG[sk]};color:${SHIFT_COLORS[sk]};width:90px">${SHIFT_LABELS[sk]}</td>
         ${cells}${emptyCells}
@@ -1553,7 +2142,9 @@ async function downloadPDF(){
     <div style="font-size:10px;color:#9ca3af">Gerado em ${new Date().toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} às ${new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})} · Por ${state.user.name}</div>
   </div>
   ${daysHtml}
-  </body></html>`;
+  
+<\/script>
+<\/body><\/html>`;
 
   // Open print dialog in new window
   const win = window.open('','_blank','width=900,height=700');
@@ -1612,338 +2203,900 @@ function saveNewPass(){
 // ══════════════════════════════════════
 // IMPORT HORÁRIO POR FOTO
 // ══════════════════════════════════════
-const CLAUDE_API_KEY = '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';
-let importImageBase64 = null;
-let importImageType = null;
-let importDocType = 'diario'; // 'diario' | 'mensal'
+// ══════════════════════════════════════
+// IMPORTAÇÃO EXCEL (SheetJS)
+// ══════════════════════════════════════
+let xlsWorkbook      = null;
+let xlsXlsCat        = 'enfermeiros';
+let xlsMerge         = false; // adicionar aos existentes (para prestadores)
+let xlsImporting     = false; // bloqueia syncFromCloud durante importação
 
-function selectImportType(t){
-  importDocType = t;
-  const d = document.getElementById('itype-diario');
-  const m = document.getElementById('itype-mensal');
-  if(t==='diario'){
-    d.style.border='2px solid var(--accent)'; d.style.background='rgba(59,130,246,.1)';
-    m.style.border='2px solid var(--border)';  m.style.background='var(--bg3)';
+function selectXlsCat(cat){
+  xlsXlsCat = cat;
+  const enf = document.getElementById('xcat-enf');
+  const aux = document.getElementById('xcat-aux');
+  if(cat==='enfermeiros'){
+    enf.style.border='2px solid var(--accent)'; enf.style.background='rgba(59,130,246,.1)';
+    aux.style.border='2px solid var(--border)';  aux.style.background='var(--bg3)';
   } else {
-    m.style.border='2px solid var(--accent)'; m.style.background='rgba(59,130,246,.1)';
-    d.style.border='2px solid var(--border)';  d.style.background='var(--bg3)';
+    aux.style.border='2px solid var(--accent)'; aux.style.background='rgba(59,130,246,.1)';
+    enf.style.border='2px solid var(--border)';  enf.style.background='var(--bg3)';
   }
 }
 
-function triggerImportPhoto(){
+function toggleXlsMerge(){
+  xlsMerge = !xlsMerge;
+  const chk = document.getElementById('xls-merge-check');
+  chk.style.background   = xlsMerge ? 'var(--accent)' : 'var(--bg)';
+  chk.style.borderColor  = xlsMerge ? 'var(--accent)' : 'var(--border)';
+  chk.textContent        = xlsMerge ? '✓' : '';
+  chk.style.color        = '#fff';
+}
+
+function setXlsMerge(val){
+  if(xlsMerge !== val) toggleXlsMerge();
+}
+
+function triggerImportExcel(){
   document.getElementById('import-modal').style.display='flex';
-  document.getElementById('import-preview').style.display='none';
-  document.getElementById('import-status').style.display='none';
-  document.getElementById('import-send-btn').style.display='none';
-  document.getElementById('import-actions-pre').style.display='flex';
-  importImageBase64=null; importImageType=null;
-  selectImportType('diario');
+  document.getElementById('xls-status').style.display='none';
+  document.getElementById('xls-import-btn').style.display='none';
+  document.getElementById('xls-file-info').style.display='none';
+  xlsWorkbook=null; xlsMerge=false;
+  // Reset checkbox
+  const chk = document.getElementById('xls-merge-check');
+  if(chk){ chk.style.background='var(--bg)'; chk.style.borderColor='var(--border)'; chk.textContent=''; }
+  selectXlsCat('enfermeiros');
 }
 function hideImportModal(){
   document.getElementById('import-modal').style.display='none';
 }
 
-function onImportFileSelected(e){
+// Template Excel para download
+// Formato: linha 1 = título, linha 2 = [vazio, 1, 2...31], linhas seguintes = [Nome, M/T/N, ...]
+function downloadXlsTemplate(){
+  if(typeof XLSX==='undefined'){ showToast('⚠️ SheetJS ainda a carregar, tenta já a seguir.'); return; }
+  const svc = state.activeSvc;
+  const now = new Date();
+  const ano = now.getFullYear();
+  const mes = now.getMonth()+1;
+  const daysInMonth = new Date(ano, mes, 0).getDate();
+  const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  const rows = [
+    // Linha 1: título
+    [`${svc} - ${MONTHS[mes-1]} ${ano}`, ...Array(daysInMonth).fill('')],
+    // Linha 2: dias 1..N (coluna A vazia)
+    ['Nome', ...Array.from({length:daysInMonth},(_,i)=>i+1)],
+    // Exemplos
+    ['Exemplo Pessoa 1', ...Array.from({length:daysInMonth},(_,i)=>['M','T','N','','','',''][i%7])],
+    ['Exemplo Pessoa 2', ...Array.from({length:daysInMonth},()=>'')],
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:22}, ...Array(daysInMonth).fill({wch:4})];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `${svc}-${mes}-${ano}`);
+  XLSX.writeFile(wb, `template-horario-${svc}-${mes}-${ano}.xlsx`);
+  showToast('📥 Template descarregado!');
+}
+
+function onXlsFileSelected(e){
+  const file = e.target.files[0]; if(!file) return;
+  e.target.value='';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = new Uint8Array(ev.target.result);
+      xlsWorkbook = XLSX.read(data, {type:'array'});
+      document.getElementById('xls-file-name').textContent = file.name;
+      document.getElementById('xls-file-info').style.display='flex';
+      document.getElementById('xls-import-btn').style.display='block';
+      document.getElementById('xls-status').style.display='none';
+    } catch(err){
+      showToast('❌ Erro ao ler ficheiro: '+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processXlsImport(){
+  if(!xlsWorkbook){showToast('⚠️ Nenhum ficheiro carregado.');return;}
+  document.getElementById('xls-status').style.display='block';
+  document.getElementById('xls-status-msg').textContent='A processar…';
+  document.getElementById('xls-import-btn').style.display='none';
+  try{
+    const svc=state.activeSvc, cat=xlsXlsCat, merge=xlsMerge;
+    const rows=XLSX.utils.sheet_to_json(xlsWorkbook.Sheets[xlsWorkbook.SheetNames[0]],{header:1,defval:'',raw:true});
+    coreXlsImport(rows,svc,cat,merge);
+    hideImportModal();
+    xlsImporting=true;state.lastImportAt=Date.now();state.unsaved=(state.unsaved||0)+1;
+    renderAll();
+    saveToStorage().then(()=>{state.unsaved=0;setTimeout(()=>{xlsImporting=false;},5000);}).catch(()=>{xlsImporting=false;});
+    showToast(`✅ Importado! ${svc} · ${cat}`);
+  }catch(err){
+    console.error('[XLS]',err);
+    document.getElementById('xls-status-msg').textContent='❌ '+err.message;
+    setTimeout(()=>{document.getElementById('xls-status').style.display='none';document.getElementById('xls-import-btn').style.display='block';},4000);
+  }
+}
+
+// ══════════════════════════════════════
+// UPLOAD DE ESCALAS (Enfermeiro Coordenador)
+// ══════════════════════════════════════
+
+// Estado do upload: qual slot está selecionado
+// slot = {svc, cat}  ex: {svc:'IMC', cat:'enfermeiros'}
+let multiSelectedSlot = null;
+
+// Mapa de uploads feitos: "SVC|cat|YYYY-MM" = true
+// Persiste em localStorage
+const MULTI_DONE_KEY = 'hfp_upload_done';
+function multiGetDone(){ try{ return JSON.parse(localStorage.getItem(MULTI_DONE_KEY)||'{}'); }catch(e){return{};} }
+function multiSetDone(svc,cat,mes,ano){ const d=multiGetDone(); d[`${svc}|${cat}|${ano}-${String(mes).padStart(2,'0')}`]=true; localStorage.setItem(MULTI_DONE_KEY,JSON.stringify(d)); }
+function multiIsDone(svc,cat,mes,ano){ return !!multiGetDone()[`${svc}|${cat}|${ano}-${String(mes).padStart(2,'0')}`]; }
+
+const MULTI_SVCS = ['URG','IMP3','UMDR','ULDM','UC','IMC','CE'];
+const MULTI_CATS = ['enfermeiros','auxiliares'];
+const SVC_ICONS  = {URG:'🚨',IMP3:'🏨',UMDR:'🩺',ULDM:'🛏️',UC:'💊',IMC:'🏥'};
+const MONTHS_PT  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function renderMultiPanel(){
+  // Preservar posição do scroll
+  const panel=document.getElementById('multi-svc-list');
+  const scrollY=window.scrollY||window.pageYOffset;
+  const now = new Date();
+  const mes = now.getMonth()+1;
+  const ano = now.getFullYear();
+  const mesLabel = `${MONTHS_PT[mes-1]} ${ano}`;
+
+  const lbl = document.getElementById('multi-month-label');
+  if(lbl) lbl.textContent = `Estado dos uploads — ${mesLabel}`;
+
+  const container = document.getElementById('multi-svc-list');
+  if(!container) return;
+
+  // Slots disponíveis:
+  // Enfermeiros: {svc, cat:'enfermeiros', merge:false} + {svc, cat:'enfermeiros', merge:true} (prestadores)
+  // Auxiliares:  {svc, cat:'auxiliares', merge:false}
+  function isSlotSelected(svc,cat,merge){
+    if(!multiSelectedSlot) return false;
+    if(multiSelectedSlot.svc!==svc || multiSelectedSlot.cat!==cat) return false;
+    // Comparar merge considerando 'dependentes' como valor especial
+    const selMerge = multiSelectedSlot.isDep ? 'dependentes' : !!multiSelectedSlot.merge;
+    const thisMerge = merge==='dependentes' ? 'dependentes' : !!merge;
+    return selMerge===thisMerge;
+  }
+  function slotRow(svc, cat, merge){
+    const isTL  = (cat==='enfermeiros_tl');
+    const realCat = isTL ? 'enfermeiros' : cat;
+    const key   = isTL ? `${svc}|tl` : merge ? `${svc}|${cat}|prestadores` : `${svc}|${cat}`;
+    const done  = isTL  ? multiIsDone(svc, 'tl', mes, ano)
+                : merge ? multiIsDone(svc, cat+'_prestadores', mes, ano)
+                        : multiIsDone(svc, cat, mes, ano);
+    const isSel = isSlotSelected(svc,cat,merge);
+    const isAct = state.activeSvc===svc && state.activeCat===cat;
+    const isDep = (merge==='dependentes');
+    const label = isTL ? 'Team Leader' : isDep ? 'Enfermeiros' : merge ? 'Prestadores' : (realCat==='enfermeiros'?'Enfermeiros':'Auxiliares');
+    const icon  = isTL ? '⭐' : isDep ? '👩‍⚕️' : merge ? '🔗' : (realCat==='enfermeiros'?'👩‍⚕️':'🧹');
+    const color = isTL ? 'var(--red)' : isDep ? 'var(--accent)' : merge ? 'var(--purple)' : (realCat==='enfermeiros'?'var(--accent)':'var(--orange)');
+    const border= isSel ? `2px solid ${color}` : isAct&&!merge ? `2px solid ${color}` : '1px solid var(--border)';
+    const bg    = isSel ? `rgba(${merge?'167,139,250':cat==='enfermeiros'?'59,130,246':'251,146,60'},.08)` : 'var(--bg3)';
+    return `
+      <div onclick="event.stopPropagation();multiSelectSlot('${svc}','${isTL?'enfermeiros_tl':cat}','${merge}')"
+        style="display:flex;align-items:center;gap:9px;padding:8px 12px;border:${border};background:${bg};border-radius:8px;cursor:pointer;transition:all .15s;margin-bottom:4px">
+        <span style="font-size:15px">${icon}</span>
+        <span style="flex:1;font-size:12px;font-weight:600;color:${color}">${label}</span>
+        ${done
+          ? `<span style="color:var(--green);font-size:11px;font-weight:700">✅ ${mesLabel}</span>`
+          : `<span style="color:var(--text3);font-size:11px">Pendente</span>`}
+        <span style="font-size:11px;color:var(--text3);background:var(--bg4);border-radius:4px;padding:2px 6px">📂</span>
+      </div>
+      ${isSel ? `
+      <div style="margin:2px 0 6px 8px;padding:10px 12px;border:2px solid ${color};border-radius:8px;background:rgba(${merge?'167,139,250':cat==='enfermeiros'?'59,130,246':'251,146,60'},.05);display:flex;align-items:center;gap:10px">
+        <div style="flex:1;font-size:11px;color:${color};font-weight:600">
+          ${isTL?'Carregar Team Leader':isDep?'Carregar escala de dependentes':merge?'Juntar prestadores à escala existente':'Carregar escala'} — ${svc}
+        </div>
+        <button class="btn btn-sm" style="background:${color};color:#fff" onclick="event.stopPropagation();document.getElementById('multi-file-input').click()">📂 Ficheiro</button>
+      </div>` : ''}`;
+  }
+
+  let html = '';
+
+  // ── ENFERMEIROS ──
+  html += `<div style="margin-bottom:16px">
+    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">👩‍⚕️ Enfermeiros</div>`;
+
+  // Slot especial UCC Prestadores (distribui por UC, UMDR, ULDM)
+  const uccDone = multiIsDone('UCC','prestadores_ucc', mes, ano);
+  const uccSel  = multiSelectedSlot && multiSelectedSlot.svc==='UCC';
+  const uccBorder = uccSel ? '2px solid var(--purple)' : '1px solid var(--border)';
+  const uccBg     = uccSel ? 'rgba(167,139,250,.08)' : 'var(--bg3)';
+  html += `<div style="border:${uccBorder};background:${uccBg};border-radius:9px;cursor:pointer;margin-bottom:8px;padding:10px 12px"
+    onclick="multiSelectSlot('UCC','ucc_prestadores','ucc')">
+    <div style="display:flex;align-items:center;gap:9px">
+      <span style="font-size:15px">🔗</span>
+      <span style="flex:1;font-size:13px;font-weight:700;color:var(--purple)">UCC — Prestadores (UC · UMDR · ULDM)</span>
+      ${uccDone
+        ? `<span style="color:var(--green);font-size:11px;font-weight:700">✅ ${mesLabel}</span>`
+        : `<span style="color:var(--text3);font-size:11px">Pendente</span>`}
+      <span style="font-size:11px;color:var(--text3);background:var(--bg4);border-radius:4px;padding:2px 6px">📂</span>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:4px;padding-left:24px">Distribui automaticamente por UC, UMDR e ULDM conforme vagas</div>
+    ${uccSel ? `
+    <div style="margin-top:8px;padding:10px 12px;border:2px solid var(--purple);border-radius:8px;background:rgba(167,139,250,.05);display:flex;align-items:center;gap:10px"
+      onclick="event.stopPropagation()">
+      <div style="flex:1;font-size:11px;color:var(--purple);font-weight:600">Carregar escala de prestadores UCC</div>
+      <button class="btn btn-sm" style="background:var(--purple);color:#fff" onclick="event.stopPropagation();document.getElementById('multi-file-input').click()">📂 Ficheiro</button>
+    </div>` : ''}
+  </div>`;
+
+  for(const svc of MULTI_SVCS){
+    const isActive = state.activeSvc===svc && state.activeCat==='enfermeiros';
+    const border = isActive ? '2px solid var(--accent)' : '1px solid var(--border)';
+    const bg     = isActive ? 'rgba(59,130,246,.05)' : 'var(--bg2)';
+    html += `<div style="border:${border};background:${bg};border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer" onclick="multiNavSvc('${svc}','enfermeiros')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:18px">${SVC_ICONS[svc]||'🏥'}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">${svc}</div>
+          <div style="font-size:10px;color:var(--text3)">${SERVICES[svc]?.label||''}</div>
+        </div>
+      </div>
+      ${slotRow(svc,'enfermeiros', svc==='URG' ? 'dependentes' : false)}
+      ${slotRow(svc,'enfermeiros',true)}
+      ${svc==='URG' ? slotRow(svc,'enfermeiros_tl',false) : ''}
+    </div>`;
+  }
+  html += `</div>`;
+
+  // ── AUXILIARES ──
+  html += `<div style="margin-bottom:16px">
+    <div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">🧹 Auxiliares</div>`;
+  for(const svc of MULTI_SVCS){
+    const isActive = state.activeSvc===svc && state.activeCat==='auxiliares';
+    const border = isActive ? '2px solid var(--orange)' : '1px solid var(--border)';
+    const bg     = isActive ? 'rgba(251,146,60,.05)' : 'var(--bg2)';
+    html += `<div style="border:${border};background:${bg};border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer" onclick="multiNavSvc('${svc}','auxiliares')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:18px">${SVC_ICONS[svc]||'🏥'}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">${svc}</div>
+          <div style="font-size:10px;color:var(--text3)">${SERVICES[svc]?.label||''}</div>
+        </div>
+      </div>
+      ${slotRow(svc,'auxiliares',false)}
+    </div>`;
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+  // Restaurar posição do scroll
+  window.scrollTo({top:scrollY,behavior:'instant'});
+}
+
+function multiNavSvc(svc, cat){
+  state.activeSvc=svc; state.activeCat=cat;
+  ensureWeek(svc, state.currentWeek);
+  const svcNameEl=document.getElementById('tb-svc-name');
+  if(svcNameEl) svcNameEl.textContent=svc;
+  const ct=document.getElementById('cat-toggle');
+  if(ct) ct.style.display=(svc==='CE')?'none':'flex';
+  renderAll();
+}
+
+function multiSelectSlot(svc, cat, merge){
+  // UCC: caso especial — distribui por UC, UMDR, ULDM
+  if(svc==='UCC'){
+    if(multiSelectedSlot && multiSelectedSlot.svc==='UCC'){
+      multiSelectedSlot=null; renderMultiPanel(); return;
+    }
+    multiSelectedSlot={svc:'UCC', cat:'ucc_prestadores', merge:'ucc', isUCC:true};
+    renderMultiPanel(); return;
+  }
+  const isDep = (merge==='dependentes');
+  if(merge==='dependentes'||merge===true||merge==='true') merge=true;
+  else merge=false;
+  const isTL = (cat==='enfermeiros_tl');
+  if(multiSelectedSlot && multiSelectedSlot.svc===svc && multiSelectedSlot.cat===cat && !!multiSelectedSlot.merge===merge){
+    multiSelectedSlot=null;
+    renderMultiPanel();
+  } else {
+    multiSelectedSlot={svc, cat, merge, isTL, isDep};
+    // Navegar para o serviço/categoria SEM chamar renderAll (que reseta multiSelectedSlot via renderMultiPanel)
+    state.activeSvc=svc; state.activeCat=cat;
+    ensureWeek(svc, state.currentWeek);
+    const svcNameEl=document.getElementById('tb-svc-name');
+    if(svcNameEl) svcNameEl.textContent=svc;
+    const ct=document.getElementById('cat-toggle');
+    if(ct) ct.style.display=(svc==='CE')?'none':'flex';
+    const _sy=window.scrollY||0;
+    renderSchedule((state.schedule[svc][cat]||{})[state.currentWeek]||{published:false,days:[]});
+    renderMultiPanel();
+    window.scrollTo({top:_sy,behavior:'instant'});
+  }
+}
+
+
+function onMultiFileSelected(e){
   const file=e.target.files[0]; if(!file) return;
-  importImageType=file.type||'image/jpeg';
+  e.target.value='';
+  if(!multiSelectedSlot){ showToast('⚠️ Seleciona primeiro um serviço'); return; }
+
+  // UCC: processamento especial
+  if(multiSelectedSlot.isUCC){
+    processUCCPrestadores(file);
+    return;
+  }
+
+  const{svc,cat}=multiSelectedSlot;
+  const st=document.getElementById('multi-status');
+  st.style.display='block';
+  st.textContent=`A processar ${file.name}…`;
+
   const reader=new FileReader();
   reader.onload=ev=>{
-    const dataUrl=ev.target.result;
-    importImageBase64=dataUrl.split(',')[1];
-    document.getElementById('import-img').src=dataUrl;
-    document.getElementById('import-preview').style.display='block';
-    document.getElementById('import-send-btn').style.display='block';
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:true});
+
+      // Detetar se é prestadores pelo título
+      const title=String(rows[0]?.[2]||rows[0]?.[0]||file.name).toUpperCase();
+      // Usar merge do slot selecionado
+      // TL (Team Leader): importa como merge=true, marcado especialmente
+      const isTL = !!multiSelectedSlot?.isTL;
+      const isDep = !!multiSelectedSlot?.isDep;
+      const merge = isTL ? true : !!multiSelectedSlot?.merge;
+      const cat   = isTL ? 'enfermeiros' : multiSelectedSlot.cat;
+      // Passar flag TL para o coreXlsImport via estado global temporário
+      window._isTLImport = isTL;
+
+      const _S=state.activeSvc,_C=state.activeCat,_XC=xlsXlsCat,_XM=xlsMerge;
+      state.activeSvc=svc; state.activeCat=cat; xlsXlsCat=cat; xlsMerge=merge;
+      coreXlsImport(rows,svc,cat,merge, isTL ? ['Adriano'] : null, isDep);
+      state.activeSvc=_S; state.activeCat=_C; xlsXlsCat=_XC; xlsMerge=_XM;
+      window._isTLImport = false;
+
+      // Marcar como feito
+      const now=new Date();
+      if(isTL)        multiSetDone(svc,'tl',now.getMonth()+1,now.getFullYear());
+      else if(isDep)  multiSetDone(svc,cat,now.getMonth()+1,now.getFullYear());
+      else if(merge)  multiSetDone(svc,cat+'_prestadores',now.getMonth()+1,now.getFullYear());
+      else            multiSetDone(svc,cat,now.getMonth()+1,now.getFullYear());
+
+      xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=(state.unsaved||0)+1;
+      saveToStorage().then(()=>{ state.unsaved=0; setTimeout(()=>{xlsImporting=false;},5000); }).catch(()=>{xlsImporting=false;});
+
+      multiSelectedSlot=null;
+      st.innerHTML=`✅ ${svc} · ${cat} importado${merge?' (merge)':''}`;
+      setTimeout(()=>{ st.style.display='none'; renderMultiPanel(); }, 2000);
+      showToast(`✅ ${svc} · ${cat} importado!`);
+    }catch(err){
+      st.innerHTML=`❌ ${err.message}`;
+      setTimeout(()=>{ st.style.display='none'; },4000);
+    }
   };
-  reader.readAsDataURL(file);
-  e.target.value='';
+  reader.onerror=()=>{ st.textContent='❌ Erro ao ler ficheiro'; };
+  reader.readAsArrayBuffer(file);
 }
 
-// ─────────────────────────────────────────────
-// PROMPT PARA PLANO DIÁRIO (ICP5 / IMC / etc.)
-// Formato: tabela com dias, turnos Manhã/Tarde/Noite e nomes nas células
-// ─────────────────────────────────────────────
-function buildPromptDiario(){
-  return `Analisa este "Plano de Trabalho Diário" de enfermagem hospitalar e extrai os turnos de cada pessoa para cada dia.
-
-O documento tem uma tabela com:
-- Coluna de dia (ex: 3ª feira, 10/03/2026)
-- Coluna de turno: Manhã, Tarde, Noite
-- Colunas com nomes de Enfermeiros (Enf. NomeR ou Enf. Nome) e Assistentes Operacionais (AO Nome)
-
-Regras de extração:
-- Ignora a linha "Doentes" (é uma linha de registo de doentes, não de pessoal)
-- Remove prefixos: "Enf.", "Enf. ", "AO ", "AO" — extrai apenas o nome
-- Remove sufixos de função: R, I, Re, VCE (ex: "Enf. Filipa C R" → "Filipa C")
-- Células em branco, "Enf." sozinho, ou "AO" sozinho = slot vazio (ignora)
-- Determina as datas exatas de cada linha a partir do documento
-- Enfermeiros e AOs são categorias separadas
-
-Responde APENAS com JSON válido neste formato:
-{
-  "dias": [
-    {
-      "date": "2026-03-10",
-      "weekday": "Terça",
-      "manha":  { "enfermeiros": ["Filipa C","Mariana R"], "auxiliares": ["Isabette","Roberto","Paula P"] },
-      "tarde":  { "enfermeiros": ["Raquel"],               "auxiliares": ["Mónica","Tabata"] },
-      "noite":  { "enfermeiros": ["Filipa","Mariana V"],   "auxiliares": ["Sónia"] }
-    }
-  ]
+// Funções legacy (mantidas para compatibilidade com botões HTML que possam existir)
+function multiClear(){ multiSelectedSlot=null; renderMultiPanel(); }
+function onMultiDrop(e){ e.preventDefault(); }
+function addMultiFiles(){}
+function renderMultiFileList(){}
+function processMultiImport(){}
+function detectSvcFromTitle(t){
+  t=t.toUpperCase();
+  const isAux=t.includes('AUXILIAR');
+  const merge=t.includes('PRESTADOR');
+  let svc=null;
+  if(t.includes('LONGA')||t.includes('ULDM'))                           svc='ULDM';
+  else if(t.includes('MÉDIA')||t.includes('MEDIA')||t.includes('UMDR')) svc='UMDR';
+  else if(t.includes('IMP3'))                                            svc='IMP3';
+  else if(t.includes('URG'))                                             svc='URG';
+  else if(t.includes('CONSUL'))                                          svc='CE';
+  else if(t.includes('CUIDADOS'))                                        svc='UC';
+  else if(t.includes('INTERNAMENTO')||t.includes('IMC'))                 svc='IMC';
+  else if(t.includes('HEFP'))                                            svc='IMC';
+  return{svc, cat:isAux?'auxiliares':'enfermeiros', merge};
 }
-
-Inclui TODOS os dias visíveis no documento. Nomes parcialmente ilegíveis: usa o que consegues ler.`;
-}
-
-// ─────────────────────────────────────────────
-// PROMPT PARA GRELHA MENSAL (formato anterior)
-// ─────────────────────────────────────────────
-function buildPromptMensal(){
-  return `Analisa este horário de enfermagem/auxiliares e extrai os turnos de cada pessoa para cada dia.
-
-Regras:
-- M1, M118, ou qualquer turno que comece com M = turno "M" (Manhã)
-- T5, T11, ou qualquer turno que comece com T = turno "T" (Tarde)  
-- N2, ou qualquer turno que comece com N = turno "N" (Noite)
-- DC (Descanso Complementar), DS (Descanso Semanal), Fe (Férias), Au (Ausência), Aup = ignorar
-- FI (Falta Injustificada) = ignorar
-
-O documento tem dias numerados no topo (ex: 1, 2, 3... 28 ou 31).
-Determina o mês e ano do documento.
-
-Responde APENAS com JSON válido neste formato exato:
-{
-  "mes": 2,
-  "ano": 2026,
-  "pessoas": {
-    "Nome Completo": ["M","","N","T","","M","","T","N","","M","T","","","N","M","","T","","M","N","","T","M","","","N","T"],
-    ...
+// Lógica core partilhada
+function coreXlsImport(rows,svc,cat,merge,allowedNames,isDependentes){
+  // Constantes CE — declaradas primeiro para evitar "before initialization"
+  const CE_HORARIOS = {'M2':'08h-14h','M5':'08h-13h','M6':'09h-14h','M12':'09h-20h','M17':'08h-19h','T13':'15h-20h'};
+  const CE_POSTOS   = ['Posto D','Posto A (Pediatria)','Posto F','Posto G','Apoio 1 - Balcão G','Apoio 2 - Balcão F'];
+  const MES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro',
+             'january','february','march','april','may','june','july','august','september','october','november','december'];
+  let mes,ano,dayColMap={},dataRows=[],mesRow=-1;
+  for(let ri=0;ri<rows.length;ri++){
+    const c0=String(rows[ri][0]||'').toLowerCase().trim();
+    if(!MES.some(m=>c0.includes(m)))continue;
+    if(rows[ri].slice(3).some(c=>{const n=parseInt(c);return n>=1&&n<=31;})){mesRow=ri;break;}
   }
-}
-
-O array de cada pessoa tem uma entrada por dia (dia 1 até ao último dia do mês).
-Usa "" para dias em que a pessoa não trabalha.
-Inclui TODOS os dias do mês mesmo que alguns estejam fora do documento (usa "" nesses casos).`;
-}
-
-async function sendImageToClaude(){
-  if(!importImageBase64){return;}
-  document.getElementById('import-actions-pre').style.display='none';
-  document.getElementById('import-send-btn').style.display='none';
-  document.getElementById('import-status').style.display='block';
-  document.getElementById('import-status-msg').textContent='A analisar imagem…';
-
-  const svc = state.activeSvc;
-  const prompt = importDocType==='diario' ? buildPromptDiario() : buildPromptMensal();
-
-  try {
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':CLAUDE_API_KEY,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-opus-4-5',
-        max_tokens:4096,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'image',source:{type:'base64',media_type:importImageType,data:importImageBase64}},
-            {type:'text',text:prompt}
-          ]
-        }]
-      })
-    });
-
-    if(!resp.ok){const e=await resp.text();throw new Error(e);}
-    const data=await resp.json();
-    const raw=data.content[0].text;
-    const jsonMatch=raw.match(/\{[\s\S]*\}/);
-    if(!jsonMatch) throw new Error('Resposta inválida da API');
-    const parsed=JSON.parse(jsonMatch[0]);
-
-    document.getElementById('import-status-msg').textContent='A organizar semanas…';
-
-    if(importDocType==='diario'){
-      applyImportedDiario(parsed, svc);
-    } else {
-      applyImportedMensal(parsed, svc);
-    }
-
-  } catch(err){
-    console.error(err);
-    document.getElementById('import-status-msg').textContent='❌ Erro: '+err.message;
-    setTimeout(()=>{
-      document.getElementById('import-status').style.display='none';
-      document.getElementById('import-actions-pre').style.display='flex';
-    },3000);
+  if(mesRow<0)throw new Error('Formato não reconhecido — mês não encontrado');
+  mes=MES.findIndex(m=>String(rows[mesRow][0]||'').toLowerCase().includes(m))%12+1;
+  for(let ri=mesRow+1;ri<Math.min(mesRow+4,rows.length);ri++){
+    const v=parseInt(String(rows[ri][0]||''));
+    if(v>=2020&&v<=2099){ano=v;break;}
   }
-}
-
-// ─────────────────────────────────────────────
-// APLICAR PLANO DIÁRIO
-// ─────────────────────────────────────────────
-function applyImportedDiario(parsed, svc){
-  if(!parsed.dias || !parsed.dias.length) throw new Error('Nenhum dia encontrado no documento');
-
-  const cfg = SERVICES[svc];
-  function slotCount(cat){
-    if(svc==='CE') return cat==='enfermeiros'?6:0;
-    if(svc==='UC'||svc==='IMC'||svc==='IMP3') return 3;
-    if(svc==='ULDM'||svc==='UMDR') return 4;
-    if(svc==='URG') return cat==='enfermeiros'?4:2;
-    return 3;
+  if(!ano){const now=new Date();ano=now.getFullYear();}
+  rows[mesRow].forEach((cell,ci)=>{
+    const n=(typeof cell==='number')?cell:parseInt(String(cell));
+    if(!isNaN(n)&&n>=1&&n<=31)dayColMap[n]=ci;
+  });
+  if(!Object.keys(dayColMap).length)throw new Error('Dias não encontrados na linha do mês');
+  dataRows=rows.filter(row=>/^\d+\s+\d+\s+\S/.test(String(row[0]||'')));
+  const isAux=(cat==='auxiliares');
+  // Mapa completo de turnos URG
+  const URG_TURNOS = {
+    // Manhã+Tarde (M30 = turno duplo)
+    'M30':'MT','MT15':'MT',
+    // Manhã
+    'M1':'M','M2':'M','M6':'M',
+    // Tarde
+    'T1':'T','T5':'T','T14':'T','T27':'T','T34':'T','T114':'T',
+    // Noite
+    'N2':'N','S1':'N',
+    // Genéricos outros serviços
+    'M':'M','T':'T','N':'N',
+  };
+  function sig(raw){
+    const s=String(raw===null||raw===undefined?'':raw).trim().replace(/^Au/,'');
+    if(!s)return'';
+    const f=s.split(/\s+/)[0].toUpperCase();
+    // Verificar mapa exacto primeiro
+    if(URG_TURNOS[f]) return URG_TURNOS[f];
+    // Fallbacks genéricos
+    if(/^M\d/.test(f))return'M';
+    if(/^T\d/.test(f))return'T';
+    if(/^N\d/.test(f))return'N';
+    return'';
   }
-  function padSlots(arr, n){
-    const slots = arr.slice(0,n).map(name=>({name,rooms:''}));
-    while(slots.length<n) slots.push({name:'',rooms:''});
-    return slots;
+  function sigHora(raw){
+    // Para CE: devolver o horário legível (ex: "08h-19h") em vez de M/T/N
+    const s=String(raw||'').trim().replace(/^Au/,'');
+    const normalized=s.replace(/\s+/,'');
+    return CE_HORARIOS[normalized]||null;
   }
+  function nom(raw){const s=String(raw||'').trim();const m=s.match(/^\d+\s+\d+\s+(.+)$/);return m?m[1].trim():s;}
+  const dayMap={};const dim=new Date(ano,mes,0).getDate();
+  for(const row of dataRows){
+    const nome=nom(row[0]);if(!nome||nome.toLowerCase().startsWith('exemplo'))continue;
+    // Se há lista de nomes permitidos, ignorar os outros
+    if(allowedNames && allowedNames.length && !allowedNames.some(n=>nome.toLowerCase().includes(n.toLowerCase()))) continue;
+    // URG Team Leader: filtro extra de segurança — só Adriano Coutinho
+    if(window._isTLImport && svc==='URG' && !nome.toLowerCase().includes('adriano')) continue;
+    for(let d=1;d<=dim;d++){
+      const ci=dayColMap[d];if(ci===undefined||ci>=row.length)continue;
+      const rawCell=String(row[ci]||'').trim().toUpperCase();
+      const val=sig(row[ci]);if(!val)continue;
+      const hora=sigHora(row[ci]); // horário legível para CE
 
-  // Agrupar dias em semanas (segunda-feira como chave)
-  const weekdays=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-  function getMonWeek(dateStr){
-    const d=new Date(dateStr+'T00:00:00');
-    const day=d.getDay();
-    const diff=day===0?-6:1-day;
-    const mon=new Date(d); mon.setDate(d.getDate()+diff);
-    return mon.toISOString().split('T')[0];
-  }
+      // N2 para enfermeiros: ignorar se estiver SOZINHO (é continuação do S1 do dia anterior)
+      // Se aparecer com S1 no mesmo campo (ex: "N2 S1") o S1 é processado
+      if(!isAux && rawCell.match(/^N2\s*$/) ) continue;
 
-  // Construir mapa de semanas para AMBAS as categorias
-  const weeksEnf={};
-  const weeksAux={};
+      // Quando há múltiplas siglas no campo (ex: "T1 S1", "N2 S1"), processar cada uma
+      // Extrair siglas individuais do campo raw
+      const rawParts = rawCell.split(/\s+/).filter(Boolean);
+      const valsToProcess = rawParts.length > 1
+        ? rawParts.map(p => {
+            const f=p.toUpperCase();
+            const URG_T=URG_TURNOS;
+            if(URG_T[f]) return URG_T[f];
+            if(/^M\d/.test(f)) return 'M';
+            if(/^T\d/.test(f)) return 'T';
+            if(f==='S1') return 'N';
+            if(f==='N2') return isAux ? 'N' : null; // N2 só para auxiliares
+            return null;
+          }).filter(Boolean)
+        : [val];
+      // Remover duplicados
+      const uniqueVals=[...new Set(valsToProcess)];
 
-  for(const dia of parsed.dias){
-    const {date, weekday} = dia;
-    const wkey = getMonWeek(date);
-    const nEnf = slotCount('enfermeiros');
-    const nAux = slotCount('auxiliares');
-
-    // Enfermeiros
-    if(nEnf>0){
-      if(!weeksEnf[wkey]) weeksEnf[wkey]={published:true, days:[]};
-      const existing = weeksEnf[wkey].days.find(d=>d.date===date);
-      if(!existing){
-        weeksEnf[wkey].days.push({
-          date, weekday: weekday||'',
-          manha: padSlots(dia.manha?.enfermeiros||[], nEnf),
-          tarde: padSlots(dia.tarde?.enfermeiros||[], nEnf),
-          noite: padSlots(dia.noite?.enfermeiros||[], nEnf),
-          obs:''
-        });
-      }
-    }
-
-    // Auxiliares
-    if(nAux>0){
-      if(!weeksAux[wkey]) weeksAux[wkey]={published:true, days:[]};
-      const existing = weeksAux[wkey].days.find(d=>d.date===date);
-      if(!existing){
-        weeksAux[wkey].days.push({
-          date, weekday: weekday||'',
-          manha: padSlots(dia.manha?.auxiliares||[], nAux),
-          tarde: padSlots(dia.tarde?.auxiliares||[], nAux),
-          noite: padSlots(dia.noite?.auxiliares||[], nAux),
-          obs:''
-        });
+      // M30/MT15: turno duplo — adicionar a M e T
+      const allShifts=[];
+      for(const v of uniqueVals){ if(v==='MT'){allShifts.push('M','T');}else{allShifts.push(v);} }
+      const shifts=[...new Set(allShifts)];
+      for(const sh of shifts){
+        // N2 para auxiliares: recuar 1 dia (excepto URG)
+        const td=(isAux && sh==='N' && d>1 && svc!=='URG' && rawCell.startsWith('N2'))?d-1:d;
+        const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(td).padStart(2,'0')}`;
+        if(!dayMap[ds])dayMap[ds]={M:[],T:[],N:[]};
+        dayMap[ds][sh].push(svc==='CE' && hora ? {name:nome,hours:hora} : nome);
       }
     }
   }
+  const WD=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  function monWeek(ds){const d=new Date(ds+'T00:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()+(day===0?-6:1-day));return mon.toISOString().split('T')[0];}
+  function sc(s,c){if(s==='CE')return 6;if(['UC','IMC','IMP3'].includes(s))return 3;if(['ULDM','UMDR'].includes(s))return 4;if(s==='URG')return c==='enfermeiros'?4:2;return 3;}
+  // Sem distribuição de postos URG — todos os elementos vão para slots livres
 
-  // Ordenar dias dentro de cada semana
-  [weeksEnf, weeksAux].forEach(wm=>{
-    Object.values(wm).forEach(w=>w.days.sort((a,b)=>a.date.localeCompare(b.date)));
-  });
-
-  if(!state.schedule[svc]) state.schedule[svc]={enfermeiros:{},auxiliares:{}};
-  Object.assign(state.schedule[svc].enfermeiros, weeksEnf);
-  Object.assign(state.schedule[svc].auxiliares, weeksAux);
-
-  hideImportModal();
-  renderAll();
-  const nSemanas = Math.max(Object.keys(weeksEnf).length, Object.keys(weeksAux).length);
-  showToast(`✅ Plano importado! ${parsed.dias.length} dias / ${nSemanas} semana(s) preenchida(s).`);
-}
-
-// ─────────────────────────────────────────────
-// APLICAR GRELHA MENSAL (lógica anterior)
-// ─────────────────────────────────────────────
-function applyImportedMensal(parsed, svc){
-  const {mes, ano, pessoas} = parsed;
-  const dayMap={};
-  const daysInMonth=new Date(ano, mes, 0).getDate();
-  
-  for(const [nome, turnos] of Object.entries(pessoas)){
-    for(let d=1;d<=daysInMonth;d++){
-      const t=turnos[d-1]||'';
-      if(!t) continue;
-      const dateStr=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if(!dayMap[dateStr]) dayMap[dateStr]={M:[],T:[],N:[]};
-      if(t==='M') dayMap[dateStr].M.push(nome);
-      else if(t==='T') dayMap[dateStr].T.push(nome);
-      else if(t==='N') dayMap[dateStr].N.push(nome);
+  function pad(arr, n){
+    if(svc==='CE'){
+      // CE: Adelina → slot 0 (Posto D), Conceição → slot 1 (Posto A)
+      // Os restantes preenchem os slots por ordem
+      const CE_FIXED = {'Adelina':0, 'Conceição':1};
+      const slots = Array.from({length:n}, (_,i) => ({name:'',rooms:CE_POSTOS[i]||'',hours:''}));
+      const remaining = [];
+      for(const item of arr){
+        const nm = typeof item==='object' ? item.name : item;
+        const hrs = typeof item==='object' ? item.hours : '';
+        const nm_lower = nm.toLowerCase();
+        let fixedIdx = -1;
+        if(nm_lower.includes('adelina')) fixedIdx=0;
+        else if(nm_lower.includes('conceição')||nm_lower.includes('conceicao')) fixedIdx=1;
+        else if(nm_lower.includes('ana paula')) fixedIdx=3;
+        if(fixedIdx>=0) slots[fixedIdx]={name:nm,rooms:CE_POSTOS[fixedIdx]||'',hours:hrs};
+        else remaining.push({name:nm,rooms:'',hours:hrs});
+      }
+      // Preencher slots livres com os restantes
+      let ri=0;
+      for(let i=0;i<slots.length&&ri<remaining.length;i++){
+        if(!slots[i].name){ slots[i]={name:remaining[ri].name,rooms:CE_POSTOS[i]||'',hours:remaining[ri].hours}; ri++; }
+      }
+      return slots;
     }
+    if(svc==='URG' && cat==='enfermeiros'){
+      // Sem distribuição aqui — todos os nomes entram por ordem
+      // O cleanURGData redistribui pelos postos correctos depois
+      if(window._isTLImport) return [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}];
+      const slots=arr.slice(0,4).map(nm=>({name:nm,rooms:''}));
+      while(slots.length<4) slots.push({name:'',rooms:''});
+      return slots;
+    }
+    const sl=arr.slice(0,n).map(nm=>({name:nm,rooms:''}));
+    while(sl.length<n)sl.push({name:'',rooms:''});
+    return sl;
   }
-
-  const weekdays=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-  function getMonWeek(dateStr){
-    const d=new Date(dateStr+'T00:00:00');
-    const day=d.getDay();
-    const diff=day===0?-6:1-day;
-    const mon=new Date(d);mon.setDate(d.getDate()+diff);
-    return mon.toISOString().split('T')[0];
+  const n=sc(svc,cat),wm={};
+  for(let d=1;d<=dim;d++){
+    const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const wk=monWeek(ds);const dt=new Date(ds+'T00:00:00');const wd=WD[(dt.getDay()+6)%7];
+    if(!wm[wk])wm[wk]={published:false,days:[]};
+    const s=dayMap[ds]||{M:[],T:[],N:[]};
+    wm[wk].days.push({date:ds,weekday:wd,manha:pad(s.M,n),tarde:svc==='CE'?[]:pad(s.T,n),noite:svc==='CE'?[]:pad(s.N,n),obs:''});
   }
+  Object.values(wm).forEach(w=>w.days.sort((a,b)=>a.date.localeCompare(b.date)));
+  if(!state.schedule[svc])state.schedule[svc]={enfermeiros:{},auxiliares:{}};
+  if(!merge){
+    Object.assign(state.schedule[svc][cat],wm);
+  }else{
+    // URG TL: nomes válidos para a URG (só estes podem estar nos slots)
+    // Lista EXCLUSIVA de nomes válidos para a URG — qualquer outro é removido
+    const URG_VALID = [
+      'Ana Ricardo','Ana Moreira','José Silva','Graciela Abreu',
+      'Ivan','Hugo Duque','Adriano Coutinho',
+      'Liliana','Inês Monteiro','Ana Catarina','Márcia','Helena',
+      'Iván','Ivan Ortega'
+    ];
+    function isValidURG(nm){
+      const nl=nm.toLowerCase().trim();
+      return URG_VALID.some(p=>nl.includes(p.toLowerCase()));
+    }
 
-  const slotCount=(svc==='UC'||svc==='IMC'||svc==='IMP3')?3:(svc==='URG')?4:4;
-  function padSlots(arr,n){
-    const slots=arr.slice(0,n).map(name=>({name,rooms:''}));
-    while(slots.length<n) slots.push({name:'',rooms:''});
-    return slots;
-  }
+    Object.keys(wm).forEach(wkey=>{
+      const nw=wm[wkey],ex=state.schedule[svc][cat][wkey];
+      if(!ex){
+        // Criar semana nova se não é TL (TL não cria sozinho)
+        if(!window._isTLImport) state.schedule[svc][cat][wkey]=nw;
+        return;
+      }
+      // Semana existe — para Enfermeiros URG (merge=true mas não prestadores nem TL):
+      // substituir slots com nomes do ficheiro actual, preservar prestadores/TL
+      if(svc==='URG' && merge && !window._isTLImport){
+        nw.days.forEach((nd,di)=>{
+          const ed=ex.days[di];if(!ed)return;
+          ['manha','tarde','noite'].forEach(sh=>{
+            const newNames=(nd[sh]||[]).map(s=>s.name).filter(Boolean);
+            const existing=(ed[sh]||[]).map(s=>s.name).filter(Boolean);
+            // Juntar todos os nomes sem duplicados
+            const toAdd=newNames.filter(nm=>!existing.some(e=>e.toLowerCase()===nm.toLowerCase()));
+            const allNames=[...existing,...toAdd];
+            if(!allNames.length) return;
+            ed[sh]=allNames.slice(0,4).map(n=>({name:n,rooms:''}));
+            while(ed[sh].length<4) ed[sh].push({name:'',rooms:''});
+          });
+        });
+        return;
+      }
+      nw.days.forEach((nd,di)=>{
+        const ed=ex.days[di];if(!ed)return;
+        ['manha','tarde','noite'].forEach(sh=>{
+          const es=ed[sh]||[];
 
-  const weeksMap={};
-  for(let d=1;d<=daysInMonth;d++){
-    const dateStr=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const wkey=getMonWeek(dateStr);
-    const date=new Date(dateStr+'T00:00:00');
-    const wdIdx=(date.getDay()+6)%7;
-    const wd=weekdays[wdIdx];
-    if(!weeksMap[wkey]) weeksMap[wkey]={published:true, days:[]};
-    const daySlots=dayMap[dateStr]||{M:[],T:[],N:[]};
-    weeksMap[wkey].days.push({
-      date:dateStr, weekday:wd,
-      manha:padSlots(daySlots.M,slotCount),
-      tarde:padSlots(daySlots.T,slotCount),
-      noite:padSlots(daySlots.N,slotCount),
-      obs:''
+          if(window._isTLImport && svc==='URG'){
+            // TL: adicionar Adriano ao primeiro slot vazio
+            while(es.length<4) es.push({name:'',rooms:''});
+            const adNome=(nd[sh]||[]).find(s=>s?.name?.toLowerCase().includes('adriano'))?.name;
+            if(adNome && !es.some(s=>s.name===adNome)){
+              const ei=es.findIndex(s=>!s.name);
+              if(ei>=0) es[ei]={name:adNome,rooms:''};
+            }
+            ed[sh]=es; return;
+          }
+
+          const en=es.map(s=>(s.name||'').toLowerCase()).filter(Boolean);
+          (nd[sh]||[]).forEach(ns=>{
+            if(!ns.name||en.includes(ns.name.toLowerCase()))return;
+            const ei=es.findIndex(s=>!s.name);
+            if(ei>=0){ es[ei]={name:ns.name,rooms:''}; en.push(ns.name.toLowerCase()); }
+          });
+        });
+      });
     });
   }
+}
 
-  Object.values(weeksMap).forEach(w=>{
-    w.days.sort((a,b)=>a.date.localeCompare(b.date));
+function processUCCPrestadores(file){
+  const st=document.getElementById('multi-status');
+  st.style.display='block'; st.textContent='A processar prestadores UCC…';
+
+  // Rácios de slots disponíveis por serviço/turno
+  const UCC_RATIOS = {
+    UC:   {M:2, T:2, N:1},
+    UMDR: {M:4, T:2, N:2},
+    ULDM: {M:4, T:2, N:2},
+  };
+  const UCC_SVCS = ['ULDM','UMDR','UC'];
+
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:true});
+
+      // Parsear o ficheiro — reutilizar lógica do coreXlsImport
+      // Encontrar mês/ano e mapa de dias
+      let mes=0,ano=0,dayColMap={};
+      const MESES_PT={'janeiro':1,'fevereiro':2,'março':3,'abril':4,'maio':5,'junho':6,'julho':7,'agosto':8,'setembro':9,'outubro':10,'novembro':11,'dezembro':12};
+      for(let ri=0;ri<Math.min(rows.length,5);ri++){
+        const v0=String(rows[ri][0]||'').trim().toLowerCase();
+        if(MESES_PT[v0]){ mes=MESES_PT[v0]; for(let ci=0;ci<rows[ri].length;ci++){try{const d=parseInt(rows[ri][ci]);if(d>=1&&d<=31)dayColMap[d]=ci;}catch(e){}} }
+        const n=parseInt(v0); if(n>=2020&&n<=2030) ano=n;
+        if(!ano){const n2=parseInt(String(rows[ri][0]||'').trim()); if(n2>=2020&&n2<=2030) ano=n2;}
+      }
+      if(!mes||!ano){st.innerHTML='❌ Não foi possível detectar mês/ano'; return;}
+
+      const WD=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+      const dim=new Date(ano,mes,0).getDate();
+      function monWeek(ds){const d=new Date(ds+'T00:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()+(day===0?-6:1-day));return mon.toISOString().split('T')[0];}
+
+      // Construir dayMap de prestadores UCC
+      const UCC_TURNOS={'M1':'M','M2':'M','M6':'M','M30':'M','MT15':'M','T1':'T','T5':'T','T14':'T','T27':'T','T34':'T','T114':'T','N2':'N','S1':'N'};
+      function sigUCC(raw){
+        const s=String(raw||'').trim().replace(/^Au/,'');
+        const f=s.split(/\s+/)[0].toUpperCase();
+        if(UCC_TURNOS[f]) return UCC_TURNOS[f];
+        if(/^M\d/.test(f)) return'M';
+        if(/^T\d/.test(f)) return'T';
+        return'';
+      }
+      function nomUCC(raw){const s=String(raw||'').trim();const m=s.match(/^\d+\s+\d+\s+(.+)$/);return m?m[1].trim():s;}
+
+      const dayMap={};
+      for(const row of rows){
+        const nome=nomUCC(row[0]);
+        if(!nome||nome.toLowerCase().startsWith('exemplo')||!nome.match(/[a-záàâãéêíóôõúç]/i)) continue;
+        for(let d=1;d<=dim;d++){
+          const ci=dayColMap[d]; if(ci===undefined||ci>=row.length) continue;
+          const v=sigUCC(row[ci]); if(!v) continue;
+          const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          if(!dayMap[ds])dayMap[ds]={M:[],T:[],N:[]};
+          dayMap[ds][v].push(nome);
+        }
+      }
+
+      // Distribuir pelos 3 serviços conforme rácios e vagas disponíveis
+      let count=0;
+      for(let d=1;d<=dim;d++){
+        const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const wk=monWeek(ds);
+        const dt=new Date(ds+'T00:00:00');
+        const wd=WD[(dt.getDay()+6)%7];
+        if(!dayMap[ds]) continue;
+
+        for(const sh of ['M','T','N']){
+          const prestadores=[...dayMap[ds][sh]]; // cópia
+          if(!prestadores.length) continue;
+
+          // Para cada serviço, ver quantas vagas há
+          for(const svc of UCC_SVCS){
+            const ratio=UCC_RATIOS[svc][sh]||0;
+            if(!ratio) continue;
+            if(!state.schedule[svc]) continue;
+            if(!state.schedule[svc].enfermeiros) state.schedule[svc].enfermeiros={};
+            if(!state.schedule[svc].enfermeiros[wk]){
+              // Criar semana vazia
+              const days=[];
+              const wkStart=new Date(wk+'T00:00:00');
+              for(let i=0;i<7;i++){
+                const dd=new Date(wkStart);dd.setDate(wkStart.getDate()+i);
+                const ddStr=dd.toISOString().split('T')[0];
+                days.push({date:ddStr,weekday:WD[i],manha:Array(UCC_RATIOS[svc].M||3).fill(null).map(()=>({name:'',rooms:''})),tarde:Array(UCC_RATIOS[svc].T||3).fill(null).map(()=>({name:'',rooms:''})),noite:Array(UCC_RATIOS[svc].N||3).fill(null).map(()=>({name:'',rooms:''})),obs:''});
+              }
+              state.schedule[svc].enfermeiros[wk]={published:false,days};
+            }
+            const week=state.schedule[svc].enfermeiros[wk];
+            const dayEntry=week.days.find(dd=>dd.date===ds);
+            if(!dayEntry) continue;
+
+            const shKey=sh==='M'?'manha':sh==='T'?'tarde':'noite';
+            const slots=dayEntry[shKey]||[];
+            while(slots.length<ratio) slots.push({name:'',rooms:''});
+
+            // Preencher slots vazios com prestadores
+            const existing=slots.map(s=>s.name.toLowerCase()).filter(Boolean);
+            for(let si=0;si<slots.length&&prestadores.length;si++){
+              if(!slots[si].name){
+                const nm=prestadores.shift();
+                if(!existing.includes(nm.toLowerCase())){
+                  slots[si]={name:nm,rooms:''};
+                  existing.push(nm.toLowerCase());
+                  count++;
+                }
+              }
+            }
+            dayEntry[shKey]=slots;
+          }
+        }
+      }
+
+      // Guardar
+      const now=new Date();
+      multiSetDone('UCC','prestadores_ucc',now.getMonth()+1,now.getFullYear());
+      xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=1;
+      saveToStorage().then(()=>{state.unsaved=0;setTimeout(()=>{xlsImporting=false;},5000);}).catch(()=>{xlsImporting=false;});
+      multiSelectedSlot=null;
+      st.innerHTML=`✅ ${count} turnos de prestadores distribuídos por UC, UMDR e ULDM`;
+      setTimeout(()=>{st.style.display='none';renderMultiPanel();renderAll();},2500);
+      showToast(`✅ Prestadores UCC distribuídos!`);
+    }catch(err){
+      st.innerHTML=`❌ ${err.message}`;
+      setTimeout(()=>{st.style.display='none';},4000);
+    }
+  };
+  reader.onerror=()=>{st.textContent='❌ Erro ao ler ficheiro';};
+  reader.readAsArrayBuffer(file);
+}
+
+function clearWeekPrompt(){
+  const role=state.user?.role;
+  if(role!=='coordinator'&&role!=='supercoord') return;
+  const lbl=`${state.activeSvc} · ${state.activeCat==='auxiliares'?'Auxiliares':'Enfermeiros'} — semana ${state.currentWeek}`;
+  document.getElementById('clear-week-label').textContent=lbl;
+  document.getElementById('clear-week-pass').value='';
+  document.getElementById('clear-week-error').style.display='none';
+  const m=document.getElementById('clear-week-modal');
+  m.style.display='flex';
+  setTimeout(()=>document.getElementById('clear-week-pass').focus(),100);
+}
+
+function hideClearWeekModal(){
+  document.getElementById('clear-week-modal').style.display='none';
+}
+
+function confirmClearWeek(){
+  const pass=document.getElementById('clear-week-pass').value;
+  const role=state.user?.role;
+  const err=document.getElementById('clear-week-error');
+
+  // Verificar password
+  let ok=false;
+  if(role==='supercoord') ok=(pass===ADMIN_PASS);
+  else if(role==='coordinator'){
+    const coordCfg=COORDINATORS[state.user.name];
+    ok=coordCfg&&(pass===coordCfg.pass||pass===ADMIN_PASS||pass===(state.customPasswords?.[state.user.name]||coordCfg.pass));
+  }
+  if(!ok){ err.textContent='Password incorrecta.'; err.style.display='block'; return; }
+
+  // Limpar semana
+  const svc=state.activeSvc, cat=state.activeCat, wk=state.currentWeek;
+  if(state.schedule[svc]&&state.schedule[svc][cat]&&state.schedule[svc][cat][wk]){
+    const week=state.schedule[svc][cat][wk];
+    week.days.forEach(day=>{
+      ['manha','tarde','noite'].forEach(sh=>{
+        if(day[sh]) day[sh].forEach((_,i)=>day[sh][i]={name:'',rooms:''});
+      });
+    });
+    week.published=false;
+  }
+  hideClearWeekModal();
+  state.unsaved=1;
+  saveToStorage();
+  renderAll();
+  showToast(`🗑️ Semana ${wk} limpa!`);
+}
+
+
+function exportRaciosExcel(){
+  // Definir datas padrão: mês actual
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth()+1).padStart(2,'0');
+  const lastDay = new Date(y, today.getMonth()+1, 0).getDate();
+  document.getElementById('racios-date-from').value = `${y}-${m}-01`;
+  document.getElementById('racios-date-to').value   = `${y}-${m}-${String(lastDay).padStart(2,'0')}`;
+  document.getElementById('racios-modal-error').style.display='none';
+  document.getElementById('racios-modal').style.display='flex';
+}
+
+function confirmExportRacios(){
+  const dateFrom = document.getElementById('racios-date-from').value;
+  const dateTo   = document.getElementById('racios-date-to').value;
+  const err      = document.getElementById('racios-modal-error');
+
+  if(!dateFrom||!dateTo){err.textContent='Seleciona as datas.';err.style.display='block';return;}
+  if(dateFrom>dateTo){err.textContent='Data inicial deve ser anterior à final.';err.style.display='block';return;}
+  const inclEnf = document.getElementById('racios-enf').checked;
+  const inclAux = document.getElementById('racios-aux').checked;
+  if(!inclEnf&&!inclAux){err.textContent='Seleciona pelo menos uma categoria.';err.style.display='block';return;}
+  const selSvcs = [...document.querySelectorAll('#racios-svcs input:checked')].map(cb=>cb.value);
+  if(!selSvcs.length){err.textContent='Seleciona pelo menos um serviço.';err.style.display='block';return;}
+  document.getElementById('racios-modal').style.display='none';
+
+  const TURNO = {M:'manha',T:'tarde',N:'noite'};
+  const TNAME = {M:'Manhã',T:'Tarde',N:'Noite'};
+  const WD    = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const cats  = [...(inclEnf?['enfermeiros']:[]),...(inclAux?['auxiliares']:[])];
+
+  // Construir lista de datas
+  const days = [];
+  let cur = new Date(dateFrom+'T00:00:00');
+  const end = new Date(dateTo+'T00:00:00');
+  while(cur<=end){ days.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
+
+  // Criar workbook SheetJS
+  const wb = XLSX.utils.book_new();
+  const rows = [];
+
+  // Cabeçalho linha 1
+  const hdr1 = ['Serviço','Categoria','Turno',...days.map(d=>d.getDate())];
+  rows.push(hdr1);
+  // Cabeçalho linha 2 — dias da semana
+  const hdr2 = ['','','',...days.map(d=>WD[d.getDay()])];
+  rows.push(hdr2);
+
+  // Dados
+  selSvcs.forEach(svc=>{
+    cats.forEach(cat=>{
+      const catLabel = cat==='enfermeiros'?'Enf.':'Aux.';
+      ['M','T','N'].forEach(t=>{
+        const row = [svc, catLabel, TNAME[t]];
+        let soma=0, nd=0;
+        days.forEach(d=>{
+          const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+          const weeks=(state.schedule[svc]&&state.schedule[svc][cat])||{};
+          let count=0;
+          Object.values(weeks).forEach(week=>{
+            (week.days||[]).forEach(day=>{
+              if(day.date===ds) count+=(day[TURNO[t]]||[]).filter(s=>s&&s.name&&s.name.trim()).length;
+            });
+          });
+          row.push(count);
+          if(count){soma+=count;nd++;}
+        });
+        rows.push(row);
+      });
+    });
   });
 
-  const cat=state.activeCat||'enfermeiros';
-  if(!state.schedule[svc]) state.schedule[svc]={enfermeiros:{},auxiliares:{}};
-  Object.assign(state.schedule[svc][cat], weeksMap);
+  const ws = XLSX.utils.aoa_to_sheet(rows);
 
-  hideImportModal();
-  renderAll();
-  showToast(`✅ Horário importado! ${Object.keys(weeksMap).length} semanas preenchidas.`);
+  // Larguras das colunas
+  ws['!cols'] = [
+    {wch:8},{wch:7},{wch:8},
+    ...days.map(()=>({wch:4})),
+    ];
+  // Congelar primeiras 3 colunas e 2 linhas
+  ws['!freeze'] = {xSplit:3, ySplit:2};
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Dotação');
+  XLSX.writeFile(wb, 'Dotacao_'+dateFrom+'_'+dateTo+'.xlsx');
+  showToast('✅ Excel exportado!');
 }
 
-function showToast(msg){
-  document.querySelectorAll('.toast').forEach(t=>t.remove());
-  const t=document.createElement('div');
-  t.className='toast';
-  t.style.cssText='position:fixed;bottom:calc(70px + env(safe-area-inset-bottom,0px));left:12px;right:12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--text);box-shadow:0 8px 28px rgba(0,0,0,.6);z-index:500;animation:fadeUp .3s ease;text-align:center;max-width:400px;margin:0 auto';
-  t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),3500);
-}
 </script>
 </body>
 </html>
