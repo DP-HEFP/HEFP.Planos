@@ -426,7 +426,7 @@
     <div class="storage-bar" id="storage-bar" style="display:none">
       <div class="s-dot" id="s-dot"></div>
       <span id="s-msg">☁️ Pronto</span>
-      <button class="btn btn-ghost btn-sm" style="margin-left:auto;padding:4px 10px;font-size:11px" onclick="exportData()">📤 Exportar</button>
+      <button id="btn-racios" class="btn btn-ghost btn-sm" style="display:none;padding:4px 10px;font-size:11px;color:var(--green)" onclick="exportRaciosExcel()">📊 Rácios</button>
     </div>
 
     <div class="my-banner" id="my-banner" style="display:none">
@@ -473,9 +473,11 @@
           <!-- Status -->
           <div id="multi-status" style="display:none;font-size:12px;color:var(--text2);padding:10px;background:var(--bg3);border-radius:8px;margin-top:10px;text-align:center"></div>
           <!-- Botões Guardar / Publicar -->
-          <div id="supercoord-actions" style="display:none;margin-top:12px;gap:8px">
-            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="superSave()">💾 Guardar</button>
-            <button class="btn btn-success btn-sm" style="flex:1" onclick="superPublishAll()">📢 Publicar todas as escalas</button>
+          <div id="supercoord-actions" style="display:none;margin-top:12px;gap:8px;flex-direction:column">
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" style="flex:1" onclick="superSave()">💾 Guardar</button>
+              <button class="btn btn-success btn-sm" style="flex:1" onclick="superPublishAll()">📢 Publicar todas as escalas</button>
+            </div>
           </div>
         </div>
       </div>
@@ -550,6 +552,51 @@
           <div style="display:flex;gap:8px;margin-top:4px">
             <button class="btn btn-ghost btn-sm" style="flex:1" onclick="hideImportModal()">Cancelar</button>
             <button class="btn btn-success btn-sm" id="xls-import-btn" style="flex:1;display:none" onclick="processXlsImport()">✅ Importar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Rácios Export -->
+      <div id="racios-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:400px">
+          <h3 style="margin-bottom:6px">📊 Exportar Rácios</h3>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Seleciona o intervalo de datas a exportar.</p>
+          <div style="display:flex;gap:10px;margin-bottom:12px">
+            <div style="flex:1">
+              <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">De</label>
+              <input type="date" id="racios-date-from" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-size:14px;font-family:inherit;outline:none">
+            </div>
+            <div style="flex:1">
+              <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Até</label>
+              <input type="date" id="racios-date-to" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-size:14px;font-family:inherit;outline:none">
+            </div>
+          </div>
+          <div style="margin-bottom:14px">
+            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:6px">Serviços</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px" id="racios-svcs">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="URG" checked> URG</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="UC" checked> UC</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="UMDR" checked> UMDR</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="ULDM" checked> ULDM</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="IMP3" checked> IMP3</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" value="IMC" checked> IMC</label>
+            </div>
+          </div>
+          <div style="margin-bottom:16px">
+            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:6px">Categorias</label>
+            <div style="display:flex;gap:10px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+                <input type="checkbox" id="racios-enf" checked style="accent-color:var(--accent)"> Enfermeiros
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+                <input type="checkbox" id="racios-aux" checked style="accent-color:var(--accent)"> Auxiliares
+              </label>
+            </div>
+          </div>
+          <div id="racios-modal-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="document.getElementById('racios-modal').style.display='none'">Cancelar</button>
+            <button class="btn btn-success btn-sm" style="flex:1" onclick="confirmExportRacios()">📥 Exportar</button>
           </div>
         </div>
       </div>
@@ -1399,6 +1446,7 @@ function setupUI(){
     document.getElementById('editor-section').style.display='block';
     document.getElementById('bottom-nav').style.display='none';
     document.getElementById('storage-bar').style.display='flex';
+  const _rb=document.getElementById('btn-racios');if(_rb)_rb.style.display=state.user?.role==='supercoord'?'inline-flex':'none';
     document.getElementById('cat-toggle').style.display=(svc==='CE')?'none':'flex';
     document.getElementById('topbar-row2').classList.add('visible');
     document.getElementById('tb-pass-btn').style.display='none';
@@ -1848,7 +1896,9 @@ async function downloadPDF(){
     <div style="font-size:10px;color:#9ca3af">Gerado em ${new Date().toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} às ${new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})} · Por ${state.user.name}</div>
   </div>
   ${daysHtml}
-  </body></html>`;
+  
+<\/script>
+<\/body><\/html>`;
 
   // Open print dialog in new window
   const win = window.open('','_blank','width=900,height=700');
@@ -2715,41 +2765,96 @@ function confirmClearWeek(){
   showToast(`🗑️ Semana ${wk} limpa!`);
 }
 
-function superSave(){
-  xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=0;
-  saveToStorage().then(()=>{ xlsImporting=false; showToast('💾 Guardado!'); }).catch(()=>{ xlsImporting=false; });
+
+function exportRaciosExcel(){
+  // Definir datas padrão: mês actual
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth()+1).padStart(2,'0');
+  const lastDay = new Date(y, today.getMonth()+1, 0).getDate();
+  document.getElementById('racios-date-from').value = `${y}-${m}-01`;
+  document.getElementById('racios-date-to').value   = `${y}-${m}-${String(lastDay).padStart(2,'0')}`;
+  document.getElementById('racios-modal-error').style.display='none';
+  document.getElementById('racios-modal').style.display='flex';
 }
 
-function superPublishAll(){
-  if(!confirm('Publicar TODAS as escalas de todos os serviços (incluindo pendentes)?')) return;
-  // Publicar todas as semanas de todos os serviços e categorias
-  let count=0;
-  Object.keys(state.schedule).forEach(svc=>{
-    ['enfermeiros','auxiliares'].forEach(cat=>{
-      const weeks=state.schedule[svc][cat]||{};
-      Object.keys(weeks).forEach(wkey=>{
-        if(!weeks[wkey].published){ weeks[wkey].published=true; count++; }
+function confirmExportRacios(){
+  const dateFrom = document.getElementById('racios-date-from').value;
+  const dateTo   = document.getElementById('racios-date-to').value;
+  const err      = document.getElementById('racios-modal-error');
+
+  if(!dateFrom||!dateTo){err.textContent='Seleciona as datas.';err.style.display='block';return;}
+  if(dateFrom>dateTo){err.textContent='Data inicial deve ser anterior à final.';err.style.display='block';return;}
+  const inclEnf = document.getElementById('racios-enf').checked;
+  const inclAux = document.getElementById('racios-aux').checked;
+  if(!inclEnf&&!inclAux){err.textContent='Seleciona pelo menos uma categoria.';err.style.display='block';return;}
+  const selSvcs = [...document.querySelectorAll('#racios-svcs input:checked')].map(cb=>cb.value);
+  if(!selSvcs.length){err.textContent='Seleciona pelo menos um serviço.';err.style.display='block';return;}
+  document.getElementById('racios-modal').style.display='none';
+
+  const TURNO = {M:'manha',T:'tarde',N:'noite'};
+  const TNAME = {M:'Manhã',T:'Tarde',N:'Noite'};
+  const WD    = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const cats  = [...(inclEnf?['enfermeiros']:[]),...(inclAux?['auxiliares']:[])];
+
+  // Construir lista de datas
+  const days = [];
+  let cur = new Date(dateFrom+'T00:00:00');
+  const end = new Date(dateTo+'T00:00:00');
+  while(cur<=end){ days.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
+
+  // Criar workbook SheetJS
+  const wb = XLSX.utils.book_new();
+  const rows = [];
+
+  // Cabeçalho linha 1
+  const hdr1 = ['Serviço','Categoria','Turno',...days.map(d=>d.getDate()),'Média'];
+  rows.push(hdr1);
+  // Cabeçalho linha 2 — dias da semana
+  const hdr2 = ['','','',...days.map(d=>WD[d.getDay()]),''];
+  rows.push(hdr2);
+
+  // Dados
+  selSvcs.forEach(svc=>{
+    cats.forEach(cat=>{
+      const catLabel = cat==='enfermeiros'?'Enf.':'Aux.';
+      ['M','T','N'].forEach(t=>{
+        const row = [svc, catLabel, TNAME[t]];
+        let soma=0, nd=0;
+        days.forEach(d=>{
+          const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+          const weeks=(state.schedule[svc]&&state.schedule[svc][cat])||{};
+          let count=0;
+          Object.values(weeks).forEach(week=>{
+            (week.days||[]).forEach(day=>{
+              if(day.date===ds) count+=(day[TURNO[t]]||[]).filter(s=>s&&s.name&&s.name.trim()).length;
+            });
+          });
+          row.push(count);
+          if(count){soma+=count;nd++;}
+        });
+        row.push(nd?Math.round(soma/nd*100)/100:0);
+        rows.push(row);
       });
     });
   });
-  const notif={id:Date.now(),ico:'📢',title:'Todas as escalas publicadas',
-    msg:`${count} semana(s) publicadas pelo Enfermeiro Coordenador.`,time:'Agora',read:false};
-  state.notifications.unshift(notif);
-  xlsImporting=true; state.lastImportAt=Date.now(); state.unsaved=0;
-  saveToStorage().then(()=>{ xlsImporting=false; }).catch(()=>{ xlsImporting=false; });
-  renderAll();
-  showToast(`📢 ${count} semana(s) publicadas em todos os serviços!`);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+
+  // Larguras das colunas
+  ws['!cols'] = [
+    {wch:8},{wch:7},{wch:8},
+    ...days.map(()=>({wch:4})),
+    {wch:7}
+  ];
+  // Congelar primeiras 3 colunas e 2 linhas
+  ws['!freeze'] = {xSplit:3, ySplit:2};
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Dotação');
+  XLSX.writeFile(wb, 'Dotacao_'+dateFrom+'_'+dateTo+'.xlsx');
+  showToast('✅ Excel exportado!');
 }
 
-function showToast(msg){
-  document.querySelectorAll('.toast').forEach(t=>t.remove());
-  const t=document.createElement('div');
-  t.className='toast';
-  t.style.cssText='position:fixed;bottom:calc(70px + env(safe-area-inset-bottom,0px));left:12px;right:12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--text);box-shadow:0 8px 28px rgba(0,0,0,.6);z-index:500;animation:fadeUp .3s ease;text-align:center;max-width:400px;margin:0 auto';
-  t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),3500);
-}
 </script>
 </body>
 </html>
