@@ -69,6 +69,12 @@
   .svc-card[data-svc="URG"]{--sc:var(--red);}
   .svc-IMC{background:rgba(249,115,22,.2);color:var(--orange);border:1px solid rgba(249,115,22,.35);}
   .svc-card[data-svc="IMC"]{--sc:var(--orange);}
+  .svc-card[data-svc="CE"]{--sc:#0ea5e9;}
+  .bn-tab[data-tab="CE"].active{color:#0ea5e9;}
+  .svc-card[data-svc="BO"]{--sc:#ef4444;}
+  .bn-tab[data-tab="BO"].active{color:#ef4444;}
+  .svc-card[data-svc="GASTRO"]{--sc:#10b981;}
+  .bn-tab[data-tab="GASTRO"].active{color:#10b981;}
 
   .svc-card.active{border-color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent);}
   .svc-card.active .svc-name{color:var(--sc);}
@@ -132,6 +138,7 @@
   .bn-tab .bn-icon{font-size:20px;line-height:1;}
   .bn-tab.active{color:var(--accent);}
   .bn-tab[data-tab="UC"].active{color:var(--uc);}
+  .bn-tab[data-tab="CE"].active{color:#0ea5e9;}
   .bn-tab[data-tab="UMDR"].active{color:var(--umdr);}
   .bn-tab:active{background:rgba(255,255,255,.04);}
 
@@ -323,6 +330,9 @@
         <div class="svc-card" data-svc="ULDM" onclick="selectSvc('ULDM')"><div class="svc-icon">🛏️</div><div class="svc-name">ULDM</div><div class="svc-desc">Longa Duração · Piso 4</div></div>
         <div class="svc-card" data-svc="UC"   onclick="selectSvc('UC')"><div class="svc-icon">💊</div><div class="svc-name">UC</div><div class="svc-desc">Convalescença · Piso 4</div></div>
         <div class="svc-card" data-svc="IMC"  onclick="selectSvc('IMC')"><div class="svc-icon">🏥</div><div class="svc-name">IMC</div><div class="svc-desc">IMC · Piso 5</div></div>
+        <div class="svc-card" data-svc="CE"   onclick="selectSvc('CE')"><div class="svc-icon">💉</div><div class="svc-name">CE</div><div class="svc-desc">Consulta Externa</div></div>
+        <div class="svc-card" data-svc="BO"     onclick="selectSvc('BO')"><div class="svc-icon">🔪</div><div class="svc-name">BO</div><div class="svc-desc">Bloco Operatório</div></div>
+        <div class="svc-card" data-svc="GASTRO" onclick="selectSvc('GASTRO')"><div class="svc-icon">🔭</div><div class="svc-name">GASTRO</div><div class="svc-desc">Gastroenterologia</div></div>
       </div>
     </div>
 
@@ -363,6 +373,18 @@
           <div class="coord-card" data-coord="Enf.º Team Leader IMP3" onclick="selectCoord('Enf.º Team Leader IMP3')">
             <div class="coord-av" style="background:var(--purple)">IP</div>
             <div class="coord-info"><strong>Enf.º Team Leader IMP3</strong><span>Enf.º Team Leader</span></div>
+          </div>
+          <div class="coord-card" data-coord="Enf.º Team Leader CE" onclick="selectCoord('Enf.º Team Leader CE')">
+            <div class="coord-av" style="background:#0ea5e9">TC</div>
+            <div class="coord-info"><strong>Enf.º Team Leader CE</strong><span>Enf.º Team Leader</span></div>
+          </div>
+          <div class="coord-card" data-coord="Enf.º Team Leader BO" onclick="selectCoord('Enf.º Team Leader BO')">
+            <div class="coord-av" style="background:#ef4444">TB</div>
+            <div class="coord-info"><strong>Enf.º Team Leader BO</strong><span>Enf.º Team Leader</span></div>
+          </div>
+          <div class="coord-card" data-coord="Enf.º Team Leader GASTRO" onclick="selectCoord('Enf.º Team Leader GASTRO')">
+            <div class="coord-av" style="background:#10b981">TG</div>
+            <div class="coord-info"><strong>Enf.º Team Leader GASTRO</strong><span>Enf.º Team Leader</span></div>
           </div>
         </div>
       </div>
@@ -412,6 +434,9 @@
       <div class="tb-svc-icon" data-svc="ULDM" onclick="switchSvc('ULDM')" title="ULDM">🛏</div>
       <div class="tb-svc-icon" data-svc="UC"   onclick="switchSvc('UC')"   title="UC">💊</div>
       <div class="tb-svc-icon" data-svc="IMC"  onclick="switchSvc('IMC')"  title="IMC">🏥</div>
+      <div class="tb-svc-icon" data-svc="CE"     onclick="switchSvc('CE')"     title="CE">💉</div>
+      <div class="tb-svc-icon" data-svc="BO"     onclick="switchSvc('BO')"     title="BO">🔪</div>
+      <div class="tb-svc-icon" data-svc="GASTRO" onclick="switchSvc('GASTRO')" title="GASTRO">🔭</div>
     </div>
   </div>
 
@@ -492,8 +517,8 @@
         <div class="ed-hdr">
           <h3>✏️ Editar Plano</h3>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" onclick="triggerImportExcel()">📊 Excel</button>
-            <button class="btn btn-ghost btn-sm" onclick="downloadPDF()">📄 PDF</button>
+            <button class="btn btn-ghost btn-sm" id="btn-excel-import" onclick="triggerImportExcel()">📊 Excel</button>
+            <button class="btn btn-ghost btn-sm" onclick="downloadWord()">📝 Word</button>
             <button class="btn btn-ghost btn-sm" onclick="publishPlan()">📢 Publicar</button>
             <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="clearWeekPrompt()" title="Limpar semana">🗑️</button>
             <button class="btn btn-success btn-sm" onclick="savePlan()">💾 Guardar</button>
@@ -650,6 +675,9 @@
     <div class="bn-tab" data-tab="ULDM" onclick="switchSvc('ULDM')"><span class="bn-icon">🛏</span>ULDM</div>
     <div class="bn-tab" data-tab="UC"   onclick="switchSvc('UC')"><span class="bn-icon">💊</span>UC</div>
     <div class="bn-tab" data-tab="IMC"  onclick="switchSvc('IMC')"><span class="bn-icon">🏥</span>IMC</div>
+    <div class="bn-tab" data-tab="CE"   onclick="switchSvc('CE')"><span class="bn-icon">💉</span>CE</div>
+    <div class="bn-tab" data-tab="BO"   onclick="switchSvc('BO')"><span class="bn-icon">🔪</span>BO</div>
+    <div class="bn-tab" data-tab="GASTRO" onclick="switchSvc('GASTRO')"><span class="bn-icon">🔭</span>GASTRO</div>
   </div>
 
   <div class="save-bar" id="save-bar" style="display:none">
@@ -865,7 +893,10 @@ const COORDINATORS = {
   'Nuno Abreu':       { pass:'nuno',   svc:'ULDM', color:'var(--green)',  initials:'NA' },
   'Adriano Coutinho': { pass:'adriano',svc:'URG',  color:'var(--red)',    initials:'AC' },
   'Enf.º Team Leader IMC':  { pass:'IMC',    svc:'IMC',  color:'var(--orange)', initials:'TI' },
-  'Enf.º Team Leader IMP3': { pass:'IMP3',   svc:'IMP3', color:'var(--purple)', initials:'TP' },
+  'Enf.º Team Leader IMP3':   { pass:'IMP3',      svc:'IMP3',   color:'var(--purple)', initials:'TP' },
+  'Enf.º Team Leader CE':    { pass:'CE2026',   svc:'CE',     color:'#0ea5e9',       initials:'TC' },
+  'Enf.º Team Leader BO':    { pass:'BO2026',   svc:'BO',     color:'#ef4444',       initials:'TB' },
+  'Enf.º Team Leader GASTRO':{ pass:'GASTRO2026',svc:'GASTRO',color:'#10b981',       initials:'TG' },
 };
 
 const SERVICES = {
@@ -1003,9 +1034,90 @@ const SERVICES = {
       manha:[{name:'',rooms:''},{name:'',rooms:''}],
       tarde: [{name:'',rooms:''},{name:'',rooms:''}],
       noite: [],
+    }
+  }
+,
+  CE:{
+    name:'CE', label:'Consulta Externa',
+    // Enfermeiros: 3 postos, 2ª-6ª manhã e tarde; sábado só 1 posto manhã
+    postos:['Sala Tratamentos Piso 2','Apoio Ginecologia/Urologia Piso 2','Peq. Cirurgia/Laser Piso 1'],
+    postosSab:['Sala Tratamentos Piso 2'],
+    roomsHint:{manha:[],tarde:[],noite:[]},
+    nurses:[],
+    sample:{
+      manha:[{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''}],
+      tarde:[{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''},{name:'',rooms:'',hours:''}],
+      noite:[]
     },
+    // Auxiliares: 6 postos, 2ª-6ª manhã e tarde; sábado só manhã
+    auxPostos:['Balcão F','Balcão G','Balcão D','Balcão A','Apoio 1','Apoio 2'],
+    auxiliares:[],
+    auxRoomsHint:{manha:[],tarde:[],noite:[]},
+    auxSample:{
+      manha:[{name:'',rooms:'Balcão F',hours:''},{name:'',rooms:'Balcão G',hours:''},{name:'',rooms:'Balcão D',hours:''},{name:'',rooms:'Balcão A',hours:''},{name:'',rooms:'Apoio 1',hours:''},{name:'',rooms:'Apoio 2',hours:''}],
+      tarde:[{name:'',rooms:'Balcão F',hours:''},{name:'',rooms:'Balcão G',hours:''},{name:'',rooms:'Balcão D',hours:''},{name:'',rooms:'Balcão A',hours:''},{name:'',rooms:'Apoio 1',hours:''},{name:'',rooms:'Apoio 2',hours:''}],
+      noite:[]
+    }
   },
-
+  CE:{
+    name:'CE', label:'Consulta Externa',
+    postos:['Sala Tratamentos Piso 2','Apoio Ginecologia/Urologia Piso 2','Peq. Cirurgia/Laser Piso 1'],
+    postosSab:['Sala Tratamentos Piso 2'],
+    roomsHint:{manha:[],tarde:[],noite:[]},
+    nurses:[],
+    sample:{
+      manha:[{name:'',rooms:'Sala Tratamentos Piso 2'},{name:'',rooms:'Apoio Ginecologia/Urologia Piso 2'},{name:'',rooms:'Peq. Cirurgia/Laser Piso 1'}],
+      tarde:[{name:'',rooms:'Sala Tratamentos Piso 2'},{name:'',rooms:'Apoio Ginecologia/Urologia Piso 2'},{name:'',rooms:'Peq. Cirurgia/Laser Piso 1'}],
+      noite:[],
+    },
+    auxiliares:[],
+    auxPostos:['Balcão F','Balcão G','Balcão D','Balcão A','Apoio 1','Apoio 2'],
+    auxRoomsHint:{manha:[],tarde:[],noite:[]},
+    auxSample:{
+      manha:[{name:'',rooms:'Balcão F'},{name:'',rooms:'Balcão G'},{name:'',rooms:'Balcão D'},{name:'',rooms:'Balcão A'},{name:'',rooms:'Apoio 1'},{name:'',rooms:'Apoio 2'}],
+      tarde:[{name:'',rooms:'Balcão F'},{name:'',rooms:'Balcão G'},{name:'',rooms:'Balcão D'},{name:'',rooms:'Balcão A'},{name:'',rooms:'Apoio 1'},{name:'',rooms:'Apoio 2'}],
+      noite:[],
+    }
+  },
+  BO:{
+    name:'BO', label:'Bloco Operatório',
+    postos:['Sala 1 – Enf. 1','Sala 1 – Enf. 2','Sala 1 – Enf. 3','Sala 2 – Enf. 1','Sala 2 – Enf. 2','Sala 2 – Enf. 3','Recobro'],
+    roomsHint:{manha:[],tarde:[],noite:[]},
+    nurses:[],
+    sample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''},{name:'',rooms:''}],
+      noite:[],
+    },
+    auxPostos:['Auxiliar','Esterilização'],
+    auxiliares:[],
+    auxRoomsHint:{manha:[],tarde:[],noite:[]},
+    auxSample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''}],
+      noite:[],
+    }
+  },
+  GASTRO:{
+    name:'GASTRO', label:'Gastroenterologia',
+    postos:['Sala de Técnicas','Recobro'],
+    postosSab:['Sala de Técnicas','Recobro'],
+    roomsHint:{manha:[],tarde:[],noite:[]},
+    nurses:[],
+    sample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''}],
+      noite:[],
+    },
+    auxPostos:['Desinfecção','Recobro'],
+    auxiliares:[],
+    auxRoomsHint:{manha:[],tarde:[],noite:[]},
+    auxSample:{
+      manha:[{name:'',rooms:''},{name:'',rooms:''}],
+      tarde: [{name:'',rooms:''},{name:'',rooms:''}],
+      noite:[],
+    }
+  }
 };
 
 const SHIFTS = {
@@ -1032,6 +1144,9 @@ const state = {
     IMP3:{ enfermeiros:{}, auxiliares:{} },
     UMDR:{ enfermeiros:{}, auxiliares:{} },
     URG: { enfermeiros:{}, auxiliares:{} },
+    CE:  { enfermeiros:{}, auxiliares:{} },
+    BO:  { enfermeiros:{}, auxiliares:{} },
+    GASTRO:{ enfermeiros:{}, auxiliares:{} },
   },
   unsaved: 0,
   parsedData: null,
@@ -1077,6 +1192,7 @@ function cleanNumericPrefixes() {
     });
   });
 }
+
 
 function cleanURGData() {
   // Elementos fixos de Pediatria
@@ -1274,13 +1390,22 @@ function ensureWeek(svc,wkey){
   const cfg=SERVICES[svc];
   // Slot counts per service and category
   let mCount=3, tCount=3, nCount=3;
-  if(svc==='CE'){ mCount=6; tCount=0; nCount=0; } else if(svc==='UC'||svc==='IMC'||svc==='IMP3'){
+  if(svc==='CE'){
+    // 2ª-6ª: manhã e tarde; Sábado: só manhã (gerido no render)
+    mCount = cat==='auxiliares' ? 6 : 3;
+    tCount = cat==='auxiliares' ? 6 : 3;
+    nCount = 0;
+  } else if(svc==='UC'||svc==='IMC'||svc==='IMP3'){
     mCount=3; tCount=3; nCount=3;
   } else if(svc==='ULDM'||svc==='UMDR'){
     mCount=4; tCount=4; nCount=4;
   } else if(svc==='URG'){
     if(cat==='enfermeiros') { mCount=4; tCount=4; nCount=4; }
     if(cat==='auxiliares')  { mCount=2; tCount=2; nCount=0; }
+  } else if(svc==='BO'){
+    mCount=cat==='auxiliares'?2:7; tCount=cat==='auxiliares'?2:7; nCount=0;
+  } else if(svc==='GASTRO'){
+    mCount=2; tCount=2; nCount=0;
   }
   const sampleData = cat==='auxiliares' ? cfg.auxSample : cfg.sample;
   state.schedule[svc][cat][wkey]={
@@ -1362,19 +1487,20 @@ function doLogin(){
     if(!isAdmin && enteredPass!==currentPass){alert('Código incorreto.');return;}
     state.user={name:selectedCoord,role:'coordinator',ownSvc:coordCfg.svc,isAdmin};
     state.activeSvc=coordCfg.svc;
-    state.activeCat=coordCfg.svc==='CE'?'auxiliares':'enfermeiros';
+    state.activeCat='enfermeiros';
   } else if(role==='auxiliar'){
     state.user={name:'Auxiliar',role:'auxiliar'};
     state.activeCat='auxiliares';
     state.activeSvc=selectedSvc;
-    // CE usa sempre auxiliares
   } else {
     state.user={name:'Enfermeiro',role:'nurse'};
-    state.activeCat= selectedSvc==='CE' ? 'auxiliares' : 'enfermeiros';
+    state.activeCat= 'enfermeiros';
     state.activeSvc=selectedSvc;
   }
   state.currentWeek=todayKey();
-  Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));
+  const savedLoginCat=state.activeCat;
+  ['enfermeiros','auxiliares'].forEach(c=>{state.activeCat=c;Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));});
+  state.activeCat=savedLoginCat;
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   setupUI();
@@ -1447,7 +1573,10 @@ function setupUI(){
     document.getElementById('bottom-nav').style.display='none';
     document.getElementById('storage-bar').style.display='flex';
   const _rb=document.getElementById('btn-racios');if(_rb)_rb.style.display=state.user?.role==='supercoord'?'inline-flex':'none';
-    document.getElementById('cat-toggle').style.display=(svc==='CE')?'none':'flex';
+  // Excel import só visível para supercoord
+  const _excelBtn=document.getElementById('btn-excel-import');
+  if(_excelBtn) _excelBtn.style.display=state.user?.role==='supercoord'?'':'none';
+    document.getElementById('cat-toggle').style.display='flex';
     document.getElementById('topbar-row2').classList.add('visible');
     document.getElementById('tb-pass-btn').style.display='none';
     updateStorageBar(!!loadCache());
@@ -1464,9 +1593,13 @@ function setupUI(){
 
 function switchSvc(s){
   state.activeSvc=s;
-  // CE: forçar categoria auxiliares (é onde estão os dados)
-  if(s==='CE') state.activeCat='auxiliares';
-  ensureWeek(s,state.currentWeek);
+  ensureWeek(s, state.currentWeek);
+  if(s==='CE'||s==='BO'||s==='GASTRO'){
+    const _savedCatSw=state.activeCat;
+    state.activeCat=_savedCatSw==='auxiliares'?'enfermeiros':'auxiliares';
+    ensureWeek(s,state.currentWeek);
+    state.activeCat=_savedCatSw;
+  }
   const svcNameEl=document.getElementById('tb-svc-name');
   if(svcNameEl) svcNameEl.textContent=s||'';
   if(state.user?.role!=='coordinator' && state.user?.role!=='supercoord') {
@@ -1475,7 +1608,6 @@ function switchSvc(s){
   // Atualizar cat-toggle para coordinator e supercoord
   if(state.user?.role==='coordinator' || state.user?.role==='supercoord'){
     const ct=document.getElementById('cat-toggle');
-    if(ct) ct.style.display=(s==='CE')?'none':'flex';
   }
   renderAll();
 }
@@ -1491,8 +1623,30 @@ function switchCat(cat){
 // ══════════════════════════════════════
 function prevWeek(){shiftWeek(-7);}
 function nextWeek(){shiftWeek(7);}
-function goToday(){state.currentWeek=todayKey();Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));renderAll();}
-function shiftWeek(d){const dt=new Date(state.currentWeek+'T00:00:00');dt.setDate(dt.getDate()+d);state.currentWeek=isoDate(dt);Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));renderAll();}
+function goToday(){
+  state.currentWeek=todayKey();
+  Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));
+  if(['CE','BO','GASTRO'].includes(state.activeSvc)){
+    const outraCat2=state.activeCat==='auxiliares'?'enfermeiros':'auxiliares';
+    const savedCat2=state.activeCat;
+    state.activeCat=outraCat2; ensureWeek(state.activeSvc,state.currentWeek);
+    state.activeCat=savedCat2;
+  }
+  renderAll();
+}
+function shiftWeek(d){
+  const dt=new Date(state.currentWeek+'T00:00:00');
+  dt.setDate(dt.getDate()+d);
+  state.currentWeek=isoDate(dt);
+  Object.keys(SERVICES).forEach(s=>ensureWeek(s,state.currentWeek));
+  if(['CE','BO','GASTRO'].includes(state.activeSvc)){
+    const outraCat3=state.activeCat==='auxiliares'?'enfermeiros':'auxiliares';
+    const savedCat3=state.activeCat;
+    state.activeCat=outraCat3; ensureWeek(state.activeSvc,state.currentWeek);
+    state.activeCat=savedCat3;
+  }
+  renderAll();
+}
 
 // ══════════════════════════════════════
 // RENDER
@@ -1500,6 +1654,7 @@ function shiftWeek(d){const dt=new Date(state.currentWeek+'T00:00:00');dt.setDat
 function renderAll(){
   const svc=state.activeSvc;
   const cat=state.activeCat;
+  if(!state.schedule[svc]||!state.schedule[svc][cat]){console.error('[renderAll] schedule missing for',svc,cat);return;}
   const week=(state.schedule[svc][cat]||{})[state.currentWeek]||{published:false,days:[]};
   const lbl=weekLabel(state.currentWeek);
   const cfg=SERVICES[svc];
@@ -1537,7 +1692,7 @@ function renderAll(){
     });
     document.getElementById('editor-section').style.display=isOwn?'block':'none';
     document.getElementById('coord-panel').style.display=isOwn?'block':'none';
-    document.getElementById('cat-toggle').style.display=(isOwn&&svc!=='CE')?'flex':'none';
+    document.getElementById('cat-toggle').style.display=isOwn?'flex':'none';
     document.getElementById('readonly-banner').style.display=isOwn?'none':'flex';
   } else if(state.user?.role==='supercoord'){
     document.querySelectorAll('.tb-svc-icon').forEach(el=>{
@@ -1545,7 +1700,7 @@ function renderAll(){
     });
     document.getElementById('editor-section').style.display='none';
     document.getElementById('coord-panel').style.display='block';
-    document.getElementById('cat-toggle').style.display=svc==='CE'?'none':'flex';
+    document.getElementById('cat-toggle').style.display='flex';
     document.getElementById('readonly-banner').style.display='none';
     document.getElementById('multi-upload-panel').style.display='block';
     document.getElementById('supercoord-actions').style.display='flex';
@@ -1564,37 +1719,42 @@ function renderSchedule(week){
 }
 
 function renderDay(day){
-  const d=new Date(day.date+'T00:00:00');
-  const tc=isToday(day.date)?'today':'';
-  const svc=state.activeSvc;
-  const cat=state.activeCat;
-  const cfg=SERVICES[svc];
-  const postos=svc==='URG'?(cat==='auxiliares'?cfg.auxPostos:cfg.postos):null;
+  // ── CE: renderização especial ──────────────────────────────────────────
+  if(state.activeSvc==='CE'){
+    const cfg=SERVICES['CE'];
+    const cat=state.activeCat;
+    const d=new Date(day.date+'T00:00:00');
+    const dow=d.getDay(); // 0=Dom,6=Sáb
+    if(dow===0) return ''; // sem domingo
+    const isSat=dow===6;
+    const tc=isToday(day.date)?'today':'';
 
-  // CE: special rendering — no shifts, just postos for the day
-  if(svc==='CE'){
-    const isSat = day.weekday==='Sábado' || new Date((day.date||'')+'T00:00:00').getDay()===6;
-    const postos=cfg.postos||[];
-    const slots=day.manha||[];
-    const cells=postos.map((posto,i)=>{
-      // Ao sábado, Posto A (Pediatria) — índice 1 — não existe
-      if(isSat && i===1) return '';
-      const nm=slots[i]?.name||'';
-      const hrs=slots[i]?.hours||'';
-      const sp=slots[i]?.rooms||'';
-      const sp2=slots[i]?.rooms2||'';
-      const isApoio=posto.startsWith('Apoio');
-      const subLine=sp
-        ? isApoio
-          ? `<div style="font-style:italic;font-size:9px;color:var(--accent);margin-top:2px;line-height:1.3">📍 ${sp}</div>`
-          : `<div style="font-style:italic;font-size:10px;color:var(--text2);margin-top:1px">${sp}${sp2?' <span style="color:var(--text3);font-size:9px">('+sp2+')</span>':''}</div>`
-        : '';
-      return `<div class="nurse-cell">
-        <div class="nc-pos" style="font-size:8.5px;line-height:1.1">${posto}</div>
-        ${nm?`<div class="nc-name">${nm}</div><div style="font-size:9px;color:var(--text3);margin-top:1px">${hrs}</div>`:'<div class="nc-empty">—</div>'}
-        ${subLine}
+    // Postos por categoria e dia
+    const posEnf = isSat
+      ? ['Sala Tratamentos Piso 2']  // sáb: 1 posto enf, só manhã
+      : cfg.postos;                  // 2ª-6ª: 3 postos enf
+    const posAux = cfg.auxPostos;   // 6 postos aux, sempre
+
+    const cePostos = cat==='auxiliares' ? posAux : posEnf;
+
+    const ceShift=(sk)=>{
+      if(isSat && sk==='tarde') return '';           // sáb sem tarde
+      if(isSat && cat==='enfermeiros' && sk==='tarde') return '';
+      const slots=day[sk]||[];
+      const lbl=sk==='manha'?'M':'T';
+      const cells=cePostos.map((posto,i)=>{
+        const s=slots[i]; const nm=s?.name||'';
+        return `<div class="nurse-cell">
+          <div class="nc-pos" style="font-size:8px;line-height:1.2">${posto}</div>
+          ${nm?`<div class="nc-name">${nm}</div>`:'<div class="nc-empty">—</div>'}
+        </div>`;
+      }).join('');
+      return `<div class="shift-block ${sk}">
+        <div class="shift-sub-header"><div class="sh-dot ${sk}"></div><span class="sh-lbl">${lbl}</span></div>
+        <div class="nurses-grid">${cells}</div>
       </div>`;
-    }).join('');
+    };
+
     const obs=day.obs?`<div class="obs-row">⚡ ${day.obs}</div>`:'';
     return `<div class="day-section ${tc}">
       <div class="day-header-row">
@@ -1603,13 +1763,101 @@ function renderDay(day){
         <span class="dh-week">${day.weekday}</span>
         ${isToday(day.date)?'<span style="font-size:10px;color:var(--accent);background:rgba(59,130,246,.12);padding:2px 7px;border-radius:10px;margin-left:auto">Hoje</span>':''}
       </div>
-      <div class="shift-block manha">
-        <div class="nurses-grid">${cells}</div>
-        ${obs}
-      </div>
+      ${ceShift('manha')}
+      ${!isSat ? ceShift('tarde') : ''}
+      ${obs}
     </div>`;
   }
+  // ── fim CE ─────────────────────────────────────────────────────────────
 
+  const d=new Date(day.date+'T00:00:00');
+  const tc=isToday(day.date)?'today':'';
+  const svc=state.activeSvc;
+  const cat=state.activeCat;
+  const cfg=SERVICES[svc];
+  const postos=svc==='URG'?(cat==='auxiliares'?(cfg.auxPostos||cfg.postos):cfg.postos):null;
+
+
+  // ── CE: renderização própria ────────────────────────────
+  if(svc==='CE'){
+    const dow = new Date((day.date||'')+'T00:00:00').getDay();
+    if(dow===0) return ''; // sem domingo
+    const isSat = dow===6;
+    // Postos por categoria e dia
+    const isAux = cat==='auxiliares';
+    const cePosM = isAux ? cfg.auxPostos : (isSat ? cfg.postosSab : cfg.postos);
+    const cePosT = isAux ? cfg.auxPostos : cfg.postos; // tarde só 2ª-6ª
+    const ceSlot=(pos,slot)=>`<div class="nurse-cell">
+      <div class="nc-pos" style="font-size:8px;line-height:1.2">${pos}</div>
+      ${slot?.name
+        ?`<div class="nc-name">${slot.name}</div>${slot.hours?`<div style="font-size:9px;color:var(--text3)">${slot.hours}</div>`:''}`
+        :`<div class="nc-empty">—</div>`}
+    </div>`;
+    const ceTurno=(sk,posList)=>{
+      const sl=day[sk]||[];
+      const cells=posList.map((p,i)=>ceSlot(p,sl[i])).join('');
+      return `<div class="shift-block ${sk}">
+        <div class="shift-sub-header"><div class="sh-dot ${sk}"></div><span class="sh-lbl">${sk==='manha'?'M':'T'}</span></div>
+        <div class="nurses-grid">${cells}</div>
+      </div>`;
+    };
+    const obs=day.obs?`<div class="obs-row">⚡ ${day.obs}</div>`:'';
+    return `<div class="day-section ${tc}">
+      <div class="day-header-row">
+        <span class="dh-date">${d.getDate()}</span>
+        <span class="dh-month">${MONTHS[d.getMonth()]}</span>
+        <span class="dh-week">${day.weekday}</span>
+        ${isToday(day.date)?'<span style="font-size:10px;color:var(--accent);background:rgba(59,130,246,.12);padding:2px 7px;border-radius:10px;margin-left:auto">Hoje</span>':''}
+      </div>
+      ${ceTurno('manha',cePosM)}
+      ${!isSat?ceTurno('tarde',cePosT):''}
+      ${obs}
+    </div>`;
+  }
+  // ── Fim CE ──────────────────────────────────────────────
+
+  // ── BLOCO OPERATÓRIO / GASTROENTEROLOGIA ─────────────────────────────
+  if(state.activeSvc==='BO'||state.activeSvc==='GASTRO'){
+    const _svcK=state.activeSvc;
+    const _cfgK=SERVICES[_svcK];
+    const _d=new Date(day.date+'T00:00:00');
+    const _dow=_d.getDay(); // 0=Dom,6=Sáb
+    if(_dow===0) return '';
+    const _isSat=_dow===6;
+    if(_svcK==='BO'&&_isSat) return ''; // BO sem sábado
+    const _cat=state.activeCat;
+    const _pos=_cat==='auxiliares'?(_cfgK.auxPostos||[]):(_cfgK.postos||[]);
+    const _posSab=_svcK==='GASTRO'?(_cfgK.postos||[]):_pos;
+    const _renderSh=(sk)=>{
+      if(_isSat&&sk==='tarde') return '';
+      const _sl=day[sk]||[];
+      const _pList=_isSat?_posSab:_pos;
+      const _cells=_pList.map((p,i)=>{
+        const _s=_sl[i];const _nm=_s?.name||'';
+        return `<div class="nurse-cell">
+          <div class="nc-pos" style="font-size:8px;line-height:1.2">${p}</div>
+          ${_nm?`<div class="nc-name">${_nm}</div>`:'<div class="nc-empty">—</div>'}
+        </div>`;
+      }).join('');
+      return `<div class="shift-block ${sk}">
+        <div class="shift-sub-header"><div class="sh-dot ${sk}"></div><span class="sh-lbl">${sk==='manha'?'M':'T'}</span></div>
+        <div class="nurses-grid">${_cells}</div>
+      </div>`;
+    };
+    const _obs=day.obs?`<div class="obs-row">⚡ ${day.obs}</div>`:'';
+    return `<div class="day-section ${isToday(day.date)?'today':''}">
+      <div class="day-header-row">
+        <span class="dh-date">${_d.getDate()}</span>
+        <span class="dh-month">${MONTHS[_d.getMonth()]}</span>
+        <span class="dh-week">${day.weekday}</span>
+        ${isToday(day.date)?'<span style="font-size:10px;color:var(--accent);background:rgba(59,130,246,.12);padding:2px 7px;border-radius:10px;margin-left:auto">Hoje</span>':''}
+      </div>
+      ${_renderSh('manha')}
+      ${!_isSat?_renderSh('tarde'):''}
+      ${_obs}
+    </div>`;
+  }
+  // ── fim BO/GASTRO ──────────────────────────────────────────────────────
   const shiftHtml=sk=>{
     const slots=day[sk]||[];
     if(!slots.length) return '';
@@ -1693,38 +1941,31 @@ function renderEditor(week){
     const d=new Date(day.date+'T00:00:00');
     const tm=isToday(day.date)?' 📍':'';
 
-    // CE: special editor — no shifts, just posto inputs
-    if(svc==='CE'){
-      const postos=cfg.postos||[];
-      const slots=day.manha||[];
-      const inputs=postos.map((posto,si)=>`<div class="ef">
-        <label>${posto}</label>
-        <input type="text" value="${slots[si]?.name||''}" placeholder="Nome" oninput="updSlot(${di},'manha',${si},'name',this.value)" autocomplete="off" autocorrect="off">
-      </div>`).join('');
-      return `<div class="ed-day">
-        <div class="ed-day-hdr">${day.weekday} <strong>${d.getDate()} ${MONTHS[d.getMonth()]}${tm}</strong></div>
-        <div class="ef-grid g3">${inputs}</div>
-      </div>`;
-    }
-
+    const noNight=(svc==='CE'||svc==='BO'||svc==='GASTRO');
     const shifts=['manha','tarde','noite'].map(sk=>{
+      if(noNight&&sk==='noite') return '';
+      const dayOfWeek2=new Date((day.date||'')+'T00:00:00').getDay();
+      if(svc==='BO'&&dayOfWeek2===6) return '';
+      if(svc==='GASTRO'&&dayOfWeek2===6&&sk==='tarde') return '';
       const slots=day[sk]||[];
       if(!slots.length) return '';
       const c=cm[sk];
       const hints_sk=hints[sk]||[];
       const posPrefix=sk==='manha'?'M':sk==='tarde'?'T':'N';
       const g=slots.length===3?'g3':'';
-      const postos=svc==='URG'?(cat==='auxiliares'?cfg.auxPostos:cfg.postos):null;
+      const isPostoSvc=(svc==='URG'||svc==='CE'||svc==='BO'||svc==='GASTRO');
+      const postos=isPostoSvc?(cat==='auxiliares'?(cfg.auxPostos||cfg.postos):cfg.postos):null;
 
       const nameInputs=slots.map((slot,si)=>`<div class="ef">
         <label>${postos?postos[si]:`${posPrefix}${si+1}`}</label>
         <input type="text" value="${slot.name||''}" placeholder="Nome" oninput="updSlot(${di},'${sk}',${si},'name',this.value)" autocomplete="off" autocorrect="off">
       </div>`).join('');
 
-      const roomInputs=slots.map((slot,si)=>`<div class="ef">
+      const showRooms=!(svc==='CE'||svc==='BO'||svc==='GASTRO');
+      const roomInputs=showRooms?slots.map((slot,si)=>`<div class="ef">
         <label>🚪 ${postos?postos[si]:`${posPrefix}${si+1}`}</label>
         <input type="text" value="${slot.rooms||''}" placeholder="${hints_sk[si]||''}" oninput="updSlot(${di},'${sk}',${si},'rooms',this.value)" autocomplete="off">
-      </div>`).join('');
+      </div>`).join(''):'';
 
       return `<div class="ed-shift">
         <div class="ed-shift-title" style="color:${c}">
@@ -1735,10 +1976,10 @@ function renderEditor(week){
           <div class="pos-group-lbl">👤 Nomes</div>
           <div class="pos-inputs ${g}">${nameInputs}</div>
         </div>
-        <div class="pos-group">
+        ${showRooms?`<div class="pos-group">
           <div class="pos-group-lbl">🚪 Quartos</div>
           <div class="pos-inputs ${g}">${roomInputs}</div>
-        </div>
+        </div>`:''}
       </div>`;
     }).join('');
 
@@ -1825,92 +2066,213 @@ function publishPlan(){
 // ══════════════════════════════════════
 // PDF DOWNLOAD
 // ══════════════════════════════════════
-async function downloadPDF(){
-  const svc = state.activeSvc;
-  const cat = state.activeCat;
-  const catLabel = cat==='auxiliares' ? 'Auxiliares de Saúde' : 'Enfermeiros';
-  const week = (state.schedule[svc][cat]||{})[state.currentWeek];
-  if(!week?.days?.length){ showToast('❌ Sem dados para exportar.'); return; }
+function downloadWord(){
+  var svc = state.activeSvc;
+  var cfg = SERVICES[svc];
+  if(!cfg){ showToast('Servico nao encontrado.'); return; }
 
-  showToast('⏳ A gerar PDF…');
+  var isPostoSvc = (svc==='CE'||svc==='BO'||svc==='GASTRO');
+  var svcLabel   = cfg.label;
+  var weekLbl    = weekLabel(state.currentWeek);
+  var MESES      = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var today      = isoDate(new Date());
+  var nowStr     = new Date().toLocaleDateString('pt-PT',{day:'2-digit',month:'long',year:'numeric'});
 
-  const SHIFT_COLORS = { manha:'#fb923c', tarde:'#34d399', noite:'#818cf8' };
-  const SHIFT_BG     = { manha:'#fff7ed', tarde:'#f0fdf4', noite:'#f5f3ff' };
-  const SHIFT_LABELS = { manha:'Manhã', tarde:'Tarde', noite:'Noite' };
+  /* Garantir ambas as categorias inicializadas */
+  ['enfermeiros','auxiliares'].forEach(function(c){
+    if(!state.schedule[svc]) state.schedule[svc]={enfermeiros:{},auxiliares:{}};
+    if(!state.schedule[svc][c]) state.schedule[svc][c]={};
+    if(!state.schedule[svc][c][state.currentWeek]){
+      var _prev=state.activeCat; state.activeCat=c;
+      ensureWeek(svc, state.currentWeek);
+      state.activeCat=_prev;
+    }
+  });
 
-  // Build HTML for PDF
-  const svcLabel = SERVICES[svc].label;
-  const weekLbl  = weekLabel(state.currentWeek);
+  var weekEnf = state.schedule[svc]['enfermeiros'][state.currentWeek];
+  var weekAux = state.schedule[svc]['auxiliares'][state.currentWeek];
 
-  let daysHtml = week.days.map(day => {
-    const d = new Date(day.date+'T00:00:00');
-    const isHoje = day.date === isoDate(new Date());
-    const shifts = ['manha','tarde','noite'].map(sk => {
-      const slots = (day[sk]||[]).filter(s=>s.name);
-      if(!slots.length) return '';
-      const cells = slots.map(s=>`
-        <td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;vertical-align:top">
-          <div style="font-weight:600;color:#111">${s.name}</div>
-          ${s.rooms&&s.rooms!=='—'?`<div style="font-size:9px;color:#6b7280;background:#f3f4f6;padding:1px 4px;border-radius:3px;margin-top:2px;display:inline-block">${s.rooms}</div>`:''}
-        </td>`).join('');
-      const emptyCount = (sk==='noite'?3:5) - slots.length;
-      const emptyCells = Array(emptyCount).fill(`<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;color:#d1d5db">—</td>`).join('');
-      return `<tr>
-        <td style="padding:6px 10px;border:1px solid #e5e7eb;white-space:nowrap;font-size:11px;font-weight:700;background:${SHIFT_BG[sk]};color:${SHIFT_COLORS[sk]};width:90px">${SHIFT_LABELS[sk]}</td>
-        ${cells}${emptyCells}
-      </tr>`;
-    }).join('');
+  /* Get working days */
+  function getWorkingDays(week){
+    if(!week||!week.days) return [];
+    return week.days.filter(function(day){
+      var dow = new Date(day.date+'T00:00:00').getDay();
+      if(isPostoSvc && dow===0) return false;
+      if(svc==='BO'  && dow===6) return false;
+      return true;
+    });
+  }
+  var daysEnf = getWorkingDays(weekEnf);
+  var daysAux = getWorkingDays(weekAux);
+  if(!daysEnf.length && !daysAux.length){ showToast('Sem dados para exportar.'); return; }
 
-    return `<div style="margin-bottom:14px;break-inside:avoid">
-      <div style="background:${isHoje?'#eff6ff':'#f9fafb'};border:1px solid ${isHoje?'#bfdbfe':'#e5e7eb'};border-radius:8px 8px 0 0;padding:8px 12px;display:flex;align-items:center;gap:10px">
-        <span style="font-size:22px;font-weight:800;color:${isHoje?'#3b82f6':'#374151'};font-family:monospace">${d.getDate()}</span>
-        <span style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">${MONTHS[d.getMonth()]}</span>
-        <span style="font-size:13px;font-weight:600;color:#374151">${day.weekday}</span>
-        ${isHoje?'<span style="font-size:10px;background:#dbeafe;color:#3b82f6;padding:2px 8px;border-radius:10px;margin-left:auto">Hoje</span>':''}
-      </div>
-      <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;overflow:hidden">
-        ${shifts||'<tr><td colspan="6" style="padding:10px;font-size:12px;color:#9ca3af;text-align:center;border:1px solid #e5e7eb">Sem escala</td></tr>'}
-      </table>
-      ${day.obs?`<div style="margin-top:4px;font-size:11px;color:#d97706;background:#fffbeb;border:1px solid #fde68a;border-radius:4px;padding:5px 10px">📝 ${day.obs}</div>`:''}
-    </div>`;
-  }).join('');
+  /* CSS — replicating app exactly */
+  var css = [
+    '@page { size:A4 landscape; margin:1cm 1.2cm; }',
+    'body { font-family:"DM Sans",Arial,sans-serif; background:#f0f4f8; color:#1a2333; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }',
+    '.page-header { background:#fff; border:1px solid #c8d0db; border-radius:10px; padding:10px 16px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }',
+    '.ph-left h1 { font-size:13pt; font-weight:700; color:#1a2333; margin:0 0 1px 0; }',
+    '.ph-left p  { font-size:8pt; color:#8896a8; margin:0; }',
+    '.ph-right .week { font-size:10pt; font-weight:600; color:#1a2333; }',
+    '.gen-by { font-size:7pt; color:#8896a8; margin-top:2px; text-align:right; }',
+    /* day block */
+    '.day-block { border:1px solid #c8d0db; border-radius:10px; overflow:hidden; background:#fff; margin-bottom:10px; page-break-inside:avoid; }',
+    '.day-header-row { background:#e8edf2; padding:7px 12px; display:flex; align-items:center; gap:10px; border-bottom:1px solid #c8d0db; }',
+    '.day-header-row.hoje { background:rgba(59,130,246,.07); }',
+    '.dh-date { font-size:20pt; font-weight:700; font-family:"Courier New",monospace; color:#1a2333; line-height:1; min-width:28px; }',
+    '.day-header-row.hoje .dh-date { color:#3b82f6; }',
+    '.dh-month { font-size:8pt; color:#8896a8; text-transform:uppercase; }',
+    '.dh-week  { font-size:10pt; font-weight:600; color:#4a5568; }',
+    '.hoje-badge { margin-left:auto; font-size:8pt; color:#3b82f6; background:rgba(59,130,246,.12); padding:2px 8px; border-radius:10px; }',
+    /* category sub-header inside day */
+    '.cat-hdr { display:flex; align-items:center; gap:6px; padding:4px 10px; font-size:7.5pt; font-weight:700; border-bottom:1px solid #e2e8f0; }',
+    '.cat-hdr.enf { background:#eff6ff; color:#3b82f6; }',
+    '.cat-hdr.aux { background:#fff7ed; color:#f59e0b; }',
+    /* shift block */
+    '.shift-block { border-bottom:1px solid rgba(200,208,219,.5); }',
+    '.shift-block:last-child { border-bottom:none; }',
+    '.shift-sub-header { display:flex; align-items:center; gap:6px; padding:4px 10px; background:rgba(255,255,255,.5); border-bottom:1px solid rgba(200,208,219,.4); }',
+    '.sh-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }',
+    '.sh-dot.manha { background:#fb923c; }',
+    '.sh-dot.tarde { background:#34d399; }',
+    '.sh-dot.noite { background:#818cf8; }',
+    '.sh-lbl { font-size:8.5pt; font-weight:700; color:#4a5568; }',
+    /* postos grid — horizontal */
+    'table.postos { width:100%; border-collapse:collapse; }',
+    'table.postos td { border-right:1px solid rgba(200,208,219,.5); border-bottom:1px solid rgba(200,208,219,.3); padding:5px 8px; vertical-align:top; width:1%; }',
+    'table.postos td:last-child { border-right:none; }',
+    '.nc-pos  { font-size:7pt; font-weight:700; color:#8896a8; text-transform:uppercase; letter-spacing:.03em; margin-bottom:2px; }',
+    '.nc-name { font-size:9.5pt; font-weight:500; color:#1a2333; }',
+    '.nc-empty { font-size:9.5pt; color:#c8d0db; }',
+    '.obs-row { padding:4px 10px; font-size:8pt; color:#f59e0b; background:rgba(245,158,11,.04); border-top:1px solid rgba(245,158,11,.2); }',
+  ].join('\n');
 
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;padding:24px;}
-    @media print{body{padding:0;} .no-print{display:none}}
-  </style></head><body>
-  <div style="margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #e5e7eb">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
-      <div style="width:40px;height:40px;background:#3b82f6;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🏥</div>
-      <div>
-        <div style="font-size:18px;font-weight:800;color:#111">Hospital Fernando Pessoa</div>
-        <div style="font-size:11px;color:#6b7280">Planos de Trabalho · ${svcLabel}</div>
-      </div>
-      <div style="margin-left:auto;text-align:right">
-        <div style="font-size:13px;font-weight:700;color:#374151">Semana de ${weekLbl}</div>
-        <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:4px;background:${cat==='auxiliares'?'#fff7ed':'#eff6ff'};color:${cat==='auxiliares'?'#f59e0b':'#3b82f6'};border:1px solid ${cat==='auxiliares'?'#fde68a':'#bfdbfe'}">${catLabel}</div>
-      </div>
-    </div>
-    <div style="font-size:10px;color:#9ca3af">Gerado em ${new Date().toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} às ${new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})} · Por ${state.user.name}</div>
-  </div>
-  ${daysHtml}
-  
-<\/script>
-<\/body><\/html>`;
+  /* Build postos grid for one shift */
+  function buildShiftRow(slots, postosList, sk){
+    var dot = '<div class="sh-dot ' + sk + '"></div>';
+    var lbl = sk==='manha'?'M':sk==='tarde'?'T':'N';
+    var html = '<div class="shift-block">';
+    html += '<div class="shift-sub-header">' + dot + '<span class="sh-lbl">' + lbl + '</span></div>';
+    html += '<table class="postos"><tr>';
+    for(var i=0; i<postosList.length; i++){
+      var nm = (slots[i]&&slots[i].name)||'';
+      html += '<td>'
+        + '<div class="nc-pos">' + postosList[i] + '</div>'
+        + (nm ? '<div class="nc-name">' + nm + '</div>' : '<div class="nc-empty">&mdash;</div>')
+        + '</td>';
+    }
+    html += '</tr></table></div>';
+    return html;
+  }
 
-  // Open print dialog in new window
-  const win = window.open('','_blank','width=900,height=700');
-  if(!win){ showToast('❌ Bloqueador de popups ativo. Permita popups para este site.'); return; }
-  win.document.write(html);
-  win.document.close();
-  win.onload = ()=>{
-    setTimeout(()=>{
-      win.print();
-      showToast('✅ Diálogo de impressão aberto — escolha "Guardar como PDF".');
-    }, 400);
-  };
+  /* Build one category section for a given day */
+  function buildCatSection(day, catKey){
+    if(!day) return '';
+    var dow = new Date(day.date+'T00:00:00').getDay();
+    var postosKey = catKey==='auxiliares' ? (cfg.auxPostos||[]) : (cfg.postos||[]);
+    var isAux = catKey==='auxiliares';
+    var hdrClass = isAux ? 'aux' : 'enf';
+    var hdrText  = isAux ? '&#127959; Auxiliares de Sa&uacute;de' : '&#128105;&#8205;&#9877;&#65039; Enfermeiros';
+
+    var shiftsToShow = isPostoSvc ? ['manha','tarde'] : ['manha','tarde','noite'];
+    var content = '';
+
+    for(var si=0; si<shiftsToShow.length; si++){
+      var sk = shiftsToShow[si];
+      if(svc==='GASTRO' && dow===6 && sk==='tarde') continue;
+      if(svc==='CE'     && dow===6 && sk==='tarde') continue;
+
+      var slots = day[sk]||[];
+      var namedSlots = slots.filter(function(s){ return s.name; });
+
+      var postosList;
+      if(isPostoSvc){
+        postosList = postosKey;
+        if(!postosList.length) continue;
+      } else {
+        /* for non-posto: use postos config or numbered */
+        var cfgPostos = isAux ? (cfg.auxPostos||[]) : (cfg.postos||[]);
+        postosList = [];
+        for(var ii=0; ii<slots.length; ii++){
+          postosList.push(cfgPostos[ii] || ((sk==='manha'?'M':sk==='tarde'?'T':'N')+(ii+1)));
+        }
+        if(!postosList.length || (!namedSlots.length && !isPostoSvc)) continue;
+      }
+
+      content += buildShiftRow(slots, postosList, sk);
+    }
+
+    if(!content) return '';
+
+    var out = '<div class="cat-hdr ' + hdrClass + '">' + hdrText + '</div>';
+    out += content;
+    return out;
+  }
+
+  /* Main build: iterate days */
+  var bodyHtml = '';
+  /* Use enf days as reference, fall back to aux */
+  var refDays = daysEnf.length ? daysEnf : daysAux;
+
+  for(var di=0; di<refDays.length; di++){
+    var dayDate = refDays[di].date;
+    var d = new Date(dayDate+'T00:00:00');
+    var isHoje = dayDate===today;
+
+    /* Find matching day in each week */
+    var dayEnf = null, dayAux = null;
+    for(var i=0; i<daysEnf.length; i++){ if(daysEnf[i].date===dayDate){ dayEnf=daysEnf[i]; break; } }
+    for(var i=0; i<daysAux.length; i++){ if(daysAux[i].date===dayDate){ dayAux=daysAux[i]; break; } }
+
+    var hdrClass = 'day-header-row' + (isHoje?' hoje':'');
+    var dayHtml = '<div class="' + hdrClass + '">'
+      + '<span class="dh-date">' + d.getDate() + '</span>'
+      + '<span class="dh-month">' + MESES[d.getMonth()] + '</span>'
+      + '<span class="dh-week">' + refDays[di].weekday + '</span>'
+      + (isHoje ? '<span class="hoje-badge">Hoje</span>' : '')
+      + '</div>';
+
+    var enfSection = buildCatSection(dayEnf, 'enfermeiros');
+    var auxSection = buildCatSection(dayAux, 'auxiliares');
+
+    if(!enfSection && !auxSection) continue;
+
+    var obsText = '';
+    if(dayEnf&&dayEnf.obs) obsText += dayEnf.obs;
+    if(dayAux&&dayAux.obs&&dayAux.obs!==obsText) obsText += (obsText?' | ':'')+dayAux.obs;
+    var obsHtml = obsText ? '<div class="obs-row">&#9889; ' + obsText + '</div>' : '';
+
+    bodyHtml += '<div class="day-block">' + dayHtml + enfSection + auxSection + obsHtml + '</div>';
+  }
+
+  var docHtml = ''
+    + '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8">'
+    + '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->'
+    + '<style>' + css + '</style>'
+    + '</head><body>'
+    + '<div class="page-header">'
+    +   '<div class="ph-left">'
+    +     '<h1>&#127973; Hospital Escola Fernando Pessoa</h1>'
+    +     '<p>Plano de Trabalho Semanal &middot; ' + svcLabel + '</p>'
+    +   '</div>'
+    +   '<div class="ph-right">'
+    +     '<div class="week">Semana de ' + weekLbl + '</div>'
+    +     '<div class="gen-by">Gerado por ' + state.user.name + ' em ' + nowStr + '</div>'
+    +   '</div>'
+    + '</div>'
+    + bodyHtml
+    + '</body></html>';
+
+  var blob = new Blob([docHtml], {type:'application/msword'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'Plano_' + svc + '_' + state.currentWeek + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1000);
+  showToast('Documento descarregado!');
 }
 
 // ══════════════════════════════════════
@@ -2090,7 +2452,7 @@ function multiGetDone(){ try{ return JSON.parse(localStorage.getItem(MULTI_DONE_
 function multiSetDone(svc,cat,mes,ano){ const d=multiGetDone(); d[`${svc}|${cat}|${ano}-${String(mes).padStart(2,'0')}`]=true; localStorage.setItem(MULTI_DONE_KEY,JSON.stringify(d)); }
 function multiIsDone(svc,cat,mes,ano){ return !!multiGetDone()[`${svc}|${cat}|${ano}-${String(mes).padStart(2,'0')}`]; }
 
-const MULTI_SVCS = ['URG','IMP3','UMDR','ULDM','UC','IMC'];
+const MULTI_SVCS = ['URG','IMP3','UMDR','ULDM','UC','IMC','CE'];
 const MULTI_CATS = ['enfermeiros','auxiliares'];
 const SVC_ICONS  = {URG:'🚨',IMP3:'🏨',UMDR:'🩺',ULDM:'🛏️',UC:'💊',IMC:'🏥'};
 const MONTHS_PT  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -2230,8 +2592,6 @@ function renderMultiPanel(){
 }
 
 function multiNavSvc(svc, cat){
-  // CE usa sempre auxiliares
-  if(svc==='CE') cat='auxiliares';
   state.activeSvc=svc; state.activeCat=cat;
   ensureWeek(svc, state.currentWeek);
   const svcNameEl=document.getElementById('tb-svc-name');
@@ -2808,10 +3168,10 @@ function confirmExportRacios(){
   const rows = [];
 
   // Cabeçalho linha 1
-  const hdr1 = ['Serviço','Categoria','Turno',...days.map(d=>d.getDate()),'Média'];
+  const hdr1 = ['Serviço','Categoria','Turno',...days.map(d=>d.getDate())];
   rows.push(hdr1);
   // Cabeçalho linha 2 — dias da semana
-  const hdr2 = ['','','',...days.map(d=>WD[d.getDay()]),''];
+  const hdr2 = ['','','',...days.map(d=>WD[d.getDay()])];
   rows.push(hdr2);
 
   // Dados
@@ -2833,7 +3193,6 @@ function confirmExportRacios(){
           row.push(count);
           if(count){soma+=count;nd++;}
         });
-        row.push(nd?Math.round(soma/nd*100)/100:0);
         rows.push(row);
       });
     });
@@ -2845,8 +3204,7 @@ function confirmExportRacios(){
   ws['!cols'] = [
     {wch:8},{wch:7},{wch:8},
     ...days.map(()=>({wch:4})),
-    {wch:7}
-  ];
+    ];
   // Congelar primeiras 3 colunas e 2 linhas
   ws['!freeze'] = {xSplit:3, ySplit:2};
 
